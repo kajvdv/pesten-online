@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="board">
+            <div class="nameplate"></div>
+            <div class="middle">
+                <img class="card drawdeck" src="cards/null.png"></img>
+                <img class="card" id="topcard" src="cards/null.png"></img>
+            </div>
+            <div class="hand">
+                <!-- <img class="card" src="cards/ace_of_clubs.png" alt="">
+                <img class="card" src="cards/ace_of_diamonds.png" alt="">
+                <img class="card" src="cards/ace_of_hearts.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt="">
+                <img class="card" src="cards/ace_of_spades.png" alt=""> -->
+            </div>
+        </div>
+        <script src="index.js"></script>
+        <script src="game.js"></script>
+        <script>
+            (async () => {
+                await connect()
+            })()
+        </script>
+    </body>
+</html>
