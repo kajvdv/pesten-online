@@ -139,7 +139,6 @@ def play_game(player_names: list[str]):
             if deck_draw:
                 move_card(deck_draw, current_player.hand)
                 index_current_player = get_next_player_index(index_current_player, players)
-                continue
             if len(deck_play) > 1:
                 # Reshuffle cards from play deck
                 topcard = deck_play.pop()
@@ -147,26 +146,23 @@ def play_game(player_names: list[str]):
                 while(deck_play):
                     move_card(deck_play, deck_draw)
                 deck_play.append(topcard)
-                continue
             print("No enough cards on the board", file=sys.stderr)
-
-
-        chosen_card = current_player.hand[choose]
-
-        # Check if either suit or value is the same
-        topcard = deck_play[-1]
-        if topcard.suit == chosen_card.suit or topcard.value == chosen_card.value:
-            # Valid play. Move card and go to the next player
-            move_card(current_player.hand, deck_play, choose)
-            # Check if won
-            if not current_player.hand:
-                print(current_player.name, "has won!")
-                break
-            index_current_player = get_next_player_index(index_current_player, players)
-            continue
         else:
-            print(invalid_card_played_message, file=sys.stderr)
-        
+            chosen_card = current_player.hand[choose]
+
+            # Check if either suit or value is the same
+            topcard = deck_play[-1]
+            if topcard.suit == chosen_card.suit or topcard.value == chosen_card.value:
+                # Valid play. Move card and go to the next player
+                move_card(current_player.hand, deck_play, choose)
+                # Check if won
+                if not current_player.hand:
+                    print(current_player.name, "has won!")
+                    break
+                index_current_player = get_next_player_index(index_current_player, players)
+            else:
+                print("Choose was not valid", file=sys.stderr)
+        print(index_current_player)
 
 if __name__ == "__main__":
     print("start new game", file=sys.stderr)
