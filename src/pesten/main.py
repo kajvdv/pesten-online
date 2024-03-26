@@ -139,14 +139,15 @@ def play_game(player_names: list[str]):
             if deck_draw:
                 move_card(deck_draw, current_player.hand)
                 index_current_player = get_next_player_index(index_current_player, players)
-            if len(deck_play) > 1:
+            elif len(deck_play) > 1:
                 # Reshuffle cards from play deck
                 topcard = deck_play.pop()
                 shuffle(deck_play)
                 while(deck_play):
                     move_card(deck_play, deck_draw)
                 deck_play.append(topcard)
-            print("No enough cards on the board", file=sys.stderr)
+            else:
+                print("No enough cards on the board", file=sys.stderr)
         else:
             chosen_card = current_player.hand[choose]
 
