@@ -1,6 +1,7 @@
 //TODO: Parameterize the websocket
 let websocket;
 let gameId = ""
+let currentPlayer = ""
 
 suitMap = {
     "Schoppen": 'spades',
@@ -20,6 +21,10 @@ function translateCard(serverCard) {
 }
 
 function onSelect(event) { // Will be called in game.js
+    if (currentPlayer != gameId) {
+        console.log("not your turn!", currentPlayer, gameId)
+        return
+    }
     const [source] = event.target.src.split('/').slice(-1)
     console.log(source)
     let [value, suit] = source.split('_of_')
@@ -54,6 +59,8 @@ async function connect() {
             topCard: translateCard(message.top_card),
         }
         setGame(game)
+        currentPlayer = Number(message.currentPlayer)
+        gameId = Number(message.playerId)
         const nameplate = document.querySelector('.nameplate')
         nameplate.textContent = message.player
     }

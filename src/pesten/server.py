@@ -28,6 +28,7 @@ on_turns: list[asyncio.Event] = []
 
 @app.websocket('/')
 async def connect_to_game(websocket: WebSocket, name):
+    global current_index
     player_id = len(sockets)
     await websocket.accept()
     print('new connection for', name)
@@ -47,20 +48,24 @@ async def connect_to_game(websocket: WebSocket, name):
         board = json.loads(board)
         # Dit moet uiteindelijk naar alle spelers worden gestuurd
         #TODO: Have all players update their boards
-        await websocket.send_json({
-            'can_draw': True,
-            'hand': board['hand'],
-            'top_card': board['topCard']
-        })
+        for i, socket in enumerate(sockets):
+            await socket.send_json({
+                'can_draw': True,
+                'hand': board['players'][i]['hand'],
+                'top_card': board['topCard'],
+                'currentPlayer': current_index,
+                'playerId': i,
+            })
 
         choose = await websocket.receive_text()
         answer = int(choose) + 1
         game_process.stdin.write(str(answer) + '\n')
         game_process.stdin.flush()
         current_index = int(game_process.stdout.readline().strip())
+        print("next player is", current_index)
 
-        on_turns[current_index].set()
         on_turns[player_id].clear()
+        on_turns[current_index].set()
     
 
 

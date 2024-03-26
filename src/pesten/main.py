@@ -129,7 +129,11 @@ def play_game(player_names: list[str]):
     index_current_player = 0
     while(True):
         current_player = players[index_current_player]
+        print(dir(players[0]), file=sys.stderr)
         choose = int(input(json.dumps({
+            "drawDeck": [str(card) for card in deck_draw],
+            "playDeck": [str(card) for card in deck_play],
+            "players": [{'name': player.name, "hand": [str(card) for card in player.hand]} for player in players],
             "topCard": str(deck_play[-1]),
             "currentPlayer": current_player.name,
             "hand": list(map(str, current_player.hand)),
