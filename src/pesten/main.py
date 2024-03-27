@@ -113,7 +113,7 @@ def create_new_game(players: list[str]):
 
 invalid_card_played_message = "Ongeldige kaart gespeeld, speel nog een keer"
     
-def play_game(player_names: list[str]):
+async def play_game(player_names: list[str], get_choose, send_message):
     deck_draw = [Card(suit, value) for suit in suits for value in values]
     shuffle(deck_draw)
     # Create the players
@@ -129,15 +129,13 @@ def play_game(player_names: list[str]):
     index_current_player = 0
     while(True):
         current_player = players[index_current_player]
-        print(dir(players[0]), file=sys.stderr)
-        choose = int(input(json.dumps({
+        print("getting choose")
+        choose = await get_choose({
             "drawDeck": [str(card) for card in deck_draw],
             "playDeck": [str(card) for card in deck_play],
             "players": [{'name': player.name, "hand": [str(card) for card in player.hand]} for player in players],
-            "topCard": str(deck_play[-1]),
             "currentPlayer": current_player.name,
-            "hand": list(map(str, current_player.hand)),
-        }) + '\n')) - 1
+        })
         # Draw card when player pressed 0
         if choose == -1:
             if deck_draw:
@@ -151,7 +149,7 @@ def play_game(player_names: list[str]):
                     move_card(deck_play, deck_draw)
                 deck_play.append(topcard)
             else:
-                print("No enough cards on the board", file=sys.stderr)
+                await send_message("No enough cards on the board")
         else:
             chosen_card = current_player.hand[choose]
 
@@ -162,14 +160,8 @@ def play_game(player_names: list[str]):
                 move_card(current_player.hand, deck_play, choose)
                 # Check if won
                 if not current_player.hand:
-                    print(current_player.name, "has won!")
+                    send_message(current_player.name, "has won!")
                     break
                 index_current_player = get_next_player_index(index_current_player, players)
             else:
-                print("Choose was not valid", file=sys.stderr)
-        print(index_current_player)
-
-if __name__ == "__main__":
-    print("start new game", file=sys.stderr)
-    player_names = ["Kaj", "Soy"]
-    play_game(player_names)
+                await send_message("Choose was not valid")
