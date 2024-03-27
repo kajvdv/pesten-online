@@ -38,6 +38,10 @@ function onSelect(event) { // Will be called in game.js
 }
 
 function onDraw() {
+    if (currentPlayer != gameId) {
+        console.log("not your turn!", currentPlayer, gameId)
+        return
+    }
     websocket.send(-1)
 }
 
