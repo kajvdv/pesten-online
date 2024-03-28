@@ -80,9 +80,13 @@ async def connect_to_game(websocket: WebSocket, name):
         choose = await websocket.receive_text()
         if choose == '-1':
             game.draw()
+            game.next()
         else:
-            game.play(int(choose))
-        current_index = game.next()
+            index = int(choose)
+            if game.check(index):
+                game.play(int(choose))
+                game.next()
+        current_index = game.players.index_current_player
 
         on_turns[player_id].clear()
         on_turns[current_index].set()
