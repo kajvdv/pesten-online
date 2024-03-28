@@ -10,8 +10,13 @@ if __name__ == "__main__":
         connect('ws://localhost:8000/?name=kaj') as connection_kaj,
         connect('ws://localhost:8000/?name=soy') as connection_soy,
     ):
-        message = connection_kaj.recv()
-        print(message)
+        for _ in range(10):
+            message = connection_kaj.recv()
+            print(message)
+            connection_kaj.send('-1')
+            message = connection_soy.recv()
+            print(message)
+            connection_soy.send('-1')
     print("Terminate server process")
     server_process.terminate()
     
