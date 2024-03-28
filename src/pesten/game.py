@@ -79,7 +79,7 @@ class Player:
 class PlayerGroup:
     def __init__(self, players) -> None:
         self.players: list[Player] = players
-        self.index_current_player = -1
+        self.index_current_player = 0
         self.reverse = False
 
     def reverse_order(self):
@@ -127,7 +127,6 @@ class Board:
 
     def next(self):
         self.players.next()
-        return self.players.index_current_player
 
     def draw(self):
         drawdeck = self.drawdeck
