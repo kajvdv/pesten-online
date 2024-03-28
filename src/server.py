@@ -25,35 +25,32 @@ current_index = 0
 on_turns: list[asyncio.Event] = []
 
 
-def create_get_choose(websocket: WebSocket):
-    async def get_choose(game):
-        i = sockets.index(websocket)
-        print("getting choose for i", i)
-        await websocket.send_json({
-                'can_draw': True,
-                'hand': game['players'][i]['hand'],
-                'top_card': game['playDeck'][-1],
-                'currentPlayer': current_index,
-                'playerId': i,
-            })
-        return await websocket.receive_text()
+async def get_choose(game):
+    global current_index
+    websocket = sockets[current_index]
+    print("getting choose for i", current_index)
+    await websocket.send_json({
+        'can_draw': True,
+        'hand': game['players'][current_index]['hand'],
+        'top_card': game['playDeck'][-1],
+        'currentPlayer': current_index,
+        'playerId': current_index,
+    })
+    choose = await websocket.receive_text()
+    return int(choose) + 1
 
 
-    return get_choose
-
-
-def create_send_message(websocket):
-    async def send_message(message):
-        await websocket.send({
-            "drawDeck": [],
-            "playDeck": [],
-            "players": [],
-            "currentPlayer": "",
-            "message": message,
-        })
+async def send_message(message):
+    global current_index
+    websocket = sockets[current_index]
+    await websocket.send({
+        "drawDeck": [],
+        "playDeck": [],
+        "players": [],
+        "currentPlayer": "",
+        "message": message,
+    })
     
-    return send_message
-
 
 @app.websocket('/')
 async def connect_to_game(websocket: WebSocket, name):
@@ -66,7 +63,7 @@ async def connect_to_game(websocket: WebSocket, name):
     # Telling the first player to make a move
     if len(sockets) == 2:
         on_turns[0].set()
-        await play_game(['Kaj', 'Soy'], create_get_choose(websocket), create_send_message(websocket))
+        await play_game(['Kaj', 'Soy'], get_choose, send_message)
     while(True): 
         await on_turns[player_id].wait()
 

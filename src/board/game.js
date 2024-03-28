@@ -1,4 +1,3 @@
-//TODO: Make modules of javascript files
 let game = {
     canDraw: false,
     topCard: null,
