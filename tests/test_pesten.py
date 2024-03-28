@@ -1,7 +1,9 @@
-from pesten.game import Pesten
+from pesten.game import create_board, Board
 
 
-playdeck = []
-players = []
-
-game = Pesten(drawdeck, playdeck, players)
+def test_construct_board():
+    board = create_board(['kaj', 'soy'])
+    assert type(board) == Board
+    assert board.playdeck
+    for player in board.players.players:
+        assert player.hand

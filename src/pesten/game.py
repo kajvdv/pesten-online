@@ -127,6 +127,7 @@ class Board:
 
     def next(self):
         self.players.next()
+        return self.players.index_current_player
 
     def draw(self):
         drawdeck = self.drawdeck
@@ -144,51 +145,47 @@ class Board:
         card = drawdeck.take()
         self.players.current_player.give_card(card)
 
-
-class PestenInterface(Protocol):
-    async def get_choose(self, board: Board) -> int: ...
-    async def invalid_card_choosen(self, board: Board) -> None: ...
-
-
-class Pesten:
-    def __init__(self, board: Board, interface: PestenInterface) -> None:
-        self.board = board # The board contains all the data about the game
-        self.interface = interface
-
-    async def start(self):
-        board = self.board
-        interface = self.interface
-        while(True):
-            index = await interface.get_choose(board)
-            if not board.check(index):
-                await interface.invalid_card_choosen(board)
-                continue
-            board.play(index)
-            board.next()
-
-
-def create_new_game(names, interface):
-    drawdeck = create_full_deck()
-    drawdeck.shuffle()
+def create_board(names):
+    player_list = [Player(name) for name in names]
+    players = PlayerGroup(player_list)
     playdeck = Deck([])
+    drawdeck = create_full_deck()
+    for player in players.players:
+        for _ in range(8):
+            player.give_card(drawdeck.take())
     playdeck.add(drawdeck.take())
-    players = [Player(name) for name in names]
-    player_group = PlayerGroup(players)
-    board = Board(drawdeck, playdeck, player_group)
-    for i in range(4):
-        for j in range(8):
-            board.draw()
-        board.next()
-    game = Pesten(board, interface)
-    return game
+    board = Board(drawdeck, playdeck, players)
+    return board
+
+# class Pesten:
+#     def __init__(self, board: Board, interface: PestenInterface) -> None:
+#         self.board = board # The board contains all the data about the game
+#         self.interface = interface
+
+#     async def start(self):
+#         board = self.board
+#         interface = self.interface
+#         while(True):
+#             index = await interface.get_choose(board)
+#             if not board.check(index):
+#                 await interface.invalid_card_choosen(board)
+#                 continue
+#             board.play(index)
+#             board.next()
 
 
-class TerminalInterface:
-    def get_choose(self, board: Board) -> int:
-        print("Topcard is", board.top_card)
-        for card in board.players.current_player.hand:
-            print(card)
-        return int(input("What is your choose?"))
+# def create_new_game(names, interface):
+#     drawdeck = create_full_deck()
+#     drawdeck.shuffle()
+#     playdeck = Deck([])
+#     playdeck.add(drawdeck.take())
+#     players = [Player(name) for name in names]
+#     player_group = PlayerGroup(players)
+#     board = Board(drawdeck, playdeck, player_group)
+#     for i in range(4):
+#         for j in range(8):
+#             board.draw()
+#         board.next()
+#     game = Pesten(board, interface)
+#     return game
 
-    def invalid_card_choosen(self) -> None:
-        print("This card cannot be choosen")
