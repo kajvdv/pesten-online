@@ -8,8 +8,9 @@ import sys
 import asyncio
 import select
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
+from starlette.background import BackgroundTasks
 import uvicorn
 from websocket import create_connection
 from pesten.game import Board, create_board
@@ -67,31 +68,34 @@ async def connect_to_game(websocket: WebSocket, name):
         game = create_board(['kaj', 'soy'])
         on_turns[0].set()
     while(True): 
-        await on_turns[player_id].wait()
-        print(name, "their turn")
-        for i, socket in enumerate(sockets):
-            await socket.send_json({
-                'can_draw': True,
-                'hand': [str(card) for card in game.players.players[i].hand],
-                'top_card': str(game.playdeck.cards[-1]),
-                'currentPlayer': current_index,
-                'playerId': i,
-            })
-        choose = await websocket.receive_text()
-        if choose == '-1':
-            game.draw()
-            game.next()
-        else:
-            index = int(choose)
-            if game.check(index):
-                game.play(int(choose))
+        try:
+            await on_turns[player_id].wait()
+            print(name, "their turn")
+            for i, socket in enumerate(sockets):
+                await socket.send_json({
+                    'can_draw': True,
+                    'hand': [str(card) for card in game.players.players[i].hand],
+                    'top_card': str(game.playdeck.cards[-1]),
+                    'currentPlayer': current_index,
+                    'playerId': i,
+                })
+            choose = await websocket.receive_text()
+            if choose == '-1':
+                game.draw()
                 game.next()
-        current_index = game.players.index_current_player
+            else:
+                index = int(choose)
+                if game.check(index):
+                    game.play(int(choose))
+                    game.next()
+            current_index = game.players.index_current_player
 
-        on_turns[player_id].clear()
-        on_turns[current_index].set()
-    
-
+            on_turns[player_id].clear()
+            on_turns[current_index].set()
+        except WebSocketDisconnect:
+            print("Disconnecting websocket", name)
+            break
+        
 
 app.mount("/", StaticFiles(directory="src/board"), name="board")
 
