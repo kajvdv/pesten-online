@@ -26,6 +26,17 @@ current_index = 0
 on_turns: list[asyncio.Event] = []
 
 
+def play_turn(game, choose):
+    if choose == -1:
+        game.draw()
+        game.next()
+    else:
+        index = choose
+        if game.check(index):
+            game.play(int(choose))
+            game.next()
+
+
 @app.websocket('/')
 async def connect_to_game(websocket: WebSocket, name):
     global current_index
@@ -57,14 +68,7 @@ async def connect_to_game(websocket: WebSocket, name):
             on_turns[(player_id+1) % len(on_turns)].set()
             break
 
-        if choose == '-1':
-            game.draw()
-            game.next()
-        else:
-            index = int(choose)
-            if game.check(index):
-                game.play(int(choose))
-                game.next()
+        play_turn(game, int(choose))
         current_index = game.players.index_current_player
 
         on_turns[player_id].clear()
@@ -75,8 +79,20 @@ async def connect_to_game(websocket: WebSocket, name):
 class Gameloop(WebSocketEndpoint):
     encoding = 'text'
 
+    async def update_websockets(self):
+        for i, socket in enumerate(sockets):
+            print("sending message")
+            await socket.send_json({
+                'can_draw': True,
+                'hand': [str(card) for card in game.players.players[i].hand],
+                'top_card': str(game.playdeck.cards[-1]),
+                'currentPlayer': current_index,
+                'playerId': i,
+            })
+
     async def on_connect(self, websocket, **kwargs): 
-        player_id = len(sockets)
+        global game
+        self.player_id = len(sockets)
         await websocket.accept()
         name = websocket.scope['query_string']
         name = name.decode('utf-8')
@@ -89,23 +105,23 @@ class Gameloop(WebSocketEndpoint):
         if len(sockets) == 2:
             print("creating game")
             game = create_board(['kaj', 'soy'])
-            for i, socket in enumerate(sockets):
-                print("sending message")
-                await socket.send_json({
-                    'can_draw': True,
-                    'hand': [str(card) for card in game.players.players[i].hand],
-                    'top_card': str(game.playdeck.cards[-1]),
-                    'currentPlayer': current_index,
-                    'playerId': i,
-                })
+            await self.update_websockets()
         
     async def on_receive(self, websocket, data): 
-        choose = data
-        print(choose)
+        global game
+        global current_index
+        print(self.player_id, current_index)
+        if self.player_id != current_index:
+            print("not your turn")
+            return
+        choose = int(data)
+        play_turn(game, choose)
+        await self.update_websockets()
+        current_index = game.players.index_current_player
 
 
     async def on_disconnect(self, websocket, close_code): 
-        ...
+        print("closing with code", close_code)
 
 app.mount("/", StaticFiles(directory="src/board"), name="board")
 
