@@ -22,7 +22,6 @@ app = FastAPI()
 
 game: Board = None
 sockets: list[WebSocket] = []
-current_index = 0
 
 
 def play_turn(game, choose):
@@ -46,7 +45,7 @@ class Gameloop(WebSocketEndpoint):
                 'can_draw': True,
                 'hand': [str(card) for card in game.players.players[i].hand],
                 'top_card': str(game.playdeck.cards[-1]),
-                'currentPlayer': current_index,
+                'currentPlayer': game.players.index_current_player,
                 'playerId': i,
             })
 
@@ -68,15 +67,13 @@ class Gameloop(WebSocketEndpoint):
         
     async def on_receive(self, websocket, data): 
         global game
-        global current_index
-        print(self.player_id, current_index)
-        if self.player_id != current_index:
+        print(self.player_id, game.players.index_current_player)
+        if self.player_id != game.players.index_current_player:
             print("not your turn")
             return
         choose = int(data)
         play_turn(game, choose)
         await self.update_websockets()
-        current_index = game.players.index_current_player
 
 
     async def on_disconnect(self, websocket, close_code): 
