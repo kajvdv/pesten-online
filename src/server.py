@@ -23,7 +23,6 @@ app = FastAPI()
 game: Board = None
 sockets: list[WebSocket] = []
 current_index = 0
-on_turns: list[asyncio.Event] = []
 
 
 def play_turn(game, choose):
@@ -31,9 +30,8 @@ def play_turn(game, choose):
         game.draw()
         game.next()
     else:
-        index = choose
-        if game.check(index):
-            game.play(int(choose))
+        if game.check(choose):
+            game.play(choose)
             game.next()
 
 
@@ -63,7 +61,6 @@ class Gameloop(WebSocketEndpoint):
         name = name[0]
         print('new connection for', name)
         sockets.append(websocket)
-        on_turns.append(asyncio.Event())
         if len(sockets) == 2:
             print("creating game")
             game = create_board(['kaj', 'soy'])
