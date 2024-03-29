@@ -21,10 +21,6 @@ function translateCard(serverCard) {
 }
 
 function onSelect(event) { // Will be called in game.js
-    if (currentPlayer != gameId) {
-        console.log("not your turn!", currentPlayer, gameId)
-        return
-    }
     const [source] = event.target.src.split('/').slice(-1)
     console.log(source)
     let [value, suit] = source.split('_of_')
@@ -38,10 +34,6 @@ function onSelect(event) { // Will be called in game.js
 }
 
 function onDraw() {
-    if (currentPlayer != gameId) {
-        console.log("not your turn!", currentPlayer, gameId)
-        return
-    }
     websocket.send(-1)
 }
 
