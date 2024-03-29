@@ -25,9 +25,8 @@ class Card:
 
 
 class Deck:
-    def __init__(self, cards) -> None:
-        # self.cards = [Card(suit, value) for suit in suits for value in values]
-        self.cards = cards
+    def __init__(self, *cards) -> None:
+        self.cards = list(cards)
 
     def shuffle(self):
         new_cards = []
@@ -60,13 +59,13 @@ class Deck:
 
 
 def create_full_deck():
-    return Deck([Card(suit, value) for suit in SUITS for value in VALUES])
+    return Deck(*[Card(suit, value) for suit in SUITS for value in VALUES])
     
 
 class Player:
-    def __init__(self, name) -> None:
+    def __init__(self, name, *hand) -> None:
         self.name = name
-        self.hand: list[Card] = []
+        self.hand: list[Card] = list(hand)
     
     def give_card(self, card):
         self.hand.append(card)
@@ -77,7 +76,7 @@ class Player:
     
 
 class PlayerGroup:
-    def __init__(self, players) -> None:
+    def __init__(self, *players) -> None:
         self.players: list[Player] = players
         self.index_current_player = 0
         self.reverse = False
@@ -144,10 +143,23 @@ class Board:
         card = drawdeck.take()
         self.players.current_player.give_card(card)
 
+    def has_won(self):
+        return len(self.players.current_player.hand) == 0
+    
+    def play_turn(self, index: int):
+        # Check if turn was valid by checking if player index changed
+        if index == -1:
+            self.draw()
+        elif self.check(index):
+            self.play(index)
+        if not self.has_won():
+            self.next()
+
+
 def create_board(names):
     player_list = [Player(name) for name in names]
-    players = PlayerGroup(player_list)
-    playdeck = Deck([])
+    players = PlayerGroup(*player_list)
+    playdeck = Deck()
     drawdeck = create_full_deck()
     for player in players.players:
         for _ in range(8):
@@ -155,36 +167,3 @@ def create_board(names):
     playdeck.add(drawdeck.take())
     board = Board(drawdeck, playdeck, players)
     return board
-
-# class Pesten:
-#     def __init__(self, board: Board, interface: PestenInterface) -> None:
-#         self.board = board # The board contains all the data about the game
-#         self.interface = interface
-
-#     async def start(self):
-#         board = self.board
-#         interface = self.interface
-#         while(True):
-#             index = await interface.get_choose(board)
-#             if not board.check(index):
-#                 await interface.invalid_card_choosen(board)
-#                 continue
-#             board.play(index)
-#             board.next()
-
-
-# def create_new_game(names, interface):
-#     drawdeck = create_full_deck()
-#     drawdeck.shuffle()
-#     playdeck = Deck([])
-#     playdeck.add(drawdeck.take())
-#     players = [Player(name) for name in names]
-#     player_group = PlayerGroup(players)
-#     board = Board(drawdeck, playdeck, player_group)
-#     for i in range(4):
-#         for j in range(8):
-#             board.draw()
-#         board.next()
-#     game = Pesten(board, interface)
-#     return game
-
