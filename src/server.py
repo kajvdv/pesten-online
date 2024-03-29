@@ -21,38 +21,9 @@ app = FastAPI()
 
 game: Board = None
 sockets: list[WebSocket] = []
-flags: list[asyncio.Event] = []
-chooses: dict[WebSocket, asyncio.Queue] = {}
 current_index = 0
 on_turns: list[asyncio.Event] = []
 
-
-# async def get_choose(game):
-#     global current_index
-#     websocket = sockets[current_index]
-#     print("getting choose for i", current_index)
-#     await websocket.send_json({
-#         'can_draw': True,
-#         'hand': game['players'][current_index]['hand'],
-#         'top_card': game['playDeck'][-1],
-#         'currentPlayer': current_index,
-#         'playerId': current_index,
-#     })
-#     choose = await websocket.receive_text()
-#     return int(choose) + 1
-
-
-# async def send_message(message):
-#     global current_index
-#     websocket = sockets[current_index]
-#     await websocket.send({
-#         "drawDeck": [],
-#         "playDeck": [],
-#         "players": [],
-#         "currentPlayer": "",
-#         "message": message,
-#     })
-    
 
 @app.websocket('/')
 async def connect_to_game(websocket: WebSocket, name):
@@ -68,9 +39,9 @@ async def connect_to_game(websocket: WebSocket, name):
         game = create_board(['kaj', 'soy'])
         on_turns[0].set()
     while(True): 
+        await on_turns[player_id].wait()
+        print(name, "their turn")
         try:
-            await on_turns[player_id].wait()
-            print(name, "their turn")
             for i, socket in enumerate(sockets):
                 await socket.send_json({
                     'can_draw': True,
@@ -80,21 +51,23 @@ async def connect_to_game(websocket: WebSocket, name):
                     'playerId': i,
                 })
             choose = await websocket.receive_text()
-            if choose == '-1':
-                game.draw()
-                game.next()
-            else:
-                index = int(choose)
-                if game.check(index):
-                    game.play(int(choose))
-                    game.next()
-            current_index = game.players.index_current_player
-
-            on_turns[player_id].clear()
-            on_turns[current_index].set()
-        except WebSocketDisconnect:
+        except (WebSocketDisconnect, RuntimeError):
             print("Disconnecting websocket", name)
+            on_turns[(player_id+1) % len(on_turns)].set()
             break
+
+        if choose == '-1':
+            game.draw()
+            game.next()
+        else:
+            index = int(choose)
+            if game.check(index):
+                game.play(int(choose))
+                game.next()
+        current_index = game.players.index_current_player
+
+        on_turns[player_id].clear()
+        on_turns[current_index].set()
         
 
 app.mount("/", StaticFiles(directory="src/board"), name="board")
