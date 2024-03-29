@@ -7,10 +7,11 @@ import subprocess
 import sys
 import asyncio
 import select
+from urllib.parse import parse_qs
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from starlette.background import BackgroundTasks
+from starlette.endpoints import WebSocketEndpoint
 import uvicorn
 from websocket import create_connection
 from pesten.game import Board, create_board
@@ -68,7 +69,43 @@ async def connect_to_game(websocket: WebSocket, name):
 
         on_turns[player_id].clear()
         on_turns[current_index].set()
+
+
+@app.websocket_route('/class')
+class Gameloop(WebSocketEndpoint):
+    encoding = 'text'
+
+    async def on_connect(self, websocket, **kwargs): 
+        player_id = len(sockets)
+        await websocket.accept()
+        name = websocket.scope['query_string']
+        name = name.decode('utf-8')
+        name = parse_qs(name)
+        name = name.get('name', ['anonymous'])
+        name = name[0]
+        print('new connection for', name)
+        sockets.append(websocket)
+        on_turns.append(asyncio.Event())
+        if len(sockets) == 2:
+            print("creating game")
+            game = create_board(['kaj', 'soy'])
+            for i, socket in enumerate(sockets):
+                print("sending message")
+                await socket.send_json({
+                    'can_draw': True,
+                    'hand': [str(card) for card in game.players.players[i].hand],
+                    'top_card': str(game.playdeck.cards[-1]),
+                    'currentPlayer': current_index,
+                    'playerId': i,
+                })
         
+    async def on_receive(self, websocket, data): 
+        choose = data
+        print(choose)
+
+
+    async def on_disconnect(self, websocket, close_code): 
+        ...
 
 app.mount("/", StaticFiles(directory="src/board"), name="board")
 
