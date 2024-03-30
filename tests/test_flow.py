@@ -8,8 +8,8 @@ if __name__ == "__main__":
     try:
         time.sleep(3)
         with (
-            connect('ws://localhost:8000/class?name=kaj') as connection_kaj,
-            connect('ws://localhost:8000/class?name=soy') as connection_soy,
+            connect('ws://localhost:8000/?name=kaj') as connection_kaj,
+            connect('ws://localhost:8000/?name=soy') as connection_soy,
         ):
             for _ in range(10):
                 message = connection_kaj.recv()
