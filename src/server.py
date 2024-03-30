@@ -10,6 +10,7 @@ import select
 from urllib.parse import parse_qs
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.endpoints import WebSocketEndpoint
 import uvicorn
@@ -77,7 +78,13 @@ class Gameloop(WebSocketEndpoint):
     async def on_disconnect(self, websocket, close_code): 
         print("closing with code", close_code)
 
-app.mount("/", StaticFiles(directory="src/board"), name="board")
+
+@app.get('/lobbies/{lobby_id}/') # That slash on the end is very important!
+def get_board(lobby_id: int, name):
+    with open("src/board/index.html") as page:
+        return HTMLResponse(page.read())
+
+app.mount("/lobbies/{lobby_id}", StaticFiles(directory="src/board"), name="board")
 
 
 if __name__ == "__main__":
