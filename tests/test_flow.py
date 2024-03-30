@@ -13,11 +13,16 @@ if __name__ == "__main__":
         ):
             for _ in range(10):
                 message = connection_kaj.recv()
+                message = connection_soy.recv()
                 print(message)
                 connection_kaj.send('-1')
                 message = connection_soy.recv()
+                message = connection_kaj.recv()
                 print(message)
                 connection_soy.send('-1')
+            message = connection_soy.recv()
+            message = connection_kaj.recv()
+            print("Did all the turns")
     finally:
         print("Terminate server process")
         server_process.terminate()

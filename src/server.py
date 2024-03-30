@@ -39,7 +39,6 @@ class Gameloop(WebSocketEndpoint):
 
     async def update_websockets(self):
         for i, socket in enumerate(sockets):
-            print("sending message")
             await socket.send_json({
                 'can_draw': True,
                 'hand': [str(card) for card in game.players.players[i].hand],
