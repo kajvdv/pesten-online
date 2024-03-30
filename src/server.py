@@ -87,7 +87,7 @@ def get_board(lobby_id: int, name):
     with open("src/board/index.html") as page:
         return HTMLResponse(page.read())
 
-app.mount("/lobbies/{lobby_id}", StaticFiles(directory="src/board"), name="board")
+app.mount("/lobbies/{lobby_id}/", StaticFiles(directory="src/board"), name="board")
 
 
 if __name__ == "__main__":

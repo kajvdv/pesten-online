@@ -7,8 +7,8 @@ client = TestClient(app)
 
 def test_game_flow():
     with (
-        client.websocket_connect('/?name=kaj') as connection_kaj,
-        client.websocket_connect('/?name=soy') as connection_soy,
+        client.websocket_connect('pesten?name=kaj&lobby_id=0') as connection_kaj,
+        client.websocket_connect('pesten?name=soy&lobby_id=0') as connection_soy,
     ):
         for _ in range(10):
             message = connection_kaj.receive_text()

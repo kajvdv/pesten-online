@@ -49,7 +49,8 @@ async function connect() {
     console.log(queryString)
     const urlParams = new URLSearchParams(queryString);
     const name = urlParams.get('name')
-    websocket = new WebSocket(`ws://${window.location.host}/pesten?name=${name}&lobby_id=0`)
+    const lobby_id = window.location.pathname.split('/')[2]
+    websocket = new WebSocket(`ws://${window.location.host}/pesten?name=${name}&lobby_id=${lobby_id}`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
         console.log("received message", message)
