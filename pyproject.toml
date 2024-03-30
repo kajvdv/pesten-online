@@ -12,4 +12,5 @@ dependencies = [
     "uvicorn",
     "websockets",
     "httpx",
+    "pytest",
 ]
