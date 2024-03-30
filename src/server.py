@@ -20,59 +20,62 @@ import json
 
 app = FastAPI()
 
-game: Board = None
-sockets: list[WebSocket] = []
 
-
-def play_turn(game, choose):
-    if choose == -1:
-        game.draw()
-        game.next()
-    else:
-        if game.check(choose):
-            game.play(choose)
-            game.next()
-
-
-@app.websocket_route('/')
-class Gameloop(WebSocketEndpoint):
-    encoding = 'text'
+class Lobby:
+    def __init__(self, size) -> None:
+        self.size = size
+        self.connections = {}
+        self.game = None
 
     async def update_websockets(self):
-        for i, socket in enumerate(sockets):
+        for i, (name, socket) in enumerate(self.connections.items()):
+            print(i, name, socket)
             await socket.send_json({
                 'can_draw': True,
-                'hand': [str(card) for card in game.players.players[i].hand],
-                'top_card': str(game.playdeck.cards[-1]),
-                'currentPlayer': game.players.index_current_player,
+                'hand': [str(card) for card in self.game.players.players[i].hand],
+                'top_card': str(self.game.playdeck.cards[-1]),
+                'currentPlayer': self.game.players.index_current_player,
                 'playerId': i,
             })
 
-    async def on_connect(self, websocket, **kwargs): 
-        global game
-        self.player_id = len(sockets)
-        await websocket.accept()
-        name = websocket.scope['query_string']
-        name = name.decode('utf-8')
-        name = parse_qs(name)
-        name = name.get('name', ['anonymous'])
-        name = name[0]
-        print('new connection for', name)
-        sockets.append(websocket)
-        if len(sockets) == 2:
-            print("creating game")
-            game = create_board(['kaj', 'soy'])
+    async def add_connection(self, name, websocket):
+        self.connections[name] = websocket
+        if len(self.connections) == self.size:
+            self.game = create_board([name for name in self.connections])
             await self.update_websockets()
+
+    def get_current_player_name(self):
+        return self.game.players.current_player.name
+
+
+lobbies: list[Lobby] = [Lobby(2)]
+
+
+@app.websocket_route('/pesten')
+class Gameloop(WebSocketEndpoint):
+    encoding = 'text'
+
+    async def on_connect(self, websocket, **kwargs): 
+        global lobbies
+        await websocket.accept()
+        params = websocket.scope['query_string']
+        params = params.decode('utf-8')
+        params = parse_qs(params)
+        name = params.get('name', ['anonymous'])
+        name = name[0]
+        lobby_id = int(params.get('lobby_id')[0])
+        print(f'new connection for {name} on {lobby_id}')
+        self.lobby = lobbies[lobby_id]
+        self.name = name
+        await self.lobby.add_connection(name, websocket)
         
     async def on_receive(self, websocket, data): 
-        global game
-        print(self.player_id, game.players.index_current_player)
-        if self.player_id != game.players.index_current_player:
-            print("not your turn")
+        if self.name != self.lobby.get_current_player_name():
+            print("not your turn", self.name, self.lobby.get_current_player_name())
             return
         choose = int(data)
-        play_turn(game, choose)
-        await self.update_websockets()
+        self.lobby.game.play_turn(choose)
+        await self.lobby.update_websockets()
 
 
     async def on_disconnect(self, websocket, close_code): 

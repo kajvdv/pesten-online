@@ -45,7 +45,11 @@ async function createGame() {
 }
 
 async function connect() {
-    websocket = new WebSocket(`ws://localhost:8000?name=kaj`)
+    const queryString = window.location.search
+    console.log(queryString)
+    const urlParams = new URLSearchParams(queryString);
+    const name = urlParams.get('name')
+    websocket = new WebSocket(`ws://${window.location.host}/pesten?name=${name}&lobby_id=0`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
         console.log("received message", message)

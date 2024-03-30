@@ -153,6 +153,8 @@ class Board:
             self.draw()
         elif self.check(index):
             self.play(index)
+        else:
+            return
         if not self.has_won():
             self.next()
 
