@@ -37,6 +37,8 @@ class Deck:
             new_cards.append(self.cards[start])
             start += 1
             end -= 1
+        if start == end:
+            new_cards.append(self.cards[start])
         self.cards = new_cards
 
     def take(self, index=-1):
