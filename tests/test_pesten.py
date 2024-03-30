@@ -1,6 +1,6 @@
 import pytest
 
-from pesten.game import create_board, Board, PlayerGroup, Deck, Player, Card, CannotDraw
+from pesten import create_board, Board, PlayerGroup, Deck, Player, Card, CannotDraw
 
 TWO_OF_HEARTS = Card('hearts', 'two')
 THREE_OF_HEARTS = Card("hearts", 'three')

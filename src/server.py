@@ -13,8 +13,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from starlette.endpoints import WebSocketEndpoint
 import uvicorn
-from websocket import create_connection
-from pesten.game import Board, create_board
+from pesten import Board, create_board
 import json
 
 

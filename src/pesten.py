@@ -1,4 +1,3 @@
-from typing_extensions import Protocol
 
 
 SUITS = ["Harten", "Ruiten", "Schoppen", "Klaver"]
