@@ -13,6 +13,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.endpoints import WebSocketEndpoint
+from pydantic import BaseModel
 import uvicorn
 from pesten import Board, create_board
 import json
@@ -48,7 +49,18 @@ class Lobby:
         return self.game.players.current_player.name
 
 
-lobbies: list[Lobby] = [Lobby(2)]
+lobbies: list[Lobby] = []
+
+
+class LobbyBody(BaseModel):
+    size: int
+
+
+@app.post('/lobbies')
+def create_lobby(lobby: LobbyBody):
+    id = len(lobbies)
+    lobbies.append(Lobby(lobby.size))
+    return id
 
 
 @app.websocket_route('/pesten')

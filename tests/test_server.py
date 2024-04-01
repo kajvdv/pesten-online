@@ -5,6 +5,11 @@ from server import app
 client = TestClient(app)
 
 
+def test_create_lobby():
+    response = client.post('/lobbies', json={'size': 2})
+    assert response.status_code == 200
+
+
 def test_game_flow():
     with (
         client.websocket_connect('pesten?name=kaj&lobby_id=0') as connection_kaj,

@@ -1,17 +1,20 @@
 import subprocess
 import time
+import requests
 from websockets.sync.client import connect
 
 
 if __name__ == "__main__":
     server_process = subprocess.Popen(['uvicorn', 'server:app'])
     try:
-        time.sleep(3)
+        time.sleep(1)
+        response = requests.post('http://localhost:8000/lobbies', json={'size': 2})
+        print(response.text)
         with (
-            connect('ws://localhost:8000/?name=kaj') as connection_kaj,
-            connect('ws://localhost:8000/?name=soy') as connection_soy,
+            connect(f'ws://localhost:8000/pesten?name=kaj&lobby_id={response.text}') as connection_kaj,
+            connect(f'ws://localhost:8000/pesten?name=soy&lobby_id={response.text}') as connection_soy,
         ):
-            for _ in range(10):
+            for _ in range(3):
                 message = connection_kaj.recv()
                 message = connection_soy.recv()
                 print(message)
