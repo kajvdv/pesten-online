@@ -1,0 +1,32 @@
+body {
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    font-size: 5em;
+    text-align: center;
+    margin: 5px;
+}
+
+.lobby {
+    display: block;
+    padding: 5px;
+    border: solid 2px black;
+    width: fit-content;
+    min-width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.lobbies {
+    padding: 10px;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    border: solid 2px black;
+    border-radius: 5px;
+}

@@ -94,11 +94,18 @@ class Gameloop(WebSocketEndpoint):
         print("closing with code", close_code)
 
 
+@app.get('/lobbies')
+def get_lobbies():
+    with open("src/lobbies/index.html") as page:
+        return HTMLResponse(page.read())
+
+
 @app.get('/lobbies/{lobby_id}/') # That slash on the end is very important!
 def get_board(lobby_id: int, name):
     with open("src/board/index.html") as page:
         return HTMLResponse(page.read())
 
+app.mount("/lobbies/", StaticFiles(directory="src/lobbies"), name="lobbies")
 app.mount("/lobbies/{lobby_id}/", StaticFiles(directory="src/board"), name="board")
 
 
