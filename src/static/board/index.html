@@ -10,14 +10,14 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="/static/board/styles.css">
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body>
         <div class="board">
             <div class="nameplate"></div>
             <div class="middle">
-                <img class="card drawdeck" src="/static/board/cards/null.png"></img>
-                <img class="card" id="topcard" src="/static/board/cards/null.png"></img>
+                <img class="card drawdeck" src="cards/null.png"></img>
+                <img class="card" id="topcard" src="cards/null.png"></img>
             </div>
             <div class="hand">
                 <!-- <img class="card" src="cards/ace_of_clubs.png" alt="">
@@ -32,8 +32,8 @@
                 <img class="card" src="cards/ace_of_spades.png" alt=""> -->
             </div>
         </div>
-        <script src="/static/board/index.js"></script>
-        <script src="/static/board/game.js"></script>
+        <script src="index.js"></script>
+        <script src="game.js"></script>
         <script>
             (async () => {
                 await connect()

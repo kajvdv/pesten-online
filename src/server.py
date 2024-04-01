@@ -93,19 +93,11 @@ class Gameloop(WebSocketEndpoint):
     async def on_disconnect(self, websocket, close_code): 
         print("closing with code", close_code)
 
+@app.get('/')
+def get_static():
+    return RedirectResponse('/static/home.html')
 
-@app.get('/lobbies')
-def get_lobbies():
-    with open("static/lobbies/index.html") as page:
-        return HTMLResponse(page.read())
-
-
-@app.get('/lobbies/{lobby_id}')
-def get_board(lobby_id: int, name):
-    with open("static/board/index.html") as page:
-        return HTMLResponse(page.read())
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 
 if __name__ == "__main__":

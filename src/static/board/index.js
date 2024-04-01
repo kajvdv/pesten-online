@@ -49,7 +49,7 @@ async function connect() {
     console.log(queryString)
     const urlParams = new URLSearchParams(queryString);
     const name = urlParams.get('name')
-    const lobby_id = window.location.pathname.split('/')[2]
+    const lobby_id = urlParams.get('lobby_id')
     websocket = new WebSocket(`ws://${window.location.host}/pesten?name=${name}&lobby_id=${lobby_id}`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
