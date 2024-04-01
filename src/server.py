@@ -49,7 +49,7 @@ class Lobby:
         return self.game.players.current_player.name
 
 
-lobbies: list[Lobby] = []
+lobbies: list[Lobby] = [Lobby(2)]
 
 
 class LobbyBody(BaseModel):
@@ -96,17 +96,16 @@ class Gameloop(WebSocketEndpoint):
 
 @app.get('/lobbies')
 def get_lobbies():
-    with open("src/lobbies/index.html") as page:
+    with open("static/lobbies/index.html") as page:
         return HTMLResponse(page.read())
 
 
-@app.get('/lobbies/{lobby_id}/') # That slash on the end is very important!
+@app.get('/lobbies/{lobby_id}')
 def get_board(lobby_id: int, name):
-    with open("src/board/index.html") as page:
+    with open("static/board/index.html") as page:
         return HTMLResponse(page.read())
 
-app.mount("/lobbies/", StaticFiles(directory="src/lobbies"), name="lobbies")
-app.mount("/lobbies/{lobby_id}/", StaticFiles(directory="src/board"), name="board")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 if __name__ == "__main__":
