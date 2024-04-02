@@ -52,12 +52,17 @@ class Lobby:
 lobbies: list[Lobby] = [Lobby(2)]
 
 
-class LobbyBody(BaseModel):
+class LobbyCreate(BaseModel):
     size: int
 
 
+@app.get('/lobbies')
+def get_lobbies():
+    return [{"size": lobby.size, 'connections': len(lobby.connections)} for lobby in lobbies]
+
+
 @app.post('/lobbies')
-def create_lobby(lobby: LobbyBody):
+def create_lobby(lobby: LobbyCreate):
     id = len(lobbies)
     lobbies.append(Lobby(lobby.size))
     return id
