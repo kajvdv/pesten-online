@@ -40,9 +40,14 @@ class Lobby:
             })
 
     async def add_connection(self, name, websocket):
+        if name in self.connections:
+            await self.connections[name].close()
         self.connections[name] = websocket
-        if len(self.connections) == self.size:
+        if len(self.connections) == self.size and not self.game:
             self.game = create_board([name for name in self.connections])
+            while(len(self.game.players.current_player.hand) > 1):
+                self.game.play(0)
+        if self.game:
             await self.update_websockets()
 
     def get_current_player_name(self):
@@ -93,6 +98,12 @@ class Gameloop(WebSocketEndpoint):
         choose = int(data)
         self.lobby.game.play_turn(choose)
         await self.lobby.update_websockets()
+        if self.lobby.game.has_won():
+            print("Game won by", self.lobby.game.players.current_player.name)
+            sockets = self.lobby.connections.values()
+            lobbies.remove(self.lobby)
+            for socket in sockets:
+                await socket.close()
 
 
     async def on_disconnect(self, websocket, close_code): 

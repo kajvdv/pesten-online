@@ -67,5 +67,6 @@ async function connect() {
     }
     websocket.onclose = function(event) {
         console.log("closing websocket")
+        window.location.href = `/static/lobbies/index.html?name=${name}`
     }
 }
