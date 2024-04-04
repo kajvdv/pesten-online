@@ -3,6 +3,17 @@ const urlParams = new URLSearchParams(queryString);
 const userName = urlParams.get('name')
 
 
+function onCreateLobby(event) {
+    fetch('/lobbies', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: '{"size":2}'
+    }).then(() => location.reload())
+}
+
+
 fetch('/lobbies').then(response => response.json()).then(data => {
     console.log(data)
     const lobbies = document.querySelector('.lobbies')
