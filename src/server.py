@@ -41,7 +41,10 @@ class Lobby:
 
     async def add_connection(self, name, websocket):
         if name in self.connections:
-            await self.connections[name].close()
+            try:
+                await self.connections[name].close()
+            except RuntimeError:
+                print("Websocket already disconnected")
         self.connections[name] = websocket
         if len(self.connections) == self.size and not self.game:
             self.game = create_board([name for name in self.connections])
