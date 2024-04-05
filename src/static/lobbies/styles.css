@@ -1,6 +1,7 @@
 body {
     padding: 0;
     margin: 0;
+    background: green;
 }
 
 header {
@@ -10,6 +11,7 @@ header {
 }
 
 .lobby {
+    background: white;
     display: block;
     padding: 5px;
     border: solid 2px black;
@@ -24,9 +26,23 @@ header {
 
 .lobbies {
     padding: 10px;
+    height: 80vh;
     max-width: 80%;
     margin-left: auto;
     margin-right: auto;
     border: solid 2px black;
     border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#lobby-list {
+    overflow-y: auto;
+}
+
+#new-lobby-button {
+    align-self: center;
+    margin-top: auto;
+    font-size: 30px;
 }
