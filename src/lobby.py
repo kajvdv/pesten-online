@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from urllib.parse import parse_qs
+from fastapi import APIRouter, WebSocket, Query
+from starlette.endpoints import WebSocketEndpoint
 from pydantic import BaseModel
 
 from pesten import create_board
+from auth import get_user_from_token
 
 
 router = APIRouter()
@@ -59,3 +62,55 @@ def create_lobby(lobby: LobbyCreate):
     id = len(lobbies)
     lobbies.append(Lobby(lobby.size))
     return id
+
+
+# @router.websocket('/game')
+# async def gameloop(websocket: WebSocket, token = Query()):
+#     # Auth the token
+#     print(token)
+#     await websocket.accept()
+#     ...
+
+"""
+Ik wil af van die Starlette websocket om zo weer de FastAPI features te kunnen gebruiken.
+De feature die ik wil is om Query te gebruiken om makkelijk aan de query parameters te komen.
+Het was alleen gezeik wanneer ik naar meerdere websockets te gelijk wilde luisteren.
+Moet nog bedenken hoe ik dit ga doen.
+"""
+
+@router.websocket_route('/game')
+class Gameloop(WebSocketEndpoint):
+    encoding = 'text'
+
+    async def on_connect(self, websocket, **kwargs): 
+        global lobbies
+        await websocket.accept()
+        params = websocket.scope['query_string']
+        params = params.decode('utf-8')
+        params = parse_qs(params)
+        token = params.get('token')
+        name = get_user_from_token(token[0])
+        # name = name[0]
+        lobby_id = int(params.get('lobby_id')[0])
+        print(f'new connection for {name} on {lobby_id}')
+        self.lobby = lobbies[lobby_id]
+        self.name = name
+        await self.lobby.add_connection(name, websocket)
+        
+    async def on_receive(self, websocket, data): 
+        if self.name != self.lobby.get_current_player_name():
+            print("not your turn", self.name, self.lobby.get_current_player_name())
+            return
+        choose = int(data)
+        self.lobby.game.play_turn(choose)
+        await self.lobby.update_websockets()
+        if self.lobby.game.has_won():
+            print("Game won by", self.lobby.game.players.current_player.name)
+            sockets = self.lobby.connections.values()
+            lobbies.remove(self.lobby)
+            for socket in sockets:
+                await socket.close()
+
+
+    async def on_disconnect(self, websocket, close_code): 
+        print("closing with code", close_code)

@@ -50,7 +50,11 @@ async function connect() {
     const urlParams = new URLSearchParams(queryString);
     const name = urlParams.get('name')
     const lobby_id = urlParams.get('lobby_id')
-    websocket = new WebSocket(`ws://${window.location.host}/pesten?name=${name}&lobby_id=${lobby_id}`)
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+        throw Error("Could not get token")
+    }
+    websocket = new WebSocket(`ws://${window.location.host}/lobbies/game?token=${token}&lobby_id=${lobby_id}`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
         console.log("received message", message)
@@ -67,6 +71,6 @@ async function connect() {
     }
     websocket.onclose = function(event) {
         console.log("closing websocket")
-        window.location.href = `/static/lobbies/index.html?name=${name}`
+        window.location.href = `/static/lobbies/index.html?name=${name}` // Return on close?
     }
 }

@@ -21,6 +21,13 @@ def hash_password():
     ...
 
 
+def get_user_from_token(token):
+    if token in user.users:
+        return token
+    else:
+        raise Exception("User does not exists")
+
+
 @router.post('/token')
 def login_user(form: OAuth2PasswordRequestForm = Depends()):
     if form.username not in user.users:
