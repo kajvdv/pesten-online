@@ -50,7 +50,7 @@ async function connect() {
     const urlParams = new URLSearchParams(queryString);
     const name = urlParams.get('name')
     const lobby_id = urlParams.get('lobby_id')
-    const token = localStorage.getItem('access_token')
+    const token = sessionStorage.getItem('access_token')
     if (!token) {
         throw Error("Could not get token")
     }

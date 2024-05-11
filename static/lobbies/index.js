@@ -13,8 +13,11 @@ function onCreateLobby(event) {
     }).then(() => location.reload())
 }
 
-
-fetch('/lobbies').then(response => response.json()).then(data => {
+const token = sessionStorage.getItem('access_token')
+if (!token) {
+    throw new Error("No token found in storage")
+}
+fetch('/lobbies', {headers: {'Authorization': "Bearer " + token}}).then(response => response.json()).then(data => {
     console.log(data)
     const lobbies = document.querySelector('.lobbies')
     for (let i = 0; i < data.length; i++) {
