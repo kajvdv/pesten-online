@@ -14,6 +14,10 @@ def card_string(c):
     return SUITS[c // 13] + " " + VALUES[c % 13]
 
 
+class CannotDraw(Exception):
+    pass
+
+
 class Pesten:
     def __init__(self, player_count: int, hand_count, cards: list) -> None:
         self.player_count = player_count
@@ -29,8 +33,7 @@ class Pesten:
 
     def draw(self):
         if len(self.draw_stack) + len(self.play_stack) <= 1:
-            print("Not enough cards on the board to draw. Please play a card")
-            return self.current_player
+            raise CannotDraw("Not enough cards on the board to draw. Please play a card")
         if not self.draw_stack and len(self.play_stack) > 1:
             top_card = self.play_stack.pop()
             shuffle(self.play_stack)
