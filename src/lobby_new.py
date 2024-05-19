@@ -5,7 +5,7 @@ import requests
 from websockets.sync.client import connect
 
 from pydantic import BaseModel
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from pesten import Pesten, card, card_string, CannotDraw
 
@@ -97,21 +97,15 @@ async def game_loop(websocket: WebSocket, lobby: Lobby):
         print(f"websocket with id disconnected")
 
 
-
-
-## Test code below, dont use in other modules
-
-
-
 lobbies = [Lobby(2), Lobby(4)]
-app = FastAPI()
+router = APIRouter(prefix='/lobbies')
 
-@app.get('/')
+@router.get('')
 def get_lobbies():
     return [{'size': len(lobby.connections), 'capacity': lobby.capacity} for lobby in lobbies]
 
 
-@app.websocket("/ws")
+@router.websocket("/connect")
 async def connect_to_lobby(websocket: WebSocket, lobby_id: int = 0):
     lobby = lobbies[lobby_id]
     await websocket.accept()
@@ -119,13 +113,13 @@ async def connect_to_lobby(websocket: WebSocket, lobby_id: int = 0):
 
 
 def client():
-    lobbies = requests.get("http://localhost:8000/")
+    lobbies = requests.get("http://localhost:8000/lobbies")
     lobbies = lobbies.json()
     print("lobbies")
     for index, lobby in enumerate(lobbies):
         print(f"{index}. {lobby['size']}/{lobby['capacity']}")
     lobby_id = input("Welke lobby wil je joinen?: ")
-    with connect(f'ws://localhost:8000/ws?lobby_id={lobby_id}') as connection:
+    with connect(f'ws://localhost:8000/lobbies/connect?lobby_id={lobby_id}') as connection:
         player_id = connection.recv()
         def receive():
             while True:
@@ -147,9 +141,6 @@ def client():
         while True:
             message = input() # Client can make a choose
             connection.send(message) # Choose is send to the backend
-
-
-
 
 
 if __name__ == "__main__":

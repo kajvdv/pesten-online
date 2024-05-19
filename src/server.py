@@ -7,13 +7,16 @@ from fastapi import FastAPI, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
-from lobby import router as router_lobby
-from auth import router as router_auth, get_current_user
+from lobby_new import router as router_lobby
+from auth_new import router as router_auth, get_current_user
 
 
 app = FastAPI()
 # Secure endpoints with Depends(get_current_user)
-app.include_router(router_lobby, prefix='/lobbies', dependencies=[Depends(get_current_user)])
+app.include_router(
+    router_lobby,
+    # dependencies=[Depends(get_current_user)]
+)
 app.include_router(router_auth)
 
 
