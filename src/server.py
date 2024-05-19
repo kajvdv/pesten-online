@@ -7,8 +7,8 @@ from fastapi import FastAPI, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
-from lobby_new import router as router_lobby
-from auth_new import router as router_auth, get_current_user
+from lobby import router as router_lobby
+from auth import router as router_auth, get_current_user
 
 
 app = FastAPI()
