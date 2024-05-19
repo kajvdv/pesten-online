@@ -23,8 +23,12 @@ class User:
 users = {}
 
 
+def decode_token(token):
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+
 def get_current_user(token = Depends(oath2_scheme)):
-    user = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user = decode_token(token)
     return user['sub']
 
 

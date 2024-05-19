@@ -13,11 +13,11 @@ from auth import router as router_auth, get_current_user
 
 app = FastAPI()
 # Secure endpoints with Depends(get_current_user)
+app.include_router(router_auth)
 app.include_router(
     router_lobby,
     # dependencies=[Depends(get_current_user)]
 )
-app.include_router(router_auth)
 
 
 @app.get('/')

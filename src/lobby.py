@@ -1,4 +1,6 @@
+import sys
 import json
+import random
 from multiprocessing import Process
 from threading import Thread
 import requests
@@ -8,6 +10,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from pesten import Pesten, card, card_string, CannotDraw
+from auth import decode_token
 
 
 class Card(BaseModel):
@@ -30,50 +33,53 @@ class Lobby:
     def __init__(self, capacity) -> None:
         self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
         self.started = False
-        self.connections: list[WebSocket] = [] # What if player disconnects?
+        self.connections: dict[str, WebSocket] = {}
+        self.names = []
         self.capacity = capacity
 
 
-    async def add_connection(self, websocket: WebSocket):
+    async def add_connection(self, name, websocket: WebSocket):
         if self.started:
             raise Exception("Lobby is full")
-        player_id = len(self.connections)
-        self.connections.append(websocket)
-        if len(self.connections) == self.capacity:
+        if name in self.names:
+            raise Exception("Player already in lobby")
+        self.connections[name] = websocket
+        self.names.append(name)
+        if len(self.names) == self.capacity:
             self.started = True
-        await websocket.send_text(str(player_id)) # First message send to the client
         await self.update_boards()
-        return player_id
     
 
-    async def send_hand(self, player_id):
+    async def send_hand(self, name):
+        player_id = self.names.index(name)
         hand = "\n".join([
             str(index) + ": " + card_string(card)
             for index, card in enumerate(self.game.hands[player_id], start=1)
         ])
-        websocket = self.connections[player_id]
+        websocket = self.connections[name]
         await websocket.send_text(hand)
 
 
     async def update_boards(self):
-        for player_id, conn in enumerate(self.connections):
+        for name, conn in self.connections.items():
+            player_id = self.names.index(name)
             board = Board(
                 topcard=Card(self.game.play_stack[-1]),
                 can_draw=bool(self.game.draw_stack),
-                current_player=str(self.game.current_player),
+                current_player=self.names[self.game.current_player],
                 hand=[Card(card) for card in self.game.hands[player_id]]
             )
             await conn.send_json(board.model_dump())
 
 
-    async def get_choose(self, player_id):
-        websocket: WebSocket = self.connections[player_id]
+    async def get_choose(self, name):
+        websocket: WebSocket = self.connections[name]
         choose = await websocket.receive_text()
-        print(f"New message from {player_id} in lobby {lobbies.index(self)}")
+        print(f"New message from {name} in lobby {lobbies.index(self)}")
         if not self.started:
             await websocket.send_json({"error": "Game not started"})
             return
-        if self.game.current_player != player_id:
+        if self.game.current_player != self.names.index(name):
             await websocket.send_json({"error": "Not your turn"})
             return
         
@@ -88,16 +94,22 @@ class Lobby:
 
 
 
-async def game_loop(websocket: WebSocket, lobby: Lobby):
-    player_id = await lobby.add_connection(websocket)
+async def game_loop(websocket: WebSocket, name, lobby: Lobby):
+    await lobby.add_connection(name, websocket)
     try:
         while True:
-            await lobby.get_choose(player_id)
+            await lobby.get_choose(name)
     except WebSocketDisconnect:
         print(f"websocket with id disconnected")
+    except Exception as e:
+        print("ERROR", e)
+        websocket.close()
+    finally:
+        del lobby.connections[name]
 
 
-lobbies = [Lobby(2), Lobby(4)]
+
+lobbies = [Lobby(2), Lobby(2)]
 router = APIRouter(prefix='/lobbies')
 
 @router.get('')
@@ -106,21 +118,25 @@ def get_lobbies():
 
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby_id: int = 0):
+async def connect_to_lobby(websocket: WebSocket, token: str, lobby_id: int = 0):
+    data = decode_token(token)
+    name = data['sub']
     lobby = lobbies[lobby_id]
     await websocket.accept()
-    await game_loop(websocket, lobby)
+    await game_loop(websocket, name, lobby)
 
 
-def client():
+def client(token):
+    data = decode_token(token)
+    name = data['sub']
     lobbies = requests.get("http://localhost:8000/lobbies")
     lobbies = lobbies.json()
     print("lobbies")
     for index, lobby in enumerate(lobbies):
         print(f"{index}. {lobby['size']}/{lobby['capacity']}")
-    lobby_id = input("Welke lobby wil je joinen?: ")
-    with connect(f'ws://localhost:8000/lobbies/connect?lobby_id={lobby_id}') as connection:
-        player_id = connection.recv()
+    # lobby_id = input("Welke lobby wil je joinen?: ")
+    lobby_id = "0"
+    with connect(f'ws://localhost:8000/lobbies/connect?token={token}&lobby_id={lobby_id}') as connection:
         def receive():
             while True:
                 data = connection.recv()
@@ -129,11 +145,9 @@ def client():
                     print(board['error'])
                     continue
                 print(f"Topcard is {board['topcard']}")
-                if board["current_player"] == player_id:
+                if board["current_player"] == name:
                     print("It's your turn")
                     print("\n".join([str(card_id) + ": " + card['suit'] + " " + card['value'] for card_id, card in enumerate(board["hand"], start=1)]))
-
-                
         
         receive_thread = Thread(target=receive)
         receive_thread.start()
@@ -145,4 +159,5 @@ def client():
 
 if __name__ == "__main__":
     # Start the server with "uvicorn lobby_new:app"
-    client()
+    tokens = []
+    client(tokens[int(sys.argv[1])])
