@@ -39,12 +39,15 @@ class Lobby:
 
 
     async def add_connection(self, name, websocket: WebSocket):
-        if self.started:
-            raise Exception("Lobby is full")
         if name in self.names:
+            print("rejoining", name)
+        elif self.started:
+            raise Exception("Lobby is full")
+        elif name in self.names:
             raise Exception("Player already in lobby")
+        else:
+            self.names.append(name)
         self.connections[name] = websocket
-        self.names.append(name)
         if len(self.names) == self.capacity:
             self.started = True
         await self.update_boards()

@@ -1,8 +1,11 @@
 from random import shuffle
 from time import sleep
 
-SUITS = ["Harten", "Ruiten", "Schoppen", "Klaver"]
-VALUES = ["Twee", "Drie", "Vier", "Vijf", "Zes", "Zeven", "Acht", "Negen", "Tien", "Boer", "Vrouw", "Heer", "Aas"]
+# SUITS = ["Harten", "Ruiten", "Schoppen", "Klaver"]
+# VALUES = ["Twee", "Drie", "Vier", "Vijf", "Zes", "Zeven", "Acht", "Negen", "Tien", "Boer", "Vrouw", "Heer", "Aas"]
+
+SUITS = ["hearts", "diamonds", "spades", "clubs"]
+VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]
 
 
 def card(suit, value):

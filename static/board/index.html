@@ -36,7 +36,12 @@
         <script src="game.js"></script>
         <script>
             (async () => {
-                await connect()
+                const queryString = window.location.search
+                console.log(queryString)
+                const urlParams = new URLSearchParams(queryString);
+                const lobby_id = urlParams.get('lobby_id')
+                const token = sessionStorage.getItem('access_token')
+                await connect(token, lobby_id)
             })()
         </script>
     </body>

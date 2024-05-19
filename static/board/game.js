@@ -11,7 +11,7 @@ hand = document.querySelector('.hand')
 
 // Define interface
 function cardNames(card) {
-    return "cards/" + card.value + "_of_" + card.suit + ".png"
+    return "cards/" + card.value.toLowerCase() + "_of_" + card.suit.toLowerCase() + ".png"
 }
 
 drawDeck.addEventListener('click', onDraw)

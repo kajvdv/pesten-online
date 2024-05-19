@@ -1,4 +1,3 @@
-//TODO: Parameterize the websocket
 let websocket;
 let gameId = ""
 let currentPlayer = ""
@@ -28,13 +27,13 @@ function onSelect(event) { // Will be called in game.js
     console.log(value, 'of', suit)
     game.hand.forEach((card, index) => {
         if (card.suit === suit && card.value === value){
-            websocket.send(index)
+            websocket.send(index+1)
         }
     })
 }
 
 function onDraw() {
-    websocket.send(-1)
+    websocket.send(0)
 }
 
 async function createGame() {
@@ -44,24 +43,21 @@ async function createGame() {
     gameId = Number(await response.text())
 }
 
-async function connect() {
-    const queryString = window.location.search
-    console.log(queryString)
-    const urlParams = new URLSearchParams(queryString);
-    const name = urlParams.get('name')
-    const lobby_id = urlParams.get('lobby_id')
-    const token = sessionStorage.getItem('access_token')
-    if (!token) {
-        throw Error("Could not get token")
-    }
-    websocket = new WebSocket(`ws://${window.location.host}/lobbies/game?token=${token}&lobby_id=${lobby_id}`)
+async function connect(token, lobby_id) {
+    websocket = new WebSocket(`ws://${window.location.host}/lobbies/connect?token=${token}&lobby_id=${lobby_id}`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
         console.log("received message", message)
+        console.log("message type", typeof(message))
+        if (typeof(message) === "number") return
+        if ('error' in message) {
+            console.error(message.error)
+            return
+        }
         const game = {
             canDraw: message.can_draw,
-            hand: message.hand.map(card => translateCard(card)),
-            topCard: translateCard(message.top_card),
+            hand: message.hand,
+            topCard: message.topcard,
         }
         setGame(game)
         currentPlayer = Number(message.currentPlayer)
@@ -71,6 +67,6 @@ async function connect() {
     }
     websocket.onclose = function(event) {
         console.log("closing websocket")
-        window.location.href = `/static/lobbies/index.html?name=${name}` // Return on close?
+        window.location.href = `/static/lobbies/index.html` // Return on close?
     }
 }
