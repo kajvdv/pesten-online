@@ -1,16 +1,8 @@
-import sys
-import json
-import random
-from multiprocessing import Process
-from threading import Thread
-import requests
-from websockets.sync.client import connect
-
 from pydantic import BaseModel
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 
 from pesten import Pesten, card, card_string, CannotDraw
-from auth import decode_token
+from auth import get_current_user
 
 
 class Card(BaseModel):
@@ -112,7 +104,7 @@ async def game_loop(websocket: WebSocket, name, lobby: Lobby):
 
 
 
-lobbies = [Lobby(2), Lobby(2)]
+lobbies = []
 router = APIRouter(prefix='/lobbies')
 
 @router.get('')
@@ -121,46 +113,9 @@ def get_lobbies():
 
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, token: str, lobby_id: int = 0):
-    data = decode_token(token)
-    name = data['sub']
+async def connect_to_lobby(websocket: WebSocket, name: str = Depends(get_current_user), lobby_id: int = 0):
     lobby = lobbies[lobby_id]
     await websocket.accept()
     await game_loop(websocket, name, lobby)
 
 
-def client(token):
-    data = decode_token(token)
-    name = data['sub']
-    lobbies = requests.get("http://localhost:8000/lobbies")
-    lobbies = lobbies.json()
-    print("lobbies")
-    for index, lobby in enumerate(lobbies):
-        print(f"{index}. {lobby['size']}/{lobby['capacity']}")
-    # lobby_id = input("Welke lobby wil je joinen?: ")
-    lobby_id = "0"
-    with connect(f'ws://localhost:8000/lobbies/connect?token={token}&lobby_id={lobby_id}') as connection:
-        def receive():
-            while True:
-                data = connection.recv()
-                board = json.loads(data)
-                if "error" in board:
-                    print(board['error'])
-                    continue
-                print(f"Topcard is {board['topcard']}")
-                if board["current_player"] == name:
-                    print("It's your turn")
-                    print("\n".join([str(card_id) + ": " + card['suit'] + " " + card['value'] for card_id, card in enumerate(board["hand"], start=1)]))
-        
-        receive_thread = Thread(target=receive)
-        receive_thread.start()
-        print("Started receiving messages")
-        while True:
-            message = input() # Client can make a choose
-            connection.send(message) # Choose is send to the backend
-
-
-if __name__ == "__main__":
-    # Start the server with "uvicorn lobby_new:app"
-    tokens = []
-    client(tokens[int(sys.argv[1])])
