@@ -75,35 +75,3 @@ class Pesten:
                     else:
                         self.has_won = True        
         return int(self.current_player)
-        
-
-
-if __name__ == "__main__":
-    while True:
-        cards = [card(suit, value) for suit in range(4) for value in range(13)]
-        shuffle(cards)
-        game = Pesten(4, 8, cards)
-        curr = 0
-        while not game.has_won:
-            print(game.current_player, 'aan zet')
-            print("topcard is", card_string(game.play_stack[-1]))
-            for i, c in enumerate(game.curr_hand, start=1):
-                print(i, card_string(c))
-            print("Wat is je keuze: ")
-            choose = 1
-            while True:
-                new_curr = game.play_turn(choose)
-                if choose == 0:
-                    break
-                if new_curr != curr:
-                    print(choose, "was goed")
-                    curr = new_curr
-                    break
-                print(choose, 'was niet goed')
-                choose += 1
-                if choose >= len(game.curr_hand):
-                    print("kaart trekken")
-                    choose = 0
-
-        else:
-            print(game.current_player, "has won!")
