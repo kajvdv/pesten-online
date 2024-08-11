@@ -1,5 +1,7 @@
 from random import shuffle
 from time import sleep
+from typing import Literal
+from rules import drawCards, anotherTurn, skipTurn, reverseOrder
 
 # SUITS = ["Harten", "Ruiten", "Schoppen", "Klaver"]
 # VALUES = ["Twee", "Drie", "Vier", "Vijf", "Zes", "Zeven", "Acht", "Negen", "Tien", "Boer", "Vrouw", "Heer", "Aas"]
@@ -22,17 +24,23 @@ class CannotDraw(Exception):
 
 
 class Pesten:
-    def __init__(self, player_count: int, hand_count, cards: list) -> None:
+    #TODO move all changeSuit logic to rule function 
+    def __init__(self, player_count: int, hand_count, cards: list, rules: dict = None) -> None:
+        # I dont't like current players and curr_hand being in diffirent places
         self.player_count = player_count
         self.current_player = 0
         self.draw_stack = cards
         self.play_stack = [cards.pop()]
         self.hands = [[] for _ in range(player_count)]
         self.curr_hand = self.hands[self.current_player]
+        self.reverse = False
+        self.rules = rules
+        self.change_suit_state: Literal["not asked", "asking", "asked"] = "not_asked"
         for _ in range(hand_count):
             for hand in self.hands:
                 hand.append(self.draw_stack.pop())
         self.has_won = False
+        self.asking_suit = False
 
     def draw(self):
         if len(self.draw_stack) + len(self.play_stack) <= 1:
@@ -45,33 +53,68 @@ class Pesten:
             self.play_stack.append(top_card)
         self.curr_hand.append(self.draw_stack.pop())
 
-    def play(self, choose):
+    def check(self, choose):
         played_card = self.curr_hand[choose]
         top_card = self.play_stack[-1]
-        if played_card // 13 == top_card // 13 or played_card % 13 == top_card % 13:
-            self.play_stack.append(self.curr_hand.pop(choose))
-            return True
-        return False
+        suit_top_card = top_card // 13
+        if self.change_suit_state == "asked":
+            suit_top_card = self.chosen_suit
+        return played_card // 13 == suit_top_card or played_card % 13 == top_card % 13
+
+    def play(self, choose):
+        self.play_stack.append(self.curr_hand.pop(choose))
 
     def next(self):
-        self.current_player += self.player_count + 1 # Make sure it is a positive number
+        if not self.reverse:
+            self.current_player += 1
+        else:
+            self.current_player -= 1
+        self.current_player += self.player_count # Make sure it is a positive number
         self.current_player %= self.player_count
         self.curr_hand = self.hands[self.current_player]
-    
+        
     def play_turn(self, choose) -> int:
+        print("chosing", choose)
         # Returns index next player
         if self.has_won:
             return int(self.current_player)
-        
-        if choose == 0:
+        if choose == 0 and self.asking_suit == False:
             self.draw()
             self.next()
         else:
             choose = choose - 1 # player perspective to game perspective
-            if choose < len(self.curr_hand):
-                if self.play(choose):
-                    if self.curr_hand:
-                        self.next()
-                    else:
-                        self.has_won = True        
+            if self.change_suit_state == "asking" and choose < len(SUITS):
+                print("Suit chosen", SUITS[choose])
+                self.chosen_suit = choose
+                self.change_suit_state = "asked"
+                self.next()
+            elif choose < len(self.curr_hand):
+                value_choose = self.curr_hand[choose] % 13
+                rule = self.rules.get(value_choose, None)
+                if rule:
+                    rule(self, choose)
+                # else:
+
+                # if value_choose == 0:
+                #     drawCards(self, choose)
+                # elif value_choose == 5:
+                #     anotherTurn(self, choose)
+                # elif value_choose == 6:
+                #     skipTurn(self, choose)
+                # elif value_choose == 11:
+                #     anotherTurn(self, choose)
+                # elif value_choose == 12:
+                #     reverseOrder(self, choose)
+                else:
+                    # default play 
+                    if self.check(choose):
+                        self.change_suit_state = "not asked"
+                        self.play(choose)
+                        if self.curr_hand:
+                            self.next()
+                        else:
+                            self.has_won = True        
         return int(self.current_player)
+    
+    def current_hand(self):
+        return self.hands[self.current_hand]
