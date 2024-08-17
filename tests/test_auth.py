@@ -1,7 +1,8 @@
 import pytest
 
 
-def test_creating_account_and_loggin_in(client):
+def test_creating_account_and_loggin_in(client_with_auth):
+    client = client_with_auth
     token_response = client.post("http://localhost:8000/token", data={'username': "kaj", 'password': '123'})
     print("Inloggen met onbekende user:", token_response.text)
     register_response = client.post("http://localhost:8000/register", data={'username': "kaj", 'password': '123'})

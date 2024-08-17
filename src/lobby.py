@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 
 from pesten import Pesten, card, card_string, CannotDraw
-from auth import get_current_user
+from auth import get_current_user, User
 
 
 class Card(BaseModel):
@@ -22,11 +22,11 @@ class Board(BaseModel):
 
 
 class Lobby:
-    def __init__(self, capacity) -> None:
+    def __init__(self, capacity, creator) -> None:
         self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
         self.started = False
         self.connections: dict[str, WebSocket] = {}
-        self.names = []
+        self.names = [creator]
         self.capacity = capacity
 
 
@@ -104,12 +104,25 @@ async def game_loop(websocket: WebSocket, name, lobby: Lobby):
 
 
 
+
+class LobbyCreate(BaseModel):
+    size: int
+
 lobbies = []
 router = APIRouter(prefix='/lobbies')
 
 @router.get('')
 def get_lobbies():
     return [{'size': len(lobby.connections), 'capacity': lobby.capacity} for lobby in lobbies]
+
+
+@router.post('')
+def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
+    id = len(lobbies)
+    size = lobby.size
+    new_lobby = Lobby(size, user.username)
+    lobbies.append(new_lobby)
+    return id
 
 
 @router.websocket("/connect")
