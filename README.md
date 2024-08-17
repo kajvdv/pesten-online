@@ -2,7 +2,7 @@ Install the project with `pip install -e .`
 Initialize the database `python -m init_db`. It uses sqlite, so that should be installed.
 Run the server with `python -m server` or `uvicorn server:app`
 
-Run an html file in live server to develop on it. Live server acts as a proxy to prevent CORS errors.
+Run an html file in live server to develop on it. Use the live server as a proxy to the backend.
 
 
 ## Creating a new game
