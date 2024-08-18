@@ -8,15 +8,15 @@ No need for tokens!
 
 import json
 from threading import Thread
+import sys
 
 import requests
 from websockets.sync.client import connect
 
-import sys
-from server import app
-from auth import get_current_user
-from lobby import Lobby
-import lobby
+from pesten.server import app
+from pesten.auth import get_current_user
+from pesten.lobby import Lobby
+from pesten import lobby
 
 
 def get_current_user_override(token: str):

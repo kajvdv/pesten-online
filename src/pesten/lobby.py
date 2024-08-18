@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 
-from pesten import Pesten, card, card_string, CannotDraw
-from auth import get_current_user, User
+from pesten.pesten import Pesten, card, card_string, CannotDraw
+from pesten.auth import get_current_user, User
 
 
 class Card(BaseModel):
@@ -98,7 +98,7 @@ async def game_loop(websocket: WebSocket, name, lobby: Lobby):
         print(f"websocket with id disconnected")
     except Exception as e:
         print("ERROR", e)
-        websocket.close()
+        await websocket.close()
     finally:
         del lobby.connections[name]
 
@@ -122,13 +122,16 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     size = lobby.size
     new_lobby = Lobby(size, user.username)
     lobbies.append(new_lobby)
+    print("lobby created", id)
+    print(lobbies)
     return id
 
 
 @router.websocket("/connect")
 async def connect_to_lobby(websocket: WebSocket, name: str = Depends(get_current_user), lobby_id: int = 0):
+    print("Websocket connect with", name)
     lobby = lobbies[lobby_id]
     await websocket.accept()
-    await game_loop(websocket, name, lobby)
+    await game_loop(websocket, name.username, lobby)
 
 

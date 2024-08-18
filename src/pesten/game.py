@@ -1,6 +1,6 @@
 """A small client to play and test the game"""
 from random import shuffle
-from pesten import card, card_string, Pesten
+from pesten.pesten import card, card_string, Pesten
 
 
 def print_game(game):

@@ -1,7 +1,7 @@
 from random import shuffle
 from time import sleep
 from typing import Literal
-from rules import drawCards, anotherTurn, skipTurn, reverseOrder
+from pesten.rules import drawCards, anotherTurn, skipTurn, reverseOrder
 
 # SUITS = ["Harten", "Ruiten", "Schoppen", "Klaver"]
 # VALUES = ["Twee", "Drie", "Vier", "Vijf", "Zes", "Zeven", "Acht", "Negen", "Tien", "Boer", "Vrouw", "Heer", "Aas"]
@@ -25,7 +25,7 @@ class CannotDraw(Exception):
 
 class Pesten:
     #TODO move all changeSuit logic to rule function 
-    def __init__(self, player_count: int, hand_count, cards: list, rules: dict = None) -> None:
+    def __init__(self, player_count: int, hand_count, cards: list, rules: dict = {}) -> None:
         # I dont't like current players and curr_hand being in diffirent places
         self.player_count = player_count
         self.current_player = 0

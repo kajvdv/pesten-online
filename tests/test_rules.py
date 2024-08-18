@@ -1,6 +1,7 @@
-from pesten import Pesten
-from game import print_game, deck
 import pytest
+
+from pesten.pesten import Pesten
+from pesten.game import print_game, deck
 
 from rules import (
     drawCards,
@@ -55,4 +56,4 @@ def test_change_suit(rules):
 
 
 if __name__ == "__main__":
-    test_change_suit(get_rules())
+    pytest.main([__file__])

@@ -1,6 +1,6 @@
 from database import Base, engine, get_db
 from auth import register_user
-import server # Make sure all the orm models are imported
+import pesten.server # Make sure all the orm models are imported
 
 Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)

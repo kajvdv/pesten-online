@@ -1,7 +1,7 @@
 import pytest
 from random import shuffle
 
-from pesten import Pesten, card
+from pesten.pesten import Pesten, card
 
 
 def test_game():

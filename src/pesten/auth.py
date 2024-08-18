@@ -10,7 +10,7 @@ from sqlalchemy import String, Integer, Column, insert, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from database import Base, get_db
+from pesten.database import Base, get_db
 
 SECRET_KEY = "27d63347d36d97b05669a6ca6c4e9372e78d1e897dcf5debe823db3bde12460d"
 ALGORITHM = "HS256"
