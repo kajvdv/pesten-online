@@ -109,7 +109,7 @@ class LobbyCreate(BaseModel):
     size: int
 
 lobbies = []
-router = APIRouter(prefix='/lobbies')
+router = APIRouter()
 
 @router.get('')
 def get_lobbies():

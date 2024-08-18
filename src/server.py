@@ -16,7 +16,8 @@ app = FastAPI()
 app.include_router(router_auth)
 app.include_router(
     router_lobby,
-    # dependencies=[Depends(get_current_user)]
+    prefix='/lobbies',
+    dependencies=[Depends(get_current_user)]
 )
 
 
