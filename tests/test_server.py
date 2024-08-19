@@ -17,15 +17,16 @@ def test_game_flow(client, db):
     id = create_lobby(LobbyCreate(size=2), db.execute(select(User).where(User.username == 'kaj')).first()[0])
     connection_kaj = client.websocket_connect(f'lobbies/connect?name_override=kaj&lobby_id={id}')
     connection_soy = client.websocket_connect(f'lobbies/connect?name_override=soy&lobby_id={id}')
-    connection_kaj.send_text('-1')
-    message = connection_kaj.receive_text()
-    message = connection_soy.receive_text()
-    connection_kaj.send_text('-1')
-    message = connection_soy.receive_text()
-    message = connection_kaj.receive_text()
-    connection_soy.send_text('-1')
-    message = connection_soy.receive_text()
-    message = connection_kaj.receive_text()
+    with connection_kaj, connection_soy:
+        connection_kaj.send_text('-1')
+        message = connection_soy.receive_text()
+        message = connection_kaj.receive_text()
+        connection_kaj.send_text('-1')
+        message = connection_soy.receive_text()
+        message = connection_kaj.receive_text()
+        connection_soy.send_text('-1')
+        message = connection_soy.receive_text()
+        message = connection_kaj.receive_text()
 
 
 if __name__ == "__main__":

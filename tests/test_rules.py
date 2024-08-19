@@ -3,7 +3,7 @@ import pytest
 from pesten.pesten import Pesten
 from pesten.game import print_game, deck
 
-from rules import (
+from pesten.rules import (
     drawCards,
     anotherTurn,
     skipTurn,

@@ -25,3 +25,7 @@ def test_game():
                 choose = 0
         turn_count += 1
     print(turn_count)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
