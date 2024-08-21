@@ -1,5 +1,5 @@
-from database import Base, engine, get_db
-from auth import register_user
+from pesten.database import Base, engine, get_db
+from pesten.auth import register_user
 import pesten.server # Make sure all the orm models are imported
 
 Base.metadata.drop_all(engine)
