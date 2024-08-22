@@ -5,24 +5,24 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import Login from './Login'
-import Register from './Register.jsx';
-import Lobbies from './Lobbies.jsx';
+import LoginPage from './LoginPage'
+import RegisterPage from './RegisterPage';
+import LobbiesPage from './LobbiesPage';
 // import './index.css'
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login/>,
+    element: <LoginPage/>,
   },
   {
     path: "/register",
-    element: <Register/>,
+    element: <RegisterPage/>,
   },
   {
     path: "/lobbies",
-    element: <Lobbies/>,
+    element: <LobbiesPage/>,
   },
 ]);
 

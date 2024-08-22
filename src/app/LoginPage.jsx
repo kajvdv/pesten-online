@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './Login.css'
 
-function Login() {
+function LoginPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const loginForm = useRef()
+    const navigate = useNavigate()
 
     async function submit(event) {
         event.preventDefault()
@@ -16,7 +18,7 @@ function Login() {
         const { access_token, token_type } = await response.json()
         const token = access_token
         sessionStorage.setItem("access_token", token)
-        window.location.assign('lobbies/index.html')
+        navigate('/lobbies')
     }
 
     return (
@@ -29,4 +31,4 @@ function Login() {
     )
 }
 
-export default Login
+export default LoginPage

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Login.css'
 
-function Register() {
+function RegisterPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const registerForm = useRef()
@@ -27,4 +27,4 @@ function Register() {
     )
 }
 
-export default Register
+export default RegisterPage

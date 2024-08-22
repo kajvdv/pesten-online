@@ -11,7 +11,7 @@ function createLobby(event) {
     }).then(() => location.reload())
 }
 
-function Lobbies() {
+function LobbiesPage() {
     return <>
         <header>Lobbies</header>
         <div className="lobbies">
@@ -22,4 +22,4 @@ function Lobbies() {
     </>
 }
 
-export default Lobbies
+export default LobbiesPage
