@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { Link } from "react-router-dom"
 import './LobbiesPage.css'
+import { AuthContext } from "./AuthProvider"
 
 
-function Lobby(props) {
-    console.log(props)
+function Lobby({size, creator}) {
+    console.log(size, creator)
     return <Link className="lobby">
         Join game
     </Link>
@@ -13,11 +14,13 @@ function Lobby(props) {
 
 function LobbiesPage() {
     const [lobbies, setLobbies] = useState([])
+    const [accessToken, setAccessToken] = useContext(AuthContext)
     async function createLobby(event) {
         try {
             const response = await fetch('/api/lobbies', {
                 method: 'POST',
                 headers: {
+                    "Authorization": accessToken,
                     "Content-Type": "application/json",
                 },
                 body: '{"size":2}'
@@ -26,11 +29,14 @@ function LobbiesPage() {
             if (!response?.ok) {
                 throw new Error("Response not ok")
             }
+            const newLobby = await response.json()
+            console.log(newLobby)
             setLobbies(lobbies => [...lobbies, newLobby])
         } catch {
             console.error("Failed to create a new lobby")
         }
     }
+    console.log(lobbies)
     return <>
         <header>Lobbies</header>
         <div className="lobbies">

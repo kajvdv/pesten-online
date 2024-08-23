@@ -122,9 +122,7 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     size = lobby.size
     new_lobby = Lobby(size, user.username)
     lobbies.append(new_lobby)
-    print("lobby created", id)
-    print(lobbies)
-    return id
+    return {'size': size, 'creator': user.username}
 
 
 @router.websocket("/connect")

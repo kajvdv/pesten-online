@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useContext} from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthContext } from './AuthProvider'
 import './Login.css'
 
 function LoginPage() {
@@ -7,6 +8,7 @@ function LoginPage() {
     const [password, setPassword] = useState("")
     const loginForm = useRef()
     const navigate = useNavigate()
+    const [accessToken, setAccessToken] = useContext(AuthContext)
 
     async function submit(event) {
         event.preventDefault()
@@ -16,8 +18,7 @@ function LoginPage() {
             return
         }
         const { access_token, token_type } = await response.json()
-        const token = access_token
-        sessionStorage.setItem("access_token", token)
+        setAccessToken(token_type.toUpperCase() + " " + access_token)
         navigate('/lobbies')
     }
 
