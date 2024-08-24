@@ -36,7 +36,7 @@ function LobbiesPage() {
             console.error("Failed to create a new lobby")
         }
     }
-    console.log(lobbies)
+    
     return <>
         <header>Lobbies</header>
         <div className="lobbies">
