@@ -111,18 +111,31 @@ class LobbyCreate(BaseModel):
 lobbies = []
 router = APIRouter()
 
-@router.get('')
+class LobbyResponse(BaseModel):
+    size: int
+    capacity: int
+    creator: str
+
+@router.get('', response_model=list[LobbyResponse])
 def get_lobbies():
-    return [{'size': len(lobby.connections), 'capacity': lobby.capacity} for lobby in lobbies]
+    return [{
+        'size': len(lobby.connections),
+        'capacity': lobby.capacity,
+        'creator': lobby.names[0],
+    } for lobby in lobbies]
 
 
-@router.post('')
+@router.post('', response_model=LobbyResponse)
 def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     id = len(lobbies)
     size = lobby.size
     new_lobby = Lobby(size, user.username)
     lobbies.append(new_lobby)
-    return {'size': size, 'creator': user.username}
+    return {
+        'size': len(new_lobby.names),
+        'capacity': size,
+        'creator': user.username
+    }
 
 
 @router.websocket("/connect")
