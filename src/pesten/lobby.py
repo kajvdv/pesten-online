@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
 from pesten.auth import get_current_user, User
@@ -112,6 +112,7 @@ lobbies = []
 router = APIRouter()
 
 class LobbyResponse(BaseModel):
+    id: int
     size: int
     capacity: int
     creator: str
@@ -119,10 +120,11 @@ class LobbyResponse(BaseModel):
 @router.get('', response_model=list[LobbyResponse])
 def get_lobbies():
     return [{
+        'id': id,
         'size': len(lobby.connections),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for lobby in lobbies]
+    } for id, lobby in enumerate(lobbies)]
 
 
 @router.post('', response_model=LobbyResponse)
@@ -132,10 +134,19 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     new_lobby = Lobby(size, user.username)
     lobbies.append(new_lobby)
     return {
+        'id': id,
         'size': len(new_lobby.names),
         'capacity': size,
         'creator': user.username
     }
+
+@router.delete('', status_code=status.HTTP_204_NO_CONTENT)
+def delete_lobby(id: int, user: User = Depends(get_current_user)):
+    lobby_to_be_deleted = lobbies[id]
+    if lobby_to_be_deleted.names[0] != user.username:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
+    print("deleting lobby")
+    lobbies.pop(id)
 
 
 @router.websocket("/connect")

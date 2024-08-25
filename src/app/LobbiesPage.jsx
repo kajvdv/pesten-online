@@ -4,14 +4,21 @@ import './LobbiesPage.css'
 import { AuthContext } from "./AuthProvider"
 
 
-function Lobby({size, creator}) {
+function Lobby({id, size, creator}) {
+    const [deleting, setDeleting] = useState(false)
     useEffect(() => {
-        console.log(size, creator)
-
-    }, [])
-    return <Link className="lobby">
-        Join game
-    </Link>
+        if (!deleting) return
+        fetch(`/api/lobbies?id=${id}`, {
+            method: 'delete',
+        })
+        setDeleting(false)
+    }, [deleting])
+    return <>
+        <Link className="lobby">
+            Join game
+        </Link>
+        <button onClick={() => setDeleting(true)}>Delete</button>
+    </>
 }
 
 
