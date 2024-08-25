@@ -146,7 +146,7 @@ def delete_lobby(id: int, user: User = Depends(get_current_user)):
     if lobby_to_be_deleted.names[0] != user.username:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
-    lobbies.pop(id)
+    lobbies.pop(id) #TODO: Make sure id's of other lobbies don't change
 
 
 @router.websocket("/connect")
