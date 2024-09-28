@@ -127,7 +127,7 @@ def get_lobbies():
     } for id, lobby in lobbies.items()], key=lambda lobby: lobby['id'])
 
 
-@router.post('', response_model=LobbyResponse)
+@router.post('', response_model=list[LobbyResponse])
 def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     id = 0
     while(id in lobbies):
@@ -135,14 +135,9 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     size = lobby.size
     new_lobby = Game(size, user.username)
     lobbies[id] = new_lobby
-    return {
-        'id': id,
-        'size': len(new_lobby.names),
-        'capacity': size,
-        'creator': user.username
-    }
+    return get_lobbies()
 
-@router.delete('', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('', response_model=list[LobbyResponse])
 def delete_lobby(id: int, user: User = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]
@@ -153,6 +148,7 @@ def delete_lobby(id: int, user: User = Depends(get_current_user)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
     lobbies.pop(id)
+    return get_lobbies()
 
 
 @router.websocket("/connect")
