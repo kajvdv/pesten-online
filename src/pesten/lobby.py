@@ -21,7 +21,7 @@ class Board(BaseModel):
     hand: list[Card]
 
 
-class Lobby:
+class Game:
     def __init__(self, capacity, creator) -> None:
         self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
         self.started = False
@@ -89,7 +89,7 @@ class Lobby:
 
 
 
-async def game_loop(websocket: WebSocket, name, lobby: Lobby):
+async def game_loop(websocket: WebSocket, name, lobby: Game):
     await lobby.add_connection(name, websocket)
     try:
         while True:
@@ -119,19 +119,21 @@ class LobbyResponse(BaseModel):
 
 @router.get('', response_model=list[LobbyResponse])
 def get_lobbies():
-    return [{
+    return sorted([{
         'id': id,
         'size': len(lobby.connections),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for id, lobby in lobbies.items()]
+    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['id'])
 
 
 @router.post('', response_model=LobbyResponse)
 def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
-    id = len(lobbies)
+    id = 0
+    while(id in lobbies):
+        id = id + 1
     size = lobby.size
-    new_lobby = Lobby(size, user.username)
+    new_lobby = Game(size, user.username)
     lobbies[id] = new_lobby
     return {
         'id': id,
