@@ -137,7 +137,7 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     lobbies[id] = new_lobby
     return get_lobbies()
 
-@router.delete('', response_model=list[LobbyResponse])
+@router.delete('/{id}', response_model=list[LobbyResponse])
 def delete_lobby(id: int, user: User = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]

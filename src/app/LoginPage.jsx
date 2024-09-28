@@ -2,6 +2,7 @@ import { useRef, useState, useContext} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthProvider'
 import './Login.css'
+import server from './server'
 
 function LoginPage() {
     const [username, setUsername] = useState("")
@@ -12,13 +13,8 @@ function LoginPage() {
 
     async function submit(event) {
         event.preventDefault()
-        const form = new FormData(loginForm.current)
-        const response = await fetch('/api/token', {method: 'post', body: form})
-        if (!response.ok) {
-            return
-        }
-        const { access_token, token_type } = await response.json()
-        setAccessToken(token_type.toUpperCase() + " " + access_token)
+        // const form = new FormData(loginForm.current)
+        await server.login(loginForm.current)
         navigate('/lobbies')
     }
 
