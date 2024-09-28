@@ -146,9 +146,8 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
 def delete_lobby(id: int, user: User = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]
-    except Exception as e:
-        print(e)
-        print(lobbies)
+    except KeyError as e:
+        print(f'Lobby with id of {e} does not exist')
         raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
     if lobby_to_be_deleted.names[0] != user.username:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
