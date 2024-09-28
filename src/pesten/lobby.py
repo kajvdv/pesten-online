@@ -108,7 +108,7 @@ async def game_loop(websocket: WebSocket, name, lobby: Lobby):
 class LobbyCreate(BaseModel):
     size: int
 
-lobbies = []
+lobbies = {}
 router = APIRouter()
 
 class LobbyResponse(BaseModel):
@@ -124,7 +124,7 @@ def get_lobbies():
         'size': len(lobby.connections),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for id, lobby in enumerate(lobbies)]
+    } for id, lobby in lobbies.items()]
 
 
 @router.post('', response_model=LobbyResponse)
@@ -132,7 +132,7 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     id = len(lobbies)
     size = lobby.size
     new_lobby = Lobby(size, user.username)
-    lobbies.append(new_lobby)
+    lobbies[id] = new_lobby
     return {
         'id': id,
         'size': len(new_lobby.names),
@@ -142,11 +142,16 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
 
 @router.delete('', status_code=status.HTTP_204_NO_CONTENT)
 def delete_lobby(id: int, user: User = Depends(get_current_user)):
-    lobby_to_be_deleted = lobbies[id]
+    try:
+        lobby_to_be_deleted = lobbies[id]
+    except Exception as e:
+        print(e)
+        print(lobbies)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
     if lobby_to_be_deleted.names[0] != user.username:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
-    lobbies.pop(id) #TODO: Make sure id's of other lobbies don't change
+    lobbies.pop(id)
 
 
 @router.websocket("/connect")
