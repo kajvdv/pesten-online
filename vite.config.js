@@ -6,6 +6,13 @@ export default defineConfig({
   root: './src/app',
   server: {
     proxy: {
+      '^/api/.*/connect': {
+        target: "ws://127.0.0.1:8000",
+        rewriteWsOrigin: true,
+        changeOrigin: true,
+        ws: true,
+        rewrite: path => path.replace(/^\/api/, '')
+      },
       '/api': {
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
@@ -14,6 +21,10 @@ export default defineConfig({
       '^/lobbies$': {
         target: "http://localhost:5173",
         rewrite: path => "/lobbies/index.html"
+      },
+      '^/game$': {
+        target: "http://localhost:5173",
+        rewrite: path => "/game/index.html"
       }
     }
   },

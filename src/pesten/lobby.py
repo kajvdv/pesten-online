@@ -70,7 +70,7 @@ class Game:
     async def get_choose(self, name):
         websocket: WebSocket = self.connections[name]
         choose = await websocket.receive_text()
-        print(f"New message from {name} in lobby {lobbies.index(self)}")
+        print(f"New message from {name} in lobby {list(lobbies.values()).index(self)}")
         if not self.started:
             await websocket.send_json({"error": "Game not started"})
             return
@@ -152,7 +152,7 @@ def delete_lobby(id: int, user: User = Depends(get_current_user)):
 
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, name: str = Depends(get_current_user), lobby_id: int = 0):
+async def connect_to_lobby(websocket: WebSocket, lobby_id: int = 0, name: str = Depends(get_current_user)):
     print("Websocket connect with", name)
     lobby = lobbies[lobby_id]
     await websocket.accept()
