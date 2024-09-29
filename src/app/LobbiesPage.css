@@ -5,20 +5,39 @@ header {
 }
 
 .lobby {
-    background: white;
-    display: block;
+    background: rgb(42, 172, 16);
     padding: 5px;
     border: solid 2px black;
-    width: fit-content;
-    min-width: 50%;
     border-radius: 5px;
-    margin-top: 5px;
-    cursor: pointer;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* justify-content: space-between; */
+}
+
+.lobby h1 {
+    flex: 1 0 100%;
+}
+
+.lobby div {
+    width: 100%;
+}
+
+.lobby button {
+    background-color: green;
+    flex-grow: 0;
+    margin: 2px
+}
+
+.lobby-delete-button {
+    margin-left: auto !important;
 }
 
 .lobbies {
     padding: 10px;
     height: 80vh;
+    width: 80vw;
     margin-left: auto;
     margin-right: auto;
     border: solid 2px black;
@@ -30,8 +49,11 @@ header {
 
 #lobby-list {
     overflow-y: auto;
-    display: flex wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    flex-wrap: wrap;
     flex-direction: row;
+    gap: 5px;
 }
 
 #new-lobby-button {
