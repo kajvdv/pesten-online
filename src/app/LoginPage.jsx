@@ -1,5 +1,5 @@
 import { useRef, useState, useContext} from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './Login.css'
 import server from './server'
 
@@ -22,7 +22,7 @@ function LoginPage() {
             <input id="username" name="username" type="text" placeholder="Username" onChange={val => setUsername(val.target.value)} value={username} size="25" required  />
             <input id="password" name="password" type="password" placeholder="Password" onChange={val => setPassword(val.target.value)} value={password} size="25" required  />
             <input type="submit" value="Login" />
-            <a className="register-link" href="register">Register</a>
+            <Link to='register' className="register-link">Register</Link>
         </form>
     )
 }

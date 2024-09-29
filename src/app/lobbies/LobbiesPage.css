@@ -33,7 +33,7 @@ header {
     margin: 2px
 }
 
-.lobby-delete-button {
+.lobby button:first-of-type {
     margin-left: auto !important;
 }
 

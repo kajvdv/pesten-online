@@ -35,19 +35,21 @@ function LobbiesProvider({children}) {
 }
 
 
-function Lobby({id, size, capacity, creator}) {
+function Lobby({id, size, capacity, creator, user}) {
     const lobbies = useContext(LobbiesContext)
     const [deleting, setDeleting] = useState(false)
+
     useEffect(() => {
         if (!deleting) return
         lobbies.deleteLobby(id)
             .then(() => setDeleting(false))
     }, [deleting])
+
     return <div className="lobby">
         <h1 className="lobby-join">Game {id}</h1>
         <div>Created by {creator}</div>
         <div>{size} / {capacity}</div>
-        <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button>
+        {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}
         <button>Join</button>
     </div>
 }
@@ -55,11 +57,18 @@ function Lobby({id, size, capacity, creator}) {
 
 function LobbyList() {
     const lobbies = useContext(LobbiesContext)
+    const [userName, setUserName] = useState("")
+
+    useEffect(() => {
+        server.getUser()
+            .then(userName => setUserName(userName))
+    }, [])
+
     return <>
-        <header>Lobbies</header>
+        <header>Lobbies of {userName}</header>
         <div className="lobbies">
             <div id="lobby-list">
-                {lobbies.lobbies.map((lobby, i) => <Lobby key={lobby.id} {...lobby}/>)}
+                {lobbies.lobbies.map((lobby, i) => <Lobby key={lobby.id} {...lobby} user={userName}/>)}
             </div>
             <button id="new-lobby-button" onClick={() => lobbies.createLobby(2)}>Create new game</button>
         </div>

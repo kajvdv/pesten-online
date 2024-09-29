@@ -4,7 +4,7 @@ const accessToken = sessionStorage.getItem("accessToken")
 
 const server = axios.create({
     baseURL: '/api',
-    headers: accessToken ? {'Authorization': accessToken} : {},
+    headers: accessToken ? {'Authorization': "BEARER " + accessToken} : {},
 })
 
 
@@ -13,7 +13,17 @@ async function login(form) {
     const {token_type, access_token} = response.data
     const headerField = token_type.toUpperCase() + " " + access_token
     server.defaults.headers.common['Authorization'] = headerField
-    sessionStorage.setItem('accessToken', headerField)
+    sessionStorage.setItem('accessToken', access_token)
+}
+
+
+async function getUser() {
+    const token = sessionStorage.getItem('accessToken')
+    if (!token) {
+        throw new Error("No token in client storage")
+    }
+    const user = atob(token.split('.')[1])
+    return JSON.parse(user).sub
 }
 
 
@@ -35,6 +45,7 @@ async function deleteLobby(id) {
 
 export default {
     login,
+    getUser,
     getLobbies,
     postLobby,
     deleteLobby,

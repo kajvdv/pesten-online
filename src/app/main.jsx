@@ -5,28 +5,24 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import LoginPage from './LoginPage'
-// import RegisterPage from './RegisterPage';
+import RegisterPage from './RegisterPage';
 // import LobbiesPage from './LobbiesPage';
 // import './index.css'
 
 
-// const router = createBrowserRouter([
-//   {
-//     path: "/",
-//     element: <LoginPage/>,
-//   },
-//   {
-//     path: "/register",
-//     element: <RegisterPage/>,
-//   },
-//   {
-//     path: "/lobbies",
-//     element: <LobbiesPage/>,
-//   },
-// ]);
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LoginPage/>,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage/>,
+  }
+]);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LoginPage/>
+    <RouterProvider router={router}/>
   </StrictMode>
 )
