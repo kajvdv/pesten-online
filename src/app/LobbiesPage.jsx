@@ -1,7 +1,5 @@
 import { useContext, useState, useEffect, createContext, useRef } from "react"
-import { Link, useAsyncError } from "react-router-dom"
 import './LobbiesPage.css'
-import { AuthContext } from "./AuthProvider"
 import server from "./server"
 
 
