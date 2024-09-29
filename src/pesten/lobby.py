@@ -118,13 +118,13 @@ class LobbyResponse(BaseModel):
     creator: str
 
 @router.get('', response_model=list[LobbyResponse])
-def get_lobbies():
+def get_lobbies(user: User = Depends(get_current_user)):
     return sorted([{
         'id': id,
         'size': len(lobby.connections),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['id'])
+    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['creator'] != user.username)
 
 
 @router.post('', response_model=list[LobbyResponse])
@@ -135,7 +135,7 @@ def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
     size = lobby.size
     new_lobby = Game(size, user.username)
     lobbies[id] = new_lobby
-    return get_lobbies()
+    return get_lobbies(user)
 
 @router.delete('/{id}', response_model=list[LobbyResponse])
 def delete_lobby(id: int, user: User = Depends(get_current_user)):
@@ -148,7 +148,7 @@ def delete_lobby(id: int, user: User = Depends(get_current_user)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
     lobbies.pop(id)
-    return get_lobbies()
+    return get_lobbies(user)
 
 
 @router.websocket("/connect")
