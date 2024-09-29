@@ -22,7 +22,7 @@ export default defineConfig({
         target: "http://localhost:5173",
         rewrite: path => "/lobbies/index.html"
       },
-      '^/game$': {
+      '/game?lobby_id=': {
         target: "http://localhost:5173",
         rewrite: path => "/game/index.html"
       }

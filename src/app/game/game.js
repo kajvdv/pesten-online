@@ -11,16 +11,16 @@ hand = document.querySelector('.hand')
 
 // Define interface
 function cardNames(card) {
-    return "game/cards/" + card.value.toLowerCase() + "_of_" + card.suit.toLowerCase() + ".png"
+    return "/game/cards/" + card.value.toLowerCase() + "_of_" + card.suit.toLowerCase() + ".png"
 }
 
 drawDeck.addEventListener('click', onDraw)
 
 function renderBoard(game) {
     if (game.canDraw) {
-        drawDeck.setAttribute('src', 'game/cards/back.png')
+        drawDeck.setAttribute('src', '/game/cards/back.png')
     } else {
-        drawDeck.setAttribute('src', 'game/cards/null.png')
+        drawDeck.setAttribute('src', '/game/cards/null.png')
     }
     
     topCard.setAttribute('src', cardNames(game.topCard))

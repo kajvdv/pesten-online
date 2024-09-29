@@ -44,7 +44,7 @@ async function createGame() {
 }
 
 async function connect(token, lobby_id) {
-    websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${0}`)
+    websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
     websocket.onmessage = function(event) {
         const message = JSON.parse(event.data)
         console.log("received message", message)

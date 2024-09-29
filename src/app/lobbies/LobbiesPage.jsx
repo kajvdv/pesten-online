@@ -45,12 +45,16 @@ function Lobby({id, size, capacity, creator, user}) {
             .then(() => setDeleting(false))
     }, [deleting])
 
+    function join() {
+        window.location.href = "/game?lobby_id=" + id
+    }
+
     return <div className="lobby">
         <h1 className="lobby-join">Game {id}</h1>
         <div>Created by {creator}</div>
         <div>{size} / {capacity}</div>
         {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}
-        <button>Join</button>
+        <button onClick={join}>Join</button>
     </div>
 }
 
