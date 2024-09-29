@@ -7,13 +7,14 @@ function LoginPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const loginForm = useRef()
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
 
     async function submit(event) {
         event.preventDefault()
         // const form = new FormData(loginForm.current)
         await server.login(loginForm.current)
-        navigate('/lobbies')
+        // navigate('/lobbies')
+        window.location.href = '/lobbies'
     }
 
     return (

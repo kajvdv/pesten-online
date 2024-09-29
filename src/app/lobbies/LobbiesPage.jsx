@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect, createContext, useRef } from "react"
 import './LobbiesPage.css'
-import server from "./server"
+import server from "../server"
 
 
 const LobbiesContext = createContext()
