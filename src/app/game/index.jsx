@@ -1,11 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import LobbiesPage from './LobbiesPage'
+import GamePage from './GamePage'
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LobbiesPage/>
+    <GamePage/>
   </StrictMode>
 )

@@ -4,6 +4,9 @@ import uvicorn
 from pesten.server import app
 from pesten.auth import get_current_user, User
 from pesten.database import get_db
+import pesten.lobby
+
+pesten.lobby.lobbies = {0: pesten.lobby.Game(2, 'user')}
 
 def get_current_user_override():
     stmt = select(User)

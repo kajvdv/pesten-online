@@ -1,44 +1,13 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="/game/styles.css">
-    </head>
-    <body>
-        <div class="board">
-            <div class="nameplate"></div>
-            <div class="middle">
-                <img class="card drawdeck" src="/game/cards/null.png"></img>
-                <img class="card" id="topcard" src="/game/cards/null.png"></img>
-            </div>
-            <div class="hand">
-                <img class="card" src="game/cards/ace_of_clubs.png" alt="">
-                <img class="card" src="game/cards/ace_of_diamonds.png" alt="">
-                <img class="card" src="game/cards/ace_of_hearts.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-                <img class="card" src="game/cards/ace_of_spades.png" alt="">
-            </div>
-        </div>
-        <script src="/game/index.js"></script>
-        <script src="/game/game.js"></script>
-        <script>
-            (async () => {
-                const queryString = window.location.search
-                console.log(queryString)
-                const urlParams = new URLSearchParams(queryString);
-                const lobby_id = urlParams.get('lobby_id')
-                const token = sessionStorage.getItem('access_token')
-                await connect(token, lobby_id)
-            })()
-        </script>
-    </body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/game/index.jsx"></script>
+  </body>
 </html>
