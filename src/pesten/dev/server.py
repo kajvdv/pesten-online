@@ -6,7 +6,7 @@ from pesten.auth import get_current_user, User
 from pesten.database import get_db
 import pesten.lobby
 
-pesten.lobby.lobbies = {0: pesten.lobby.Game(2, 'user')}
+pesten.lobby.lobbies = {0: pesten.lobby.Game(1, 'admin')}
 
 def get_current_user_override():
     stmt = select(User)
