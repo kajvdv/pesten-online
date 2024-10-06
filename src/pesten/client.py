@@ -13,19 +13,6 @@ import sys
 import requests
 from websockets.sync.client import connect
 
-from pesten.server import app
-from pesten.auth import get_current_user
-from pesten.lobby import Lobby
-from pesten import lobby
-
-
-def get_current_user_override(token: str):
-    print("Get token override for", token)
-    return token
-
-app.dependency_overrides[get_current_user] = get_current_user_override
-lobby.lobbies = [Lobby(2), Lobby(2)]
-
 
 def client(name):
     lobbies = requests.get("http://localhost:8000/lobbies")
@@ -35,7 +22,7 @@ def client(name):
         print(f"{index}. {lobby['size']}/{lobby['capacity']}")
     # lobby_id = input("Welke lobby wil je joinen?: ")
     lobby_id = "0"
-    with connect(f'ws://localhost:8000/lobbies/connect?token={name}&lobby_id={lobby_id}') as connection:
+    with connect(f'ws://localhost:8000/lobbies/connect?lobby_id={lobby_id}&name={name}') as connection:
         def receive():
             while True:
                 data = connection.recv()
