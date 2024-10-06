@@ -34,8 +34,8 @@ function Card({card, onClick}) {
 }
 
 
-function UpsideDown({onClick}) {
-    return <img onClick={onClick} className="card" src="game/cards/back.png"/>
+function DrawDeck({onClick}) {
+    return <img onClick={onClick} className="card drawdeck" src="game/cards/back.png"/>
 }
 
 
@@ -127,7 +127,7 @@ function GamePage() {
                 upsideDown,
             ]}</div>
             <div className="middle">
-                {game?.can_draw ? <UpsideDown onClick={drawCard}/> : emptySpot}
+                {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
             </div>
             <div className="hand">
