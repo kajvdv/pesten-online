@@ -13,7 +13,7 @@ class DummyConnection {
         messageHandler(board)
     }
 
-    onSend(index) {
+    send(index) {
         console.log("Dummy connection reveived index of", index)
     }
 }
