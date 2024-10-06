@@ -34,11 +34,9 @@ def decode_token(token):
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
 
-def get_current_user(token = Depends(oath2_scheme), db: Session = Depends(get_db)):
-    user = decode_token(token)
-    stmt = select(User).where(User.username == user['sub'])
-    row = db.execute(stmt).first()
-    return row.User
+def get_current_user(token = Depends(oath2_scheme)):
+    user = decode_token(token)['sub']
+    return user
 
 
 invalid_response = HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")

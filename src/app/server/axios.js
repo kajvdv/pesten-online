@@ -10,7 +10,10 @@ const server = axios.create({
 
 class GameConnection {
     constructor(lobby_id) {
-        this.websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
+        this.websocket = new WebSocket(
+            `ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}&token=${accessToken}`,
+            
+        )
     }
 
     onReceive(messageHandler, errorHandler) {

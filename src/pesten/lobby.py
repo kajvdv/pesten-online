@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
-from pesten.auth import get_current_user, User
+from pesten.auth import get_current_user, User, decode_token
 
 
 class Card(BaseModel):
@@ -118,33 +118,33 @@ class LobbyResponse(BaseModel):
     creator: str
 
 @router.get('', response_model=list[LobbyResponse])
-def get_lobbies(user: User = Depends(get_current_user)):
+def get_lobbies(user: str = Depends(get_current_user)):
     return sorted([{
         'id': id,
-        'size': len(lobby.connections),
+        'size': len(lobby.names),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['creator'] != user.username)
+    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['creator'] != user)
 
 
 @router.post('', response_model=list[LobbyResponse])
-def create_lobby(lobby: LobbyCreate, user: User = Depends(get_current_user)):
+def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     id = 0
     while(id in lobbies):
         id = id + 1
     size = lobby.size
-    new_lobby = Game(size, user.username)
+    new_lobby = Game(size, user)
     lobbies[id] = new_lobby
     return get_lobbies(user)
 
 @router.delete('/{id}', response_model=list[LobbyResponse])
-def delete_lobby(id: int, user: User = Depends(get_current_user)):
+def delete_lobby(id: int, user: str = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]
     except KeyError as e:
         print(f'Lobby with id of {e} does not exist')
         raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
-    if lobby_to_be_deleted.names[0] != user.username:
+    if lobby_to_be_deleted.names[0] != user:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
     lobbies.pop(id)
@@ -152,10 +152,11 @@ def delete_lobby(id: int, user: User = Depends(get_current_user)):
 
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby_id: int = 0, name: User = Depends(get_current_user)):
+async def connect_to_lobby(websocket: WebSocket, lobby_id: int, token: str):
+    name = get_current_user(token)
     print("Websocket connect with", name)
     lobby = lobbies[lobby_id]
     await websocket.accept()
-    await game_loop(websocket, name.username, lobby)
+    await game_loop(websocket, name, lobby)
 
 
