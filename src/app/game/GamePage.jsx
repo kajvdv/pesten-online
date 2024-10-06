@@ -94,7 +94,10 @@ function GamePage() {
 
     return (
         <div className="board">
-            <div className="nameplate">{user}</div>
+            <div id="nameplate">{user}</div>
+            <div className="topplayer">{[upsideDown, upsideDown, upsideDown]}</div>
+            <div className="leftplayer">{[upsideDown, upsideDown, upsideDown]}</div>
+            <div className="rightplayer">{[upsideDown, upsideDown, upsideDown]}</div>
             <div className="middle">
                 {game?.can_draw ? <UpsideDown onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
