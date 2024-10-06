@@ -1,7 +1,30 @@
-
 import { useEffect, useRef, useState } from "react"
 import "./styles.css"
 import server from "../server"
+
+
+// class GameConnection {
+//     constructor(lobby_id) {
+//         this.websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
+//     }
+
+//     onReceive(messageHandler, errorHandler) {
+//         this.websocket.addEventListener('message', event => {
+//             const data = JSON.parse(event.data)
+//             console.log(data)
+//             if ('error' in data) {
+//                 errorHandler(data.error)
+//                 console.log(data.error)
+//             } else {
+//                 messageHandler(data)
+//             }
+//         })
+//     }
+
+//     send(index) {
+//         this.websocket.send(index)
+//     }
+// }
 
 
 function Card({card, onClick}) {
@@ -10,10 +33,6 @@ function Card({card, onClick}) {
     return <img className="card" onClick={() => onClick(card)} src={src}/>
 }
 
-
-// function EmptySpot() {
-//     return <img className="card" src="game/cards/null.png"/>
-// }
 
 function UpsideDown({onClick}) {
     return <img onClick={onClick} className="card" src="game/cards/back.png"/>
@@ -29,30 +48,37 @@ function useUser() {
     return user
 }
 
-function useConnection(lobby_id, onReceive) {
-    const server = useRef()
+function useConnection(lobby_id, onMessage, onError) {
+    const serverConnection = useRef()
     useEffect(() => {
-        const websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
-        websocket.addEventListener('message', event => {
-            const data = JSON.parse(event.data)
-            console.log(data)
-            if ('error' in data) {
-                console.log(data.error)
-            } else {
-                onReceive(data)
-            }
-        })
-        server.current = websocket
+        // const websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
+        // websocket.addEventListener('message', event => {
+        //     const data = JSON.parse(event.data)
+        //     console.log(data)
+        //     if ('error' in data) {
+        //         onError(data.error)
+        //         console.log(data.error)
+        //     } else {
+        //         onReceive(data)
+        //     }
+        // })
+        console.log(server)
+        server.connect(lobby_id)
+            .then(connection => {
+                console.log(connection)
+                connection.onReceive(onMessage, onError)
+                serverConnection.current = connection
+            })
     }, [])
 
     function playCard(card, index) {
         console.log(card, index)
-        server.current.send(index)
+        serverConnection.current.send(index)
     }
 
     function drawCard() {
         console.log('drawing')
-        server.current.send(0)
+        serverConnection.current.send(0)
     }
     return [playCard, drawCard]
 }
@@ -60,7 +86,8 @@ function useConnection(lobby_id, onReceive) {
 function GamePage() {
     const user = useUser()
     const [game, setGame] = useState()
-    const [playCard, drawCard] = useConnection(0, setGame)
+    const [error, setError] = useState("")
+    const [playCard, drawCard] = useConnection(0, setGame, setError)
 
     const emptySpot = <img className="card" src="game/cards/null.png"/>
     const upsideDown = <img className="card" src="game/cards/back.png"/>

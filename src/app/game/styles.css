@@ -54,7 +54,8 @@ body {
     width: auto;
     grid-row: 2;
     display: flex;
-    justify-content: space-evenly;
+    gap: 15px;
+    justify-content: center;
 }
 
 .drawdeck {
