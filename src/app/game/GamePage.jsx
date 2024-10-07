@@ -88,44 +88,27 @@ function GamePage() {
     const [game, setGame] = useState()
     const [error, setError] = useState("")
     const [playCard, drawCard] = useConnection(0, setGame, setError)
+    const [otherHandCounts, setOtherHandCounts] = useState({})
+
+    // useEffect(() => {
+    //     if (!game) return
+    //     console.log(game)
+    // }, [game])
+
+    let otherHands = game?.otherPlayers || {'': 0}
+    console.log(Object.entries(otherHands))
+    otherHands = Object.entries(otherHands)
 
     const emptySpot = <img className="card" src="game/cards/null.png"/>
     const upsideDown = <img className="card" src="game/cards/back.png"/>
 
+    const classNames = ['leftplayer', 'topplayer', 'rightplayer']
     return (
         <div className="board">
             <div id="nameplate">{user}</div>
-            <div className="topplayer">{[
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-            ]}</div>
-            <div className="leftplayer">{[
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-            ]}</div>
-            <div className="rightplayer">{[
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-                upsideDown,
-            ]}</div>
+            {otherHands.map((hand, index) => <div className={classNames[index]}>
+                {Array(hand[1]).fill(upsideDown)}
+            </div>)}
             <div className="middle">
                 {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
