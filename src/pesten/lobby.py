@@ -18,6 +18,7 @@ class Board(BaseModel):
     topcard: Card
     can_draw: bool
     current_player: str
+    otherPlayers: dict[str, int]
     hand: list[Card]
 
 
@@ -62,6 +63,7 @@ class Game:
                 topcard=Card(self.game.play_stack[-1]),
                 can_draw=bool(self.game.draw_stack),
                 current_player=self.names[self.game.current_player],
+                otherPlayers={name: len(self.game.hands[self.names.index(name)]) for name in self.names},
                 hand=[Card(card) for card in self.game.hands[player_id]]
             )
             await conn.send_json(board.model_dump())

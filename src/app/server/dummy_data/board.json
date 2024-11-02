@@ -6,6 +6,7 @@
     "can_draw": true,
     "current_player": "admin",
     "otherPlayers": {
+        "dummyUser": 100,
         "player2": 10,
         "player3": 1,
         "player4": 5

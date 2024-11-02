@@ -96,13 +96,20 @@ function GamePage() {
     // }, [game])
 
     let otherHands = game?.otherPlayers || {'': 0}
+    delete otherHands[user]
     console.log(Object.entries(otherHands))
     otherHands = Object.entries(otherHands)
 
     const emptySpot = <img className="card" src="game/cards/null.png"/>
     const upsideDown = <img className="card" src="game/cards/back.png"/>
 
-    const classNames = ['leftplayer', 'topplayer', 'rightplayer']
+    let classNames = []
+    if (otherHands.length <= 1) {
+        classNames = ['topplayer']
+    } else {
+        classNames = ['leftplayer', 'topplayer', 'rightplayer']
+    }
+    
     return (
         <div className="board">
             <div id="nameplate">{user}</div>
