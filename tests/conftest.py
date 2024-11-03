@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from pesten.auth import User, get_current_user
 from pesten.server import app
 from pesten.database import get_db, Base
+from pesten.lobby import auth_websocket
 
 
 engine = create_engine(
@@ -22,7 +23,8 @@ def get_db_override():
         yield db
 
 def get_current_user_override(name_override: str = "test"):
-    return User(username=name_override, password='test')
+    user = User(username=name_override, password='test')
+    return user.username
 
 @pytest.fixture
 def db():
@@ -33,6 +35,7 @@ def db():
 def client():
     app.dependency_overrides[get_db] = get_db_override
     app.dependency_overrides[get_current_user] = get_current_user_override
+    app.dependency_overrides[auth_websocket] = lambda name_override: name_override
     test_client = TestClient(app)
     Base.metadata.create_all(engine)
     with test_client:

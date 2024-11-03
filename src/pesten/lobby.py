@@ -129,15 +129,21 @@ def get_lobbies(user: str = Depends(get_current_user)):
     } for id, lobby in lobbies.items()], key=lambda lobby: lobby['creator'] != user)
 
 
-@router.post('', response_model=list[LobbyResponse])
+@router.post('', response_model=LobbyResponse)
 def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
+    # Getting the lowest available id
     id = 0
     while(id in lobbies):
         id = id + 1
     size = lobby.size
     new_lobby = Game(size, user)
     lobbies[id] = new_lobby
-    return get_lobbies(user)
+    return {
+        'id': id,
+        'size': len(new_lobby.names),
+        'capacity': new_lobby.capacity,
+        'creator': user,
+    }
 
 @router.delete('/{id}', response_model=list[LobbyResponse])
 def delete_lobby(id: int, user: str = Depends(get_current_user)):
@@ -152,10 +158,12 @@ def delete_lobby(id: int, user: str = Depends(get_current_user)):
     lobbies.pop(id)
     return get_lobbies(user)
 
+def auth_websocket(token: str):
+    name = get_current_user(token)
+    return name
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby_id: int, token: str):
-    name = get_current_user(token)
+async def connect_to_lobby(websocket: WebSocket, lobby_id: int, name: str = Depends(auth_websocket)):
     print("Websocket connect with", name)
     lobby = lobbies[lobby_id]
     await websocket.accept()

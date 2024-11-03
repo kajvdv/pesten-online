@@ -14,7 +14,13 @@ def test_create_lobby(client):
 def test_game_flow(client, db):
     register_user('kaj', '123', db)
     register_user('soy', '123', db)
-    id = create_lobby(LobbyCreate(size=2), db.execute(select(User).where(User.username == 'kaj')).first()[0])
+    user = db.execute(select(User).where(User.username == 'kaj')).first()[0]
+    print(user)
+    lobby = create_lobby(
+        LobbyCreate(size=2),
+        user.username
+    )
+    id = lobby['id']
     connection_kaj = client.websocket_connect(f'lobbies/connect?name_override=kaj&lobby_id={id}')
     connection_soy = client.websocket_connect(f'lobbies/connect?name_override=soy&lobby_id={id}')
     with connection_kaj, connection_soy:
