@@ -13,11 +13,11 @@ def get_current_user_override(name: str = 'admin'):
     # for db in get_db():
     #     row = db.execute(stmt).first()
     # return row.User
-    user = User(username=name, password="")
+    user = User(username=name, password="test")
     print("logging in as", user.username)
-    return user
+    return user.username
 
 app.dependency_overrides[get_current_user] = get_current_user_override
 
-if __name__ == "__main__":
-    uvicorn.run(app)
+# if __name__ == "__main__":
+#     uvicorn.run(["dev_server:app", '--reload'])

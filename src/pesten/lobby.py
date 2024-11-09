@@ -145,7 +145,7 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
         'creator': user,
     }
 
-@router.delete('/{id}', response_model=list[LobbyResponse])
+@router.delete('/{id}', response_model=LobbyResponse)
 def delete_lobby(id: int, user: str = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]
@@ -155,8 +155,13 @@ def delete_lobby(id: int, user: str = Depends(get_current_user)):
     if lobby_to_be_deleted.names[0] != user:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
-    lobbies.pop(id)
-    return get_lobbies(user)
+    lobby = lobbies.pop(id)
+    return {
+        'id': id,
+        'size': len(lobby.names),
+        'capacity': lobby.capacity,
+        'creator': user,
+    }
 
 def auth_websocket(token: str):
     name = get_current_user(token)

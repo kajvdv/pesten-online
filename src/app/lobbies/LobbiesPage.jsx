@@ -14,14 +14,14 @@ function LobbiesProvider({children}) {
         setLobbies(lobbies)
     }
 
-    async function createLobby(size) {
-        const lobbies = await server.postLobby(size)
-        setLobbies(lobbies)
+    async function createLobby(size, creator) {
+        const lobby = await server.postLobby(size, creator)
+        setLobbies(lobbies => [...lobbies, lobby])
     }
 
     async function deleteLobby(id) {
-        const lobbies = await server.deleteLobby(id)
-        setLobbies(lobbies)
+        const deletedLobby = await server.deleteLobby(id)
+        setLobbies(lobbies => lobbies.filter(lobby => lobby.id !== deletedLobby.id))
     }
     
     useEffect(() => {
@@ -74,7 +74,7 @@ function LobbyList() {
             <div id="lobby-list">
                 {lobbies.lobbies.map((lobby, i) => <Lobby key={lobby.id} {...lobby} user={userName}/>)}
             </div>
-            <button id="new-lobby-button" onClick={() => lobbies.createLobby(2)}>Create new game</button>
+            <button id="new-lobby-button" onClick={() => lobbies.createLobby(2, userName)}>Create new game</button>
         </div>
     </>
 }
