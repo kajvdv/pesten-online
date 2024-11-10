@@ -1,3 +1,6 @@
+import json
+import random
+
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
@@ -23,12 +26,13 @@ class Board(BaseModel):
 
 
 class Game:
-    def __init__(self, capacity, creator) -> None:
-        self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
+    def __init__(self, game: Pesten, creator) -> None:
+        # self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
+        self.game = game
         self.started = False
         self.connections: dict[str, WebSocket] = {}
         self.names = [creator]
-        self.capacity = capacity
+        self.capacity = game.player_count
 
 
     async def add_connection(self, name, websocket: WebSocket):
@@ -72,7 +76,7 @@ class Game:
     async def get_choose(self, name):
         websocket: WebSocket = self.connections[name]
         choose = await websocket.receive_text()
-        print(f"New message from {name} in lobby {list(lobbies.values()).index(self)}")
+        # print(f"New message from {name} in lobby {list(lobbies.values()).index(self)}")
         if not self.started:
             await websocket.send_json({"error": "Game not started"})
             return
@@ -136,7 +140,11 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     while(id in lobbies):
         id = id + 1
     size = lobby.size
-    new_lobby = Game(size, user)
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.shuffle(cards)
+    print(json.dumps(cards, indent=2))
+    game = Pesten(size, 8, cards)
+    new_lobby = Game(game, user)
     lobbies[id] = new_lobby
     return {
         'id': id,
@@ -167,10 +175,13 @@ def auth_websocket(token: str):
     name = get_current_user(token)
     return name
 
+def get_lobby(lobby_id: int):
+    print(lobbies)
+    return lobbies[lobby_id]
+
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby_id: int, name: str = Depends(auth_websocket)):
+async def connect_to_lobby(websocket: WebSocket, lobby = Depends(get_lobby), name: str = Depends(auth_websocket)):
     print("Websocket connect with", name)
-    lobby = lobbies[lobby_id]
     await websocket.accept()
     await game_loop(websocket, name, lobby)
 
