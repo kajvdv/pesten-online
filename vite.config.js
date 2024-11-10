@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root: './src/app',
+  root: './src/vite',
   publicDir: resolve(__dirname, 'public'),
   build: {
     watch: {},
