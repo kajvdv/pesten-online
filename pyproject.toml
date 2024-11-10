@@ -13,4 +13,11 @@ dependencies = [
     "websockets",
     "httpx",
     "pytest",
+    "sqlalchemy",
+    "requests",
+    "passlib",
+    "python-jose",
+    "python-multipart",
+    "pydantic",
+    "bcrypt"
 ]
