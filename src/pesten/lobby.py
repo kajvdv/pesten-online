@@ -153,9 +153,11 @@ def delete_lobby(id: int, user: str = Depends(get_current_user)):
     return get_lobbies(user)
 
 
+def get_current_user_websocket(token: str):
+    return get_current_user(token)
+
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby_id: int, token: str):
-    name = get_current_user(token)
+async def connect_to_lobby(websocket: WebSocket, lobby_id: int, name = Depends(get_current_user_websocket)):
     print("Websocket connect with", name)
     lobby = lobbies[lobby_id]
     await websocket.accept()

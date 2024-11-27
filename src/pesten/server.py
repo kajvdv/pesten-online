@@ -8,8 +8,10 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from pesten.lobby import router as router_lobby
-from pesten.auth import router as router_auth, get_current_user
+from pesten.lobby import router as router_lobby, get_current_user_websocket
+from pesten.auth import router as router_auth, get_current_user, User
+import pesten.lobby
+
 
 
 app = FastAPI()
@@ -28,6 +30,19 @@ def get_static():
 
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
+pesten.lobby.lobbies = {0: pesten.lobby.Game(2, 'admin')}
+
+def get_current_user_override(name: str = 'admin'):
+    # stmt = select(User)
+    # for db in get_db():
+    #     row = db.execute(stmt).first()
+    # return row.User
+    user = User(username=name, password="")
+    print("logging in as", user.username)
+    return user
+
+app.dependency_overrides[get_current_user] = get_current_user_override
+app.dependency_overrides[get_current_user_websocket] = lambda name: name
 
 if __name__ == "__main__":
     uvicorn.run(app)

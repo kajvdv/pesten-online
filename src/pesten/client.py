@@ -20,8 +20,7 @@ def client(name):
     print("lobbies")
     for index, lobby in enumerate(lobbies):
         print(f"{index}. {lobby['size']}/{lobby['capacity']}")
-    # lobby_id = input("Welke lobby wil je joinen?: ")
-    lobby_id = "0"
+    lobby_id = input("Welke lobby wil je joinen?: ")
     with connect(f'ws://localhost:8000/lobbies/connect?lobby_id={lobby_id}&name={name}') as connection:
         def receive():
             while True:
