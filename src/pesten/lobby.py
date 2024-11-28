@@ -60,7 +60,7 @@ class Game:
         await websocket.send_text(hand)
 
 
-    async def update_boards(self):
+    async def update_boards(self, message="test"):
         for name, conn in self.connections.items():
             player_id = self.names.index(name)
             board = Board(
@@ -70,7 +70,10 @@ class Game:
                 otherPlayers={name: len(self.game.hands[self.names.index(name)]) for name in self.names},
                 hand=[Card(card) for card in self.game.hands[player_id]]
             )
-            await conn.send_json(board.model_dump())
+            await conn.send_json({
+                **board.model_dump(),
+                'message': message
+            })
 
 
     async def get_choose(self, name):
@@ -90,7 +93,9 @@ class Game:
             await websocket.send_json({"error": "Invalid choose"})
             return
         self.game.play_turn(choose)
-        await self.update_boards()
+        await self.update_boards(message="")
+        if self.game.has_won:
+            await self.update_boards(f"{name} has won the game!")
 
 
 
@@ -178,6 +183,9 @@ def auth_websocket(token: str):
 def get_lobby(lobby_id: int):
     print(lobbies)
     return lobbies[lobby_id]
+
+def get_current_user_websocket(token: str):
+    return get_current_user(token)
 
 @router.websocket("/connect")
 async def connect_to_lobby(websocket: WebSocket, lobby = Depends(get_lobby), name: str = Depends(auth_websocket)):

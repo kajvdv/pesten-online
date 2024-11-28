@@ -74,7 +74,11 @@ function LobbyList() {
             <div id="lobby-list">
                 {lobbies.lobbies.map((lobby, i) => <Lobby key={lobby.id} {...lobby} user={userName}/>)}
             </div>
-            <button id="new-lobby-button" onClick={() => lobbies.createLobby(2, userName)}>Create new game</button>
+            <div className="lobby-buttons">
+                <button className="new-lobby-button" onClick={() => lobbies.createLobby(2)}>Create new game (2)</button>
+                <button className="new-lobby-button" onClick={() => lobbies.createLobby(3)}>Create new game (3)</button>
+                <button className="new-lobby-button" onClick={() => lobbies.createLobby(4)}>Create new game (4)</button>
+            </div>
         </div>
     </>
 }
