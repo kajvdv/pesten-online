@@ -59,8 +59,13 @@ header {
     gap: 5px;
 }
 
-#new-lobby-button {
+.lobby-buttons {
+    display: flex;
+    gap: 10px;
     align-self: center;
     margin-top: auto;
+}
+
+.new-lobby-button {
     font-size: 30px;
 }
