@@ -23,12 +23,12 @@ class Board(BaseModel):
 
 
 class Game:
-    def __init__(self, capacity, creator) -> None:
-        self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
+    def __init__(self, game, creator) -> None:
+        self.game = game
         self.started = False
         self.connections: dict[str, WebSocket] = {}
         self.names = [creator]
-        self.capacity = capacity
+        self.capacity = self.game.player_count
 
 
     async def add_connection(self, name, websocket: WebSocket):
@@ -56,7 +56,7 @@ class Game:
         await websocket.send_text(hand)
 
 
-    async def update_boards(self):
+    async def update_boards(self, message="test"):
         for name, conn in self.connections.items():
             player_id = self.names.index(name)
             board = Board(
@@ -66,7 +66,10 @@ class Game:
                 otherPlayers={name: len(self.game.hands[self.names.index(name)]) for name in self.names},
                 hand=[Card(card) for card in self.game.hands[player_id]]
             )
-            await conn.send_json(board.model_dump())
+            await conn.send_json({
+                **board.model_dump(),
+                'message': message
+            })
 
 
     async def get_choose(self, name):
@@ -86,7 +89,9 @@ class Game:
             await websocket.send_json({"error": "Invalid choose"})
             return
         self.game.play_turn(choose)
-        await self.update_boards()
+        await self.update_boards(message="")
+        if self.game.has_won:
+            await self.update_boards(f"{name} has won the game!")
 
 
 
@@ -135,7 +140,10 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     while(id in lobbies):
         id = id + 1
     size = lobby.size
-    new_lobby = Game(size, user)
+    game = Pesten(lobby.size, 1, [
+        card(suit, value) for suit in range(4) for value in range(13)
+    ])
+    new_lobby = Game(game, user)
     lobbies[id] = new_lobby
     return get_lobbies(user)
 

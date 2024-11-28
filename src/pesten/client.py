@@ -29,6 +29,7 @@ def client(name):
                 if "error" in board:
                     print(board['error'])
                     continue
+                print(board['message'])
                 print(f"Topcard is {board['topcard']}")
                 if board["current_player"] == name:
                     print("It's your turn")

@@ -8,7 +8,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from pesten.lobby import router as router_lobby, get_current_user_websocket
+from pesten.lobby import router as router_lobby, get_current_user_websocket, Pesten
+from pesten.game import card
 from pesten.auth import router as router_auth, get_current_user, User
 import pesten.lobby
 
@@ -30,7 +31,14 @@ def get_static():
 
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
-pesten.lobby.lobbies = {0: pesten.lobby.Game(2, 'admin')}
+game = Pesten(2, 1, [
+    # card(suit, value) for suit in range(4) for value in range(13)
+    card(0, 0),
+    card(0, 0),
+    card(0, 0),
+    card(0, 0),
+])
+pesten.lobby.lobbies = {0: pesten.lobby.Game(game, 'admin')}
 
 def get_current_user_override(name: str = 'admin'):
     # stmt = select(User)
