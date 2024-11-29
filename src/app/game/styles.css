@@ -128,3 +128,9 @@ body {
 .rightplayer .card.card:first-child {
     margin-top: 0;
 }
+
+.board-message {
+    grid-column: 1 / 4;
+    position: relative;
+    text-align: center;
+}

@@ -112,7 +112,11 @@ function GamePage() {
     
     return (
         <div className="board">
-            <div id="nameplate">{user}</div>
+            <div id="nameplate">
+                {user}
+                <div className="board-message">{game?.message}</div>
+                {game?.message.includes('has won the game') ? <a href='/lobbies'>Go back to lobbies</a> : null}
+            </div>
             {otherHands.map((hand, index) => <div className={classNames[index]}>
                 {Array(hand[1]).fill(upsideDown)}
             </div>)}

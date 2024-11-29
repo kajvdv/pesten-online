@@ -60,7 +60,7 @@ class Game:
         await websocket.send_text(hand)
 
 
-    async def update_boards(self, message="test"):
+    async def update_boards(self, message=""):
         for name, conn in self.connections.items():
             player_id = self.names.index(name)
             board = Board(
