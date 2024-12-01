@@ -47,7 +47,7 @@ def get_current_user_override(name: str = 'admin'):
     # return row.User
     user = User(username=name, password="")
     print("logging in as", user.username)
-    return user
+    return user.username
 
 app.dependency_overrides[get_current_user] = get_current_user_override
 app.dependency_overrides[get_current_user_websocket] = lambda name: name

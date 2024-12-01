@@ -96,6 +96,8 @@ class Game:
         await self.update_boards(message="")
         if self.game.has_won:
             await self.update_boards(f"{name} has won the game!")
+            # for conn in self.connections.values():
+            #     await conn.close()
 
 
 
@@ -103,15 +105,17 @@ class Game:
 async def game_loop(websocket: WebSocket, name, lobby: Game):
     await lobby.add_connection(name, websocket)
     try:
-        while True:
+        while not lobby.game.has_won:
             await lobby.get_choose(name)
-    except WebSocketDisconnect:
-        print(f"websocket with id disconnected")
+    except WebSocketDisconnect as e:
+        print(f"websocket disconnected", e)
     except Exception as e:
         print("ERROR", e)
         await websocket.close()
     finally:
-        del lobby.connections[name]
+        print("deleteing lobby", lobby)
+        del websocket
+        del lobby
 
 
 
@@ -135,10 +139,11 @@ def get_lobbies(user: str = Depends(get_current_user)):
         'size': len(lobby.names),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
-    } for id, lobby in lobbies.items()], key=lambda lobby: lobby['creator'] != user)
+    } for id, lobby in lobbies.items()
+        if not lobby.game.has_won
+    ], key=lambda lobby: lobby['creator'] != user)
 
 
-@router.post('', response_model=LobbyResponse)
 def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     # id = 0
     # while(id in lobbies):
@@ -156,7 +161,7 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
 def create_lobby_route(new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
     # Getting the lowest available id
     id = 0
-    while(id in lobbies):
+    while(id in lobbies and not lobbies[id].game.has_won):
         id = id + 1
     # size = lobby.size
     # cards = [card(suit, value) for suit in range(4) for value in range(13)]
