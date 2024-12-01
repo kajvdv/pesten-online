@@ -140,16 +140,30 @@ def get_lobbies(user: str = Depends(get_current_user)):
 
 @router.post('', response_model=LobbyResponse)
 def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
-    # Getting the lowest available id
-    id = 0
-    while(id in lobbies):
-        id = id + 1
+    # id = 0
+    # while(id in lobbies):
+    #     id = id + 1
     size = lobby.size
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
     print(json.dumps(cards, indent=2))
     game = Pesten(size, 8, cards)
     new_lobby = Game(game, user)
+    return new_lobby
+
+
+@router.post('', response_model=LobbyResponse)
+def create_lobby_route(new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
+    # Getting the lowest available id
+    id = 0
+    while(id in lobbies):
+        id = id + 1
+    # size = lobby.size
+    # cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    # random.shuffle(cards)
+    # print(json.dumps(cards, indent=2))
+    # game = Pesten(size, 8, cards)
+    # new_lobby = Game(game, user)
     lobbies[id] = new_lobby
     return {
         'id': id,
