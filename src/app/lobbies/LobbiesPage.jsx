@@ -6,6 +6,26 @@ import server from "../server"
 const LobbiesContext = createContext()
 
 
+function CreateLobbyModal({onCancel, defaultGameName}) {
+    const lobbies = useContext(LobbiesContext)
+
+    return (
+        <form className="create-modal" onSubmit={async event => {
+                event.preventDefault()
+                const name = event.target[0].value
+                const count = event.target[1].value
+                await lobbies.createLobby(name, count)
+                onCancel()
+        }}>
+            <input type="text" defaultValue={defaultGameName}></input>
+            <input type="number" min="2" max="6" defaultValue={2}></input>
+            <button type="submit">Create</button>
+            <button onClick={onCancel}>Cancel</button>
+        </form>
+    )
+}
+
+
 function LobbiesProvider({children}) {
     const [lobbies, setLobbies] = useState([])
 
@@ -14,8 +34,8 @@ function LobbiesProvider({children}) {
         setLobbies(lobbies)
     }
 
-    async function createLobby(size, creator) {
-        const lobby = await server.postLobby(size, creator)
+    async function createLobby(name, size, creator) {
+        const lobby = await server.postLobby(name, size, creator)
         setLobbies(lobbies => [...lobbies, lobby])
     }
 
@@ -35,7 +55,7 @@ function LobbiesProvider({children}) {
 }
 
 
-function Lobby({id, size, capacity, creator, user}) {
+function Lobby({id, size, capacity, creator, user, players}) {
     const lobbies = useContext(LobbiesContext)
     const [deleting, setDeleting] = useState(false)
 
@@ -49,8 +69,8 @@ function Lobby({id, size, capacity, creator, user}) {
         window.location.href = "/game?lobby_id=" + id
     }
 
-    return <div className="lobby">
-        <h1 className="lobby-join">Game {id}</h1>
+    return <div className="lobby" style={players.includes(user) ? {backgroundColor: 'yellow'} : {}}>
+        <h1 className="lobby-join">{id}</h1>
         <div>Created by {creator}</div>
         <div>{size} / {capacity}</div>
         {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}
@@ -62,11 +82,16 @@ function Lobby({id, size, capacity, creator, user}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext)
     const [userName, setUserName] = useState("")
+    const [showModal, setShowModal] = useState(false)
 
     useEffect(() => {
         server.getUser()
             .then(userName => setUserName(userName))
     }, [])
+
+    useEffect(() => {
+        console.log("showing modal")
+    }, [showModal])
 
     return <>
         <header>Lobbies of {userName}</header>
@@ -75,10 +100,12 @@ function LobbyList() {
                 {lobbies.lobbies.map((lobby, i) => <Lobby key={lobby.id} {...lobby} user={userName}/>)}
             </div>
             <div className="lobby-buttons">
-                <button className="new-lobby-button" onClick={() => lobbies.createLobby(2)}>Create new game (2)</button>
-                <button className="new-lobby-button" onClick={() => lobbies.createLobby(3)}>Create new game (3)</button>
-                <button className="new-lobby-button" onClick={() => lobbies.createLobby(4)}>Create new game (4)</button>
+                <button className="new-lobby-button" onClick={() => setShowModal(true)}>Create new game</button>
             </div>
+            {showModal ? <CreateLobbyModal
+                onCancel={() => setShowModal(false)}
+                defaultGameName={userName + "'s game"}
+            /> : null}
         </div>
     </>
 }

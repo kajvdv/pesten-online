@@ -40,14 +40,14 @@ class Game:
             print("rejoining", name)
         elif self.started:
             raise Exception("Lobby is full")
-        elif name in self.names:
+        elif name in self.names: #TODO: check if can be removed
             raise Exception("Player already in lobby")
         else:
             self.names.append(name)
         self.connections[name] = websocket
         if len(self.names) == self.capacity:
             self.started = True
-        await self.update_boards()
+        await self.update_boards() #TODO: Add message that a player joined
     
 
     async def send_hand(self, name):
@@ -107,40 +107,42 @@ async def game_loop(websocket: WebSocket, name, lobby: Game):
     try:
         while not lobby.game.has_won:
             await lobby.get_choose(name)
+            print("address lobby got choose", lobby)
     except WebSocketDisconnect as e:
         print(f"websocket disconnected", e)
+        del websocket
     except Exception as e:
         print("ERROR", e)
         await websocket.close()
-    finally:
-        print("deleteing lobby", lobby)
         del websocket
-        del lobby
 
 
 
 
 class LobbyCreate(BaseModel):
+    name: str
     size: int
 
 lobbies = {}
 router = APIRouter()
 
 class LobbyResponse(BaseModel):
-    id: int
+    id: str
     size: int
     capacity: int
     creator: str
+    players: list[str]
 
 @router.get('', response_model=list[LobbyResponse])
 def get_lobbies(user: str = Depends(get_current_user)):
     return sorted([{
-        'id': id,
+        'id': str(id),
         'size': len(lobby.names),
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
+        'players': lobby.names,
     } for id, lobby in lobbies.items()
-        if not lobby.game.has_won
+        # if not lobby.game.has_won
     ], key=lambda lobby: lobby['creator'] != user)
 
 
@@ -158,27 +160,32 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
 
 
 @router.post('', response_model=LobbyResponse)
-def create_lobby_route(new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
+def create_lobby_route(lobby: LobbyCreate, new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
     # Getting the lowest available id
-    id = 0
-    while(id in lobbies and not lobbies[id].game.has_won):
-        id = id + 1
+    # id = 0
+    # while(id in lobbies and not lobbies[id].game.has_won):
+    #     id = id + 1
     # size = lobby.size
     # cards = [card(suit, value) for suit in range(4) for value in range(13)]
     # random.shuffle(cards)
     # print(json.dumps(cards, indent=2))
     # game = Pesten(size, 8, cards)
     # new_lobby = Game(game, user)
-    lobbies[id] = new_lobby
+    if lobby.name in lobbies:
+        raise HTTPException(status_code=400, detail="Lobby name already exists")
+    lobbies[lobby.name] = new_lobby
+    print(f"Added new lobby with id {id}")
+    print(f"Total lobbies now {len(lobbies)}")
     return {
-        'id': id,
+        'id': lobby.name,
         'size': len(new_lobby.names),
         'capacity': new_lobby.capacity,
         'creator': user,
+        'players': new_lobby.names,
     }
 
 @router.delete('/{id}', response_model=LobbyResponse)
-def delete_lobby(id: int, user: str = Depends(get_current_user)):
+def delete_lobby(id: str, user: str = Depends(get_current_user)):
     try:
         lobby_to_be_deleted = lobbies[id]
     except KeyError as e:
@@ -188,28 +195,32 @@ def delete_lobby(id: int, user: str = Depends(get_current_user)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
     print("deleting lobby")
     lobby = lobbies.pop(id)
-    return {
-        'id': id,
+    print("address lobby", lobby)
+    to_be_returned = {
+        'id': str(id),
         'size': len(lobby.names),
         'capacity': lobby.capacity,
         'creator': user,
+        'players': lobby.names,
     }
+    del lobby
+    return to_be_returned
 
 def auth_websocket(token: str):
     name = get_current_user(token)
     return name
 
-def get_lobby(lobby_id: int):
+def get_lobby(lobby_id: str):
     print(lobbies)
     return lobbies[lobby_id]
 
-def get_current_user_websocket(token: str):
+def get_current_user_websocket(token: str): #TODO: Check if this can be removed
     return get_current_user(token)
 
 @router.websocket("/connect")
 async def connect_to_lobby(websocket: WebSocket, lobby = Depends(get_lobby), name: str = Depends(auth_websocket)):
     print("Websocket connect with", name)
     await websocket.accept()
-    await game_loop(websocket, name, lobby)
+    await game_loop(websocket, name, lobby) #TODO: Inline this function here
 
 

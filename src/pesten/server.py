@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from pesten.lobby import router as router_lobby, get_current_user_websocket, Pesten
+from pesten.lobby import router as router_lobby, get_current_user_websocket, auth_websocket, Pesten
 from pesten.game import card
 from pesten.auth import router as router_auth, get_current_user, User
 import pesten.lobby
@@ -38,7 +38,7 @@ game = Pesten(2, 1, [
     card(0, 0),
     card(0, 0),
 ])
-pesten.lobby.lobbies = {0: pesten.lobby.Game(game, 'admin')}
+pesten.lobby.lobbies = {'0': pesten.lobby.Game(game, 'admin')}
 
 def get_current_user_override(name: str = 'admin'):
     # stmt = select(User)
@@ -50,7 +50,7 @@ def get_current_user_override(name: str = 'admin'):
     return user.username
 
 app.dependency_overrides[get_current_user] = get_current_user_override
-app.dependency_overrides[get_current_user_websocket] = lambda name: name
+app.dependency_overrides[auth_websocket] = lambda token: token
 
 if __name__ == "__main__":
     uvicorn.run(app)

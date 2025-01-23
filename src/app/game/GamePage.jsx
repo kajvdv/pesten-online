@@ -84,10 +84,12 @@ function useConnection(lobby_id, onMessage, onError) {
 }
 
 function GamePage() {
+    const params = new URLSearchParams(window.location.search)
+    const lobby_id = params.get("lobby_id")
     const user = useUser()
     const [game, setGame] = useState()
     const [error, setError] = useState("")
-    const [playCard, drawCard] = useConnection(0, setGame, setError)
+    const [playCard, drawCard] = useConnection(lobby_id, setGame, setError)
     const [otherHandCounts, setOtherHandCounts] = useState({})
 
     // useEffect(() => {

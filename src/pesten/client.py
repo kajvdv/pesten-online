@@ -6,6 +6,8 @@ Choose name whatever you like
 No need for tokens!
 """
 
+#TODO Move outside the pesten module
+
 import json
 from threading import Thread
 import sys
