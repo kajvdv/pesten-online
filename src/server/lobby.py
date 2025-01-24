@@ -1,11 +1,15 @@
 import json
 import random
+import logging
+import asyncio
 
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
 from server.auth import get_current_user, User, decode_token
+
+logger = logging.getLogger(__name__)
 
 
 class Card(BaseModel):
@@ -25,16 +29,34 @@ class Board(BaseModel):
     hand: list[Card]
 
 
+class Connection():
+    def __init__(self, websocket: WebSocket, token: str):
+        self.username = get_current_user(token)
+        self.websocket = websocket
+
+    async def accept(self):
+        await self.websocket.accept()
+
+    async def close(self):
+        await self.websocket.close()
+
+    async def send_json(self, data):
+        await self.websocket.send_json(data)
+
+    async def receive_text(self):
+        return await self.websocket.receive_text()
+
+
 class Game:
     def __init__(self, game: Pesten, creator) -> None:
         self.game = game
         self.started = False
-        self.connections: dict[str, WebSocket] = {}
+        self.connections: dict[str, Connection] = {}
         self.names = [creator]
         self.capacity = game.player_count
 
 
-    async def add_connection(self, name, websocket: WebSocket):
+    async def add_connection(self, name, connection: Connection):
         if name in self.names:
             print("rejoining", name)
         elif self.started:
@@ -43,23 +65,24 @@ class Game:
             raise Exception("Player already in lobby")
         else:
             self.names.append(name)
-        self.connections[name] = websocket
+        self.connections[name] = connection
         if len(self.names) == self.capacity:
             self.started = True
         await self.update_boards() #TODO: Add message that a player joined
     
 
-    async def send_hand(self, name):
-        player_id = self.names.index(name)
-        hand = "\n".join([
-            str(index) + ": " + card_string(card)
-            for index, card in enumerate(self.game.hands[player_id], start=1)
-        ])
-        websocket = self.connections[name]
-        await websocket.send_text(hand)
+    # async def send_hand(self, name):
+    #     player_id = self.names.index(name)
+    #     hand = "\n".join([
+    #         str(index) + ": " + card_string(card)
+    #         for index, card in enumerate(self.game.hands[player_id], start=1)
+    #     ])
+    #     connection = self.connections[name]
+    #     await connection.send_text(hand)
 
 
     async def update_boards(self, message=""):
+        logger.debug("Updating player's board")
         for name, conn in self.connections.items():
             player_id = self.names.index(name)
             board = Board(
@@ -76,33 +99,36 @@ class Game:
 
 
     async def get_choose(self, name):
-        websocket: WebSocket = self.connections[name]
-        choose = await websocket.receive_text()
+        connection: Connection = self.connections[name]
+        choose = await connection.receive_text()
+        # choose = 0
         # print(f"New message from {name} in lobby {list(lobbies.values()).index(self)}")
         if not self.started:
-            await websocket.send_json({"error": "Game not started"})
+            await connection.send_json({"error": "Game not started"})
             return
         if self.game.current_player != self.names.index(name):
-            await websocket.send_json({"error": "Not your turn"})
+            await connection.send_json({"error": "Not your turn"})
             return
         
         try:
             choose = int(choose)
         except ValueError:
-            await websocket.send_json({"error": "Invalid choose"})
+            await connection.send_json({"error": "Invalid choose"})
             return
         self.game.play_turn(choose)
-        await self.update_boards(message="")
         if self.game.has_won:
+            logger.info(f"{name} has won the game!")
             await self.update_boards(f"{name} has won the game!")
+        else:
+            await self.update_boards(message="")
 
 
-async def game_loop(websocket: WebSocket, name, lobby: Game):
+
+async def game_loop(websocket: Connection, name, lobby: Game):
     await lobby.add_connection(name, websocket)
     try:
         while not lobby.game.has_won:
             await lobby.get_choose(name)
-            print("address lobby got choose", lobby)
     except WebSocketDisconnect as e:
         print(f"websocket disconnected", e)
         del websocket
@@ -124,7 +150,6 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     size = lobby.size
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
-    print(json.dumps(cards, indent=2))
     game = Pesten(size, 8, cards)
     new_game = Game(game, user)
     return new_game
@@ -144,6 +169,9 @@ class Lobbies:
         'creator': lobby.names[0],
         'players': lobby.names,
     } for id, lobby in self.lobbies.items()]
+
+    def get_lobby(self, lobby_name):
+        return self.lobbies[lobby_name]
 
     def create_lobby(self, lobby_create: LobbyCreate, user):
         new_game = create_game(lobby_create, user)
@@ -181,9 +209,9 @@ class Lobbies:
         del lobby # Not sure if this is necessary
         return to_be_returned
 
-    async def connect_to_lobby(self, lobby_name: str, user: str, socket: WebSocket):
+    async def connect_to_lobby(self, lobby_name: str, connection: Connection):
         lobby = self.lobbies[lobby_name]
-        await game_loop(socket, user, lobby)
+        await game_loop(connection, connection.username, lobby)
 
 
 class LobbyResponse(BaseModel):
@@ -224,17 +252,22 @@ def auth_websocket(token: str):
     name = get_current_user(token)
     return name
 
-def get_lobby(lobby_id: str):
-    print(lobbies)
-    return lobbies[lobby_id]
+# def get_lobby(lobby_id: str):
+#     print(lobbies)
+#     return lobbies[lobby_id]
 
 def get_current_user_websocket(token: str): #TODO: Check if this can be removed
     return get_current_user(token)
 
 @router.websocket("/connect")
-async def connect_to_lobby(websocket: WebSocket, lobby = Depends(get_lobby), name: str = Depends(auth_websocket)):
-    print("Websocket connect with", name)
-    await websocket.accept()
-    await game_loop(websocket, name, lobby)
+async def connect_to_lobby(
+    lobby_id: str,
+    connection: Connection = Depends(),
+    lobbies_crud: Lobbies = Depends(),
+    # lobby = Depends(get_lobby),
+    # name: str = Depends(auth_websocket)
+):
+    lobby = lobbies_crud.get_lobby(lobby_id)
+    await game_loop(connection, connection.username, lobby)
 
 
