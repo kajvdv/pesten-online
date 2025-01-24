@@ -116,8 +116,75 @@ class LobbyCreate(BaseModel):
     name: str
     size: int
 
-lobbies = {}
+# lobbies = {}
 router = APIRouter()
+
+
+def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
+    size = lobby.size
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.shuffle(cards)
+    print(json.dumps(cards, indent=2))
+    game = Pesten(size, 8, cards)
+    new_game = Game(game, user)
+    return new_game
+
+
+class Lobbies:
+    # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
+    #TODO Maybe put auth stuff also in here to relief endpoints
+    def __init__(self):
+        self.lobbies: dict[str, Game] = {}
+
+    def get_lobbies(self):
+        return [{
+        'id': id,
+        'size': len(lobby.names),
+        'capacity': lobby.capacity,
+        'creator': lobby.names[0],
+        'players': lobby.names,
+    } for id, lobby in self.lobbies.items()]
+
+    def create_lobby(self, lobby_create: LobbyCreate, user):
+        new_game = create_game(lobby_create, user)
+        if lobby_create.name in self.lobbies:
+            raise HTTPException(status_code=400, detail="Lobby name already exists")
+        self.lobbies[lobby_create.name] = new_game
+        print(f"Added new lobby with name {lobby_create.name}")
+        print(f"Total lobbies now {len(self.lobbies)}")
+        return {
+            'id': lobby_create.name,
+            'size': len(new_game.names),
+            'capacity': new_game.capacity,
+            'creator': user,
+            'players': new_game.names,
+        }
+
+    def delete_lobby(self, lobby_name, user):
+        try:
+            lobby_to_be_deleted = self.lobbies[lobby_name]
+        except KeyError as e:
+            print(f'Lobby with name of {e} does not exist')
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
+        if lobby_to_be_deleted.names[0] != user:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
+        print("deleting lobby")
+        lobby = self.lobbies.pop(lobby_name)
+        print("address lobby", lobby)
+        to_be_returned = {
+            'id': lobby_name,
+            'size': len(lobby.names),
+            'capacity': lobby.capacity,
+            'creator': user,
+            'players': lobby.names,
+        }
+        del lobby # Not sure if this is necessary
+        return to_be_returned
+
+    async def connect_to_lobby(self, lobby_name: str, user: str, socket: WebSocket):
+        lobby = self.lobbies[lobby_name]
+        await game_loop(socket, user, lobby)
+
 
 class LobbyResponse(BaseModel):
     id: str
@@ -126,65 +193,32 @@ class LobbyResponse(BaseModel):
     creator: str
     players: list[str]
 
+
 @router.get('', response_model=list[LobbyResponse])
-def get_lobbies(user: str = Depends(get_current_user)):
-    return sorted([{
-        'id': str(id),
-        'size': len(lobby.names),
-        'capacity': lobby.capacity,
-        'creator': lobby.names[0],
-        'players': lobby.names,
-    } for id, lobby in lobbies.items()
-        # if not lobby.game.has_won
-    ], key=lambda lobby: lobby['creator'] != user)
-
-
-def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
-    size = lobby.size
-    cards = [card(suit, value) for suit in range(4) for value in range(13)]
-    random.shuffle(cards)
-    print(json.dumps(cards, indent=2))
-    game = Pesten(size, 8, cards)
-    new_lobby = Game(game, user)
-    return new_lobby
+def get_lobbies(
+    user: str = Depends(get_current_user),
+    lobbies_crud: Lobbies = Depends(),
+):
+    return sorted(lobbies_crud.get_lobbies(), key=lambda lobby: lobby['creator'] != user)
 
 
 @router.post('', response_model=LobbyResponse)
-def create_lobby_route(lobby: LobbyCreate, new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
-    if lobby.name in lobbies:
-        raise HTTPException(status_code=400, detail="Lobby name already exists")
-    lobbies[lobby.name] = new_lobby
-    print(f"Added new lobby with id {id}")
-    print(f"Total lobbies now {len(lobbies)}")
-    return {
-        'id': lobby.name,
-        'size': len(new_lobby.names),
-        'capacity': new_lobby.capacity,
-        'creator': user,
-        'players': new_lobby.names,
-    }
+def create_lobby_route(
+    lobby: LobbyCreate,
+    user: str = Depends(get_current_user),
+    lobbies_crud: Lobbies = Depends(),
+):
+    new_lobby = lobbies_crud.create_lobby(lobby, user)
+    return new_lobby
 
 @router.delete('/{id}', response_model=LobbyResponse)
-def delete_lobby(id: str, user: str = Depends(get_current_user)):
-    try:
-        lobby_to_be_deleted = lobbies[id]
-    except KeyError as e:
-        print(f'Lobby with id of {e} does not exist')
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
-    if lobby_to_be_deleted.names[0] != user:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
-    print("deleting lobby")
-    lobby = lobbies.pop(id)
-    print("address lobby", lobby)
-    to_be_returned = {
-        'id': str(id),
-        'size': len(lobby.names),
-        'capacity': lobby.capacity,
-        'creator': user,
-        'players': lobby.names,
-    }
-    del lobby
-    return to_be_returned
+def delete_lobby(
+    lobby_name: str,
+    user: str = Depends(get_current_user),
+    lobbies_crud: Lobbies = Depends(),
+):
+    return lobbies_crud.delete_lobby(lobby_name, user)
+
 
 def auth_websocket(token: str):
     name = get_current_user(token)
@@ -201,6 +235,6 @@ def get_current_user_websocket(token: str): #TODO: Check if this can be removed
 async def connect_to_lobby(websocket: WebSocket, lobby = Depends(get_lobby), name: str = Depends(auth_websocket)):
     print("Websocket connect with", name)
     await websocket.accept()
-    await game_loop(websocket, name, lobby) #TODO: Inline this function here
+    await game_loop(websocket, name, lobby)
 
 

@@ -34,4 +34,4 @@ game = Pesten(2, 1, [
     card(0, 0),
     card(0, 0),
 ])
-lobby.lobbies = {'test game': lobby.Game(game, 'admin')}
+# lobby.lobbies = {'test game': lobby.Game(game, 'admin')}
