@@ -1,3 +1,20 @@
+from fastapi.testclient import TestClient
+
+from server.lobby import Lobbies, Game
+from pesten.pesten import Pesten, card
+
+
+class OneLobby(Lobbies):    
+    # Inits CRUD interface with a test game
+    def __init__(self):
+        super().__init__()
+        game = Pesten(2, 1, [
+            card(0, 0),
+            card(0, 0),
+            card(0, 0),
+            card(0, 0),
+        ])
+        self.lobbies = {'test game': Game(game, 'admin')}
 
 
 def test_crud_lobbies():
@@ -11,10 +28,18 @@ def test_crud_lobbies():
     assert len(lobbies.get_lobbies()) == 0
 
 
-def test_lobby_endpoints(client):
+def test_lobby_endpoints(client: TestClient):
     response = client.post("/lobbies", json={'name': 'test', 'size': 2})
     assert response.status_code < 400, response.text
     response = client.get('/lobbies')
     assert response.status_code < 400, response.text
     print(response.json())
     assert len(response.json()) == 1
+
+
+def test_playing_game(client: TestClient):
+    client.app.dependency_overrides[Lobbies] = OneLobby
+    response = client.get('/lobbies')
+    assert response.status_code < 400, response.text
+    assert len(response.json()) == 1
+
