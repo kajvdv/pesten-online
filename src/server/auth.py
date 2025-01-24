@@ -11,7 +11,7 @@ from sqlalchemy import String, Integer, Column, insert, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from pesten.database import Base, get_db
+from server.database import Base, get_db
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"

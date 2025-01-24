@@ -6,11 +6,11 @@ from sqlalchemy import select, create_engine, StaticPool
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 
-from pesten.server import app
+from server.server import app
 from pesten.pesten import Pesten, card
-from pesten.database import get_db
-from pesten.auth import register_user, get_user, User, get_current_user
-from pesten.lobby import LobbyCreate, create_lobby, auth_websocket, get_lobby, Game
+from server.database import get_db
+from server.auth import register_user, get_user, User, get_current_user
+from server.lobby import LobbyCreate, create_lobby, auth_websocket, get_lobby, Game
 
 
 engine = create_engine(

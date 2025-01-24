@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
-from pesten.auth import get_current_user, User, decode_token
+from server.auth import get_current_user, User, decode_token
 
 
 class Card(BaseModel):

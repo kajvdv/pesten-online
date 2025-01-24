@@ -4,10 +4,10 @@ from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import Session
 from httpx import AsyncClient
 
-from pesten.auth import User, get_current_user
-from pesten.server import app
-from pesten.database import get_db, Base
-from pesten.lobby import auth_websocket
+from server.auth import User, get_current_user
+from server.server import app
+from server.database import get_db, Base
+from server.lobby import auth_websocket
 
 
 engine = create_engine(

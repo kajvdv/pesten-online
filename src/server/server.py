@@ -6,10 +6,10 @@ Players can create new games using the post endpoint, to which they can connect 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from pesten.lobby import router as router_lobby, Pesten
+from server.lobby import router as router_lobby, Pesten
 from pesten.game import card
-from pesten.auth import router as router_auth
-import pesten.lobby
+from server.auth import router as router_auth
+import server.lobby as lobby
 
 
 
@@ -34,4 +34,4 @@ game = Pesten(2, 1, [
     card(0, 0),
     card(0, 0),
 ])
-pesten.lobby.lobbies = {'test game': pesten.lobby.Game(game, 'admin')}
+lobby.lobbies = {'test game': lobby.Game(game, 'admin')}
