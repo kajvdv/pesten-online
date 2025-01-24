@@ -1,4 +1,5 @@
 from subprocess import Popen
+import os
 import requests
 from datetime import datetime, timedelta, timezone
 
@@ -12,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from pesten.database import Base, get_db
 
-SECRET_KEY = "27d63347d36d97b05669a6ca6c4e9372e78d1e897dcf5debe823db3bde12460d"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -61,9 +62,6 @@ def get_token(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
 @router.post('/register', status_code=204)
 def register_user(username = Form(), password = Form(), db: Session = Depends(get_db)):
     print("Creating user")
-    # if username in users:
-    #     return "User already exists"
-    # users[username] = pwd_context.hash(password)
     hashed_password = pwd_context.hash(password)
     user = User(username=username, password=hashed_password)
     db.add(user)

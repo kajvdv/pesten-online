@@ -27,7 +27,6 @@ class Board(BaseModel):
 
 class Game:
     def __init__(self, game: Pesten, creator) -> None:
-        # self.game = Pesten(capacity, 8, [card(suit, value) for suit in range(4) for value in range(13)])
         self.game = game
         self.started = False
         self.connections: dict[str, WebSocket] = {}
@@ -96,10 +95,6 @@ class Game:
         await self.update_boards(message="")
         if self.game.has_won:
             await self.update_boards(f"{name} has won the game!")
-            # for conn in self.connections.values():
-            #     await conn.close()
-
-
 
 
 async def game_loop(websocket: WebSocket, name, lobby: Game):
@@ -115,8 +110,6 @@ async def game_loop(websocket: WebSocket, name, lobby: Game):
         print("ERROR", e)
         await websocket.close()
         del websocket
-
-
 
 
 class LobbyCreate(BaseModel):
@@ -147,9 +140,6 @@ def get_lobbies(user: str = Depends(get_current_user)):
 
 
 def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
-    # id = 0
-    # while(id in lobbies):
-    #     id = id + 1
     size = lobby.size
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
@@ -161,16 +151,6 @@ def create_lobby(lobby: LobbyCreate, user: str = Depends(get_current_user)):
 
 @router.post('', response_model=LobbyResponse)
 def create_lobby_route(lobby: LobbyCreate, new_lobby: Game = Depends(create_lobby), user: str = Depends(get_current_user)):
-    # Getting the lowest available id
-    # id = 0
-    # while(id in lobbies and not lobbies[id].game.has_won):
-    #     id = id + 1
-    # size = lobby.size
-    # cards = [card(suit, value) for suit in range(4) for value in range(13)]
-    # random.shuffle(cards)
-    # print(json.dumps(cards, indent=2))
-    # game = Pesten(size, 8, cards)
-    # new_lobby = Game(game, user)
     if lobby.name in lobbies:
         raise HTTPException(status_code=400, detail="Lobby name already exists")
     lobbies[lobby.name] = new_lobby

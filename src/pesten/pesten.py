@@ -93,18 +93,6 @@ class Pesten:
                 rule = self.rules.get(value_choose, None)
                 if rule:
                     rule(self, choose)
-                # else:
-
-                # if value_choose == 0:
-                #     drawCards(self, choose)
-                # elif value_choose == 5:
-                #     anotherTurn(self, choose)
-                # elif value_choose == 6:
-                #     skipTurn(self, choose)
-                # elif value_choose == 11:
-                #     anotherTurn(self, choose)
-                # elif value_choose == 12:
-                #     reverseOrder(self, choose)
                 else:
                     # default play 
                     if self.check(choose):
