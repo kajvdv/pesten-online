@@ -6,7 +6,7 @@ import pytest
 
 from fastapi.testclient import TestClient
 
-from server.lobby import Lobbies, Game, Connection
+from server.lobby import Lobbies, Game, Connection, ConnectionDisconnect
 from pesten.pesten import Pesten, card
 
 logger = logging.getLogger(__name__)
@@ -15,15 +15,22 @@ logger = logging.getLogger(__name__)
 class MockConnection:
     def __init__(self, username):
         self.username = username
+        self.closed = False
         self.can_play = True
+        self.receive_count = 1
     
     async def accept(self):
         logger.info("Accepted mock connection")
 
     async def close(self):
-        logger.info("Closing mock connection")
+        if self.closed:
+            raise ConnectionDisconnect("Connection already closed")
+        logger.info(f"Closing mock connection of {self.username}")
+        self.closed = True
 
     async def send_json(self, data):
+        if self.closed:
+            raise ConnectionDisconnect("Connection was closed")
         if "error" in data:
             self.can_play = False
         else:
@@ -31,8 +38,11 @@ class MockConnection:
         logger.info(f"{self.username} received {json.dumps(data, indent=2)}")
 
     async def receive_text(self):
+        if self.closed:
+            raise ConnectionDisconnect("Connection was closed")
         if not self.can_play:
-            await asyncio.sleep(1)
+            await asyncio.sleep(1 * self.receive_count)
+        self.receive_count += 1
         logger.info(f"{self.username} plays 1")
         return "1"
 
@@ -70,15 +80,18 @@ def test_lobby_endpoints(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_playing_game(client: TestClient):
+async def test_playing_game():
     lobbies_crud = OneLobby()
     player_1 = MockConnection('player_1')
     player_2 = MockConnection('player_2')
     lobby_name = "test game"
-    await asyncio.gather(
-        lobbies_crud.connect_to_lobby(lobby_name, player_2),
-        lobbies_crud.connect_to_lobby(lobby_name, player_1),
-    )
+    assert len(lobbies_crud.lobbies[lobby_name].connections) == 0
+    p2_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_1))
+    await asyncio.sleep(2)
+    p1_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_2))
+    await asyncio.sleep(2)
+    await p1_connect_task
+    await p2_connect_task
     assert lobbies_crud.lobbies[lobby_name].game.has_won == True
     assert lobbies_crud.lobbies[lobby_name].game.current_player == 0 # first player (player_1)
 

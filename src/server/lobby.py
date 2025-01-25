@@ -29,6 +29,10 @@ class Board(BaseModel):
     hand: list[Card]
 
 
+class ConnectionDisconnect(Exception):
+    ...
+
+
 class Connection():
     def __init__(self, websocket: WebSocket, token: str):
         self.username = get_current_user(token)
@@ -41,10 +45,16 @@ class Connection():
         await self.websocket.close()
 
     async def send_json(self, data):
-        await self.websocket.send_json(data)
+        try:
+            await self.websocket.send_json(data)
+        except WebSocketDisconnect as e:
+            raise ConnectionDisconnect(e)
 
-    async def receive_text(self):
-        return await self.websocket.receive_text()
+    async def receive_text(self) -> str:
+        try:
+            return await self.websocket.receive_text()
+        except WebSocketDisconnect as e:
+            raise ConnectionDisconnect(e)
 
 
 class Game:
@@ -58,7 +68,7 @@ class Game:
 
     async def add_connection(self, name, connection: Connection):
         if name in self.names:
-            print("rejoining", name)
+            logger.info(f"rejoining {name}")
         elif self.started:
             raise Exception("Lobby is full")
         elif name in self.names: #TODO: check if can be removed
@@ -119,9 +129,11 @@ class Game:
         if self.game.has_won:
             logger.info(f"{name} has won the game!")
             await self.update_boards(f"{name} has won the game!")
+            logger.debug(f"connection count {len(self.connections)}")
+            for connection in self.connections:
+                await asyncio.gather(*[conn.close() for conn in self.connections.values()])
         else:
             await self.update_boards(message="")
-
 
 
 async def game_loop(websocket: Connection, name, lobby: Game):
@@ -129,13 +141,8 @@ async def game_loop(websocket: Connection, name, lobby: Game):
     try:
         while not lobby.game.has_won:
             await lobby.get_choose(name)
-    except WebSocketDisconnect as e:
-        print(f"websocket disconnected", e)
-        del websocket
-    except Exception as e:
-        print("ERROR", e)
-        await websocket.close()
-        del websocket
+    except ConnectionDisconnect as e:
+        logger.error(f"websocket disconnected {e}")
 
 
 class LobbyCreate(BaseModel):
@@ -155,11 +162,10 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     return new_game
 
 
+lobbies: dict[str, Game] = {}
 class Lobbies:
     # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
     #TODO Maybe put auth stuff also in here to relief endpoints
-    def __init__(self):
-        self.lobbies: dict[str, Game] = {}
 
     def get_lobbies(self):
         return [{
@@ -168,18 +174,18 @@ class Lobbies:
         'capacity': lobby.capacity,
         'creator': lobby.names[0],
         'players': lobby.names,
-    } for id, lobby in self.lobbies.items()]
+    } for id, lobby in lobbies.items()]
 
     def get_lobby(self, lobby_name):
-        return self.lobbies[lobby_name]
+        return lobbies[lobby_name]
 
     def create_lobby(self, lobby_create: LobbyCreate, user):
         new_game = create_game(lobby_create, user)
-        if lobby_create.name in self.lobbies:
+        if lobby_create.name in lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
-        self.lobbies[lobby_create.name] = new_game
+        lobbies[lobby_create.name] = new_game
         print(f"Added new lobby with name {lobby_create.name}")
-        print(f"Total lobbies now {len(self.lobbies)}")
+        print(f"Total lobbies now {len(lobbies)}")
         return {
             'id': lobby_create.name,
             'size': len(new_game.names),
@@ -190,14 +196,14 @@ class Lobbies:
 
     def delete_lobby(self, lobby_name, user):
         try:
-            lobby_to_be_deleted = self.lobbies[lobby_name]
+            lobby_to_be_deleted = lobbies[lobby_name]
         except KeyError as e:
             print(f'Lobby with name of {e} does not exist')
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
         if lobby_to_be_deleted.names[0] != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
         print("deleting lobby")
-        lobby = self.lobbies.pop(lobby_name)
+        lobby = lobbies.pop(lobby_name)
         print("address lobby", lobby)
         to_be_returned = {
             'id': lobby_name,
@@ -210,7 +216,13 @@ class Lobbies:
         return to_be_returned
 
     async def connect_to_lobby(self, lobby_name: str, connection: Connection):
-        lobby = self.lobbies[lobby_name]
+        await connection.accept()
+        try:
+            lobby = lobbies[lobby_name]
+        except KeyError as e:
+            logger.error(f"Could not find {lobby_name} in lobbies")
+            logger.error(f"Current lobbies: {lobbies}")
+            return
         await game_loop(connection, connection.username, lobby)
 
 
@@ -267,7 +279,8 @@ async def connect_to_lobby(
     # lobby = Depends(get_lobby),
     # name: str = Depends(auth_websocket)
 ):
-    lobby = lobbies_crud.get_lobby(lobby_id)
-    await game_loop(connection, connection.username, lobby)
+    # lobby = lobbies_crud.get_lobby(lobby_id)
+    # await game_loop(connection, connection.username, lobby)
+    await lobbies_crud.connect_to_lobby(lobby_id, connection)
 
 
