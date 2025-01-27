@@ -95,7 +95,7 @@ class Pesten:
                     rule(self, choose)
                 else:
                     # default play 
-                    if self.check(choose):
+                    if self.check(choose): # Question: Should check receive the corrected choose?
                         self.change_suit_state = "not asked"
                         self.play(choose)
                         if self.curr_hand:
