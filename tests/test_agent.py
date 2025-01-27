@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 def test_agent_super_simple():
     from pesten.pesten import Pesten, card
     from pesten.agent import Agent
+    
     game = Pesten(2, 1, [
         card(0, 0),
         card(0, 0),
@@ -25,6 +26,7 @@ def test_agent_super_simple():
 def test_agent_infinite_loop_detection():
     from pesten.pesten import Pesten, card
     from pesten.agent import Agent
+
     game = Pesten(2, 1, [
         card(0, 4),
         card(1, 5),
@@ -41,11 +43,13 @@ def test_agent_infinite_loop_detection():
 def test_agent_full_game():
     from pesten.pesten import Pesten, card
     from pesten.agent import Agent
+
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.seed(1)
     random.shuffle(cards)
     game = Pesten(2, 1, cards)
-    agent = Agent() # One agent for multiple players
+    agents = [Agent(), Agent()]
+    turn_counter = 0
     while not game.has_won:
-        choose = agent.generate_choose(game)
+        choose = agents[turn_counter % 2].generate_choose(game)
         game.play_turn(choose)
