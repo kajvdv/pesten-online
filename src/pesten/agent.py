@@ -6,12 +6,13 @@ from pesten.pesten import Pesten
 logger = logging.getLogger(__name__)
 
 
+class AgentError(Exception):
+    ...
+
 
 class Agent:
-    def __init__(self):
-        self.last_choose = 9999 # Choose it would never generate
-        self.last_player = 9999 # Same
-        self.last_top_card = None
+    def __init__(self, player_index):
+        self.player_index = player_index
 
     
     def get_possible_chooses(self, game: Pesten):
@@ -29,12 +30,19 @@ class Agent:
             choose = possible_choosese[0]
         else:
             choose = 0
-        
-        if self.last_top_card == game.play_stack[-1]:
-            if game.curr_hand == self.last_hand and choose == self.last_choose:
-                logger.error("Agent generated the same choose for the same hand. Detected going in infinite loop")
-                raise Exception("Agent going in infinite loop")
-        self.last_choose = choose
-        self.last_hand = list(game.curr_hand)
-        self.last_top_card = game.play_stack[-1]
         return choose
+
+    
+    def play_turn(self, game: Pesten):
+        assert game.current_player == self.player_index
+        choose = self.generate_choose(game)
+        try:
+            topcard = game.play_stack[-1]
+            index_next_player = game.play_turn(choose)
+            if not game.has_won and index_next_player == self.player_index and topcard == game.play_stack[-1]:
+                # If the turn stays the same and the topcard the same then the choose was not good
+                raise AgentError("Wrong choose generated")
+        except AgentError as e:
+            raise e
+        except Exception as e:
+            raise AgentError("AI got an error", e)
