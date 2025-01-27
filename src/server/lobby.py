@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
+from pesten.agent import Agent
 from server.auth import get_current_user, User, decode_token
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class ConnectionDisconnect(Exception):
 
 class Connection():
     def __init__(self, websocket: WebSocket, token: str):
-        self.username = get_current_user(token)
+        self.username = get_current_user(token) # For authentication
         self.websocket = websocket
 
     async def accept(self):
@@ -55,6 +56,26 @@ class Connection():
             return await self.websocket.receive_text()
         except WebSocketDisconnect as e:
             raise ConnectionDisconnect(e)
+        
+
+class AIConnection():
+    def __init__(self, game: Pesten, player_index):
+        self.game = game
+        self.agent = Agent(player_index)
+
+    async def accept(self):
+        ...
+    
+    async def close(self):
+        ...
+    
+    async def send_json(self, data):
+        ...
+    
+    async def receive_text(self) -> str:
+        choose = self.agent.generate_choose(self.game)
+        return choose
+    
 
 
 class Game:
@@ -64,9 +85,13 @@ class Game:
         self.connections: dict[str, Connection] = {}
         self.names = [creator]
         self.capacity = game.player_count
+        self.agents = []
 
 
     async def add_connection(self, name, connection: Connection):
+        logger.info(f"Joining {name}")
+        if type(connection) == AIConnection:
+            self.agents.append(connection)
         if name in self.names:
             logger.info(f"rejoining {name}")
         elif self.started:
@@ -107,6 +132,19 @@ class Game:
                 'message': message
             })
 
+    
+    async def handle_play(self, choose):
+        name = self.names[self.game.current_player]
+        self.game.play_turn(choose)
+        if self.game.has_won:
+            logger.info(f"{name} has won the game!")
+            await self.update_boards(f"{name} has won the game!")
+            logger.debug(f"connection count {len(self.connections)}")
+            for connection in self.connections:
+                await asyncio.gather(*[conn.close() for conn in self.connections.values()])
+        else:
+            await self.update_boards(message="")
+
 
     async def get_choose(self, name):
         connection: Connection = self.connections[name]
@@ -125,15 +163,10 @@ class Game:
         except ValueError:
             await connection.send_json({"error": "Invalid choose"})
             return
-        self.game.play_turn(choose)
-        if self.game.has_won:
-            logger.info(f"{name} has won the game!")
-            await self.update_boards(f"{name} has won the game!")
-            logger.debug(f"connection count {len(self.connections)}")
-            for connection in self.connections:
-                await asyncio.gather(*[conn.close() for conn in self.connections.values()])
-        else:
-            await self.update_boards(message="")
+        await self.handle_play(choose)
+
+    def get_possible_ai_choose(self):
+        self.connections[self.game.current_player]
 
 
 async def game_loop(websocket: Connection, name, lobby: Game):
@@ -141,6 +174,16 @@ async def game_loop(websocket: Connection, name, lobby: Game):
     try:
         while not lobby.game.has_won:
             await lobby.get_choose(name)
+            next_connection = lobby.connections[
+                lobby.names[lobby.game.current_player]
+            ]
+            if type(next_connection) == AIConnection:
+                next_connection: AIConnection
+                await asyncio.sleep(1)
+                choose = await next_connection.receive_text()
+                await lobby.handle_play(choose)
+
+            # Get choose of AI if AI's turn
     except ConnectionDisconnect as e:
         logger.error(f"websocket disconnected {e}")
 
@@ -165,7 +208,7 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
 lobbies: dict[str, Game] = {}
 class Lobbies:
     # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
-    #TODO Maybe put auth stuff also in here to relief endpoints
+    #TODO Maybe put auth stuff also in here, so 'user' can be removed from endpoints
 
     def get_lobbies(self):
         return [{
