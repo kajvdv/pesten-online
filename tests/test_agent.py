@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import random
 
 import pytest
@@ -53,3 +54,19 @@ def test_agent_full_game():
         game.play_turn(choose)
         turn_counter += 1
     logger.info(f"Total amount of turns {turn_counter}")
+
+
+@pytest.mark.asyncio
+async def test_two_ais_playing():
+    from pesten.pesten import Pesten, card
+    from server.lobby import Lobby, Player, AIConnection
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.seed(1)
+    random.shuffle(cards)
+    game = Pesten(2, 8, cards)
+    lobby = Lobby(game)
+    await asyncio.gather(
+        lobby.connect(Player('player1', AIConnection(game, 0))),
+        lobby.connect(Player('player2', AIConnection(game, 1)))
+    )
+

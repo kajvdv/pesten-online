@@ -1,3 +1,5 @@
+# TODO: Structure file with all routes together and all models together and so on.
+# TODO: Have a player be replaced by an AI if they don't join back on time
 import json
 import random
 import logging
@@ -10,6 +12,7 @@ from pesten.pesten import Pesten, card, card_string, CannotDraw
 from pesten.agent import Agent
 from server.auth import get_current_user, User, decode_token
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,9 +20,14 @@ class Card(BaseModel):
     suit: str
     value: str
 
-    def __init__(self, card):
+    @classmethod
+    def from_int(cls, card):
         suit, value = card_string(card).split(' ')
-        super().__init__(suit=suit, value=value)
+        return cls(suit=suit, value=value)
+
+    # def __init__(self, card):
+    #     suit, value = card_string(card).split(' ')
+    #     super().__init__(suit=suit, value=value)
 
 
 class Board(BaseModel):
@@ -28,6 +36,7 @@ class Board(BaseModel):
     current_player: str
     otherPlayers: dict[str, int]
     hand: list[Card]
+    message: str
 
 
 class ConnectionDisconnect(Exception):
@@ -58,134 +67,161 @@ class Connection():
             raise ConnectionDisconnect(e)
         
 
-class AIConnection():
+class AIConnection(Connection):
     def __init__(self, game: Pesten, player_index):
         self.game = game
         self.agent = Agent(player_index)
+        self.event = asyncio.Event()
 
     async def accept(self):
         ...
     
     async def close(self):
-        ...
+        self.event.set() # Unblock if it was waiting on the event
     
-    async def send_json(self, data):
-        ...
+    async def send_json(self, data: dict):
+        # This function can trigger the event when it detects that its this AI its turn
+        logger.debug(f"Received for {self.agent.player_index} : \n{json.dumps(data, indent=2)}")
+        if 'error' in data:
+            return
+        message = Board(**data)
+        if self.game.current_player == self.agent.player_index:
+            logger.debug(f"{self.agent.player_index}: Setting the event")
+            self.event.set()
     
     async def receive_text(self) -> str:
+        logger.debug(f"Waiting for event to be set on {self.agent.player_index}")
+        await self.event.wait()
+        logger.debug(f"{self.agent.player_index} generating choose")
         choose = self.agent.generate_choose(self.game)
+        self.event.clear()
         return choose
-    
 
 
-class Game:
-    def __init__(self, game: Pesten, creator) -> None:
+class Player:
+    # Structure holding player information 
+    def __init__(self, name, connection: Connection):
+        self.name = name
+        self.connection = connection
+
+
+class Lobby:
+    """The game does not know who the players are.
+    It only knows about 'chairs' and that the chairs are occupied somehow.
+    The lobby makes sure that the players occupy the chairs and stay there.
+    Players should not switch from chairs.
+    The game expects the client code to have a list that represents the chairs.
+    The current_player attribute is suppose to point at the chair of the current_player
+    You can get the player by dereferecing the list with that attribute."""
+    def __init__(self, game: Pesten) -> None:
         self.game = game
         self.started = False
-        self.connections: dict[str, Connection] = {}
-        self.names = [creator]
+        # self.connections: dict[str, Connection] = {}
+        # self.names = [creator]
         self.capacity = game.player_count
-        self.agents = []
+        # self.agents = agents
+        self.players: list[Player] = [] # List corresponds with players in pesten game
 
 
-    async def add_connection(self, name, connection: Connection):
-        logger.info(f"Joining {name}")
-        if type(connection) == AIConnection:
-            self.agents.append(connection)
-        if name in self.names:
+    async def connect(self, new_player: Player):
+        connection = new_player.connection
+        name = new_player.name
+        # Creates a gameloop for a connection
+        if player := self.get_player_by_name(name):
+            # Close the existing loop
             logger.info(f"rejoining {name}")
+            try:
+                await player.connection.close()
+            except:
+                logger.error("Error while closing a connection of an already joined player")
+            # player = new_player This instead of the things below?
+            index = self.players.index(player)
+            self.players[index] = new_player # Replacing the player object
         elif self.started:
             raise Exception("Lobby is full")
-        elif name in self.names: #TODO: check if can be removed
-            raise Exception("Player already in lobby")
         else:
-            self.names.append(name)
-        self.connections[name] = connection
-        if len(self.names) == self.capacity:
+            logger.info(f"Adding player {new_player.name} to the lobby")
+            self.players.append(new_player)
+        if len(self.players) == self.capacity:
             self.started = True
-        await self.update_boards() #TODO: Add message that a player joined
-    
+        self.update_boards(message=f"{name} joined the game")
+        try:
+            while not self.game.has_won:
+                choose = await connection.receive_text()
+                logger.debug(f"{new_player.name} choose {choose}")
+                self.play_choose(new_player, choose)
+                logger.info(f"{new_player.name} successfully played a choose")
+        except:
+            logger.error("Error in the connection")
+        logger.info(f"{new_player.name} exited its gameloop")
+                
 
-    # async def send_hand(self, name):
-    #     player_id = self.names.index(name)
-    #     hand = "\n".join([
-    #         str(index) + ": " + card_string(card)
-    #         for index, card in enumerate(self.game.hands[player_id], start=1)
-    #     ])
-    #     connection = self.connections[name]
-    #     await connection.send_text(hand)
-
-
-    async def update_boards(self, message=""):
+    def update_boards(self, message=""):
         logger.debug("Updating player's board")
-        for name, conn in self.connections.items():
-            player_id = self.names.index(name)
+        # connections = map(lambda player: player.connection, self.players)
+        # suit, value = card_string(card).split(' ')
+        for player_id, player in enumerate(self.players):
             board = Board(
-                topcard=Card(self.game.play_stack[-1]),
+                topcard=Card.from_int(self.game.play_stack[-1]),
                 can_draw=bool(self.game.draw_stack),
-                current_player=self.names[self.game.current_player],
-                otherPlayers={name: len(self.game.hands[self.names.index(name)]) for name in self.names},
-                hand=[Card(card) for card in self.game.hands[player_id]]
+                current_player=self.players[self.game.current_player].name,
+                otherPlayers={player.name: len(self.game.hands[self.players.index(player)]) for player in self.players},
+                hand=[Card.from_int(card) for card in self.game.hands[player_id]],
+                message=message
             )
-            await conn.send_json({
-                **board.model_dump(),
-                'message': message
-            })
+            asyncio.create_task(player.connection.send_json({**board.model_dump()}))
 
     
-    async def handle_play(self, choose):
-        name = self.names[self.game.current_player]
-        self.game.play_turn(choose)
-        if self.game.has_won:
-            logger.info(f"{name} has won the game!")
-            await self.update_boards(f"{name} has won the game!")
-            logger.debug(f"connection count {len(self.connections)}")
-            for connection in self.connections:
-                await asyncio.gather(*[conn.close() for conn in self.connections.values()])
-        else:
-            await self.update_boards(message="")
-
-
-    async def get_choose(self, name):
-        connection: Connection = self.connections[name]
-        choose = await connection.receive_text()
-        # choose = 0
-        # print(f"New message from {name} in lobby {list(lobbies.values()).index(self)}")
-        if not self.started:
-            await connection.send_json({"error": "Game not started"})
-            return
-        if self.game.current_player != self.names.index(name):
-            await connection.send_json({"error": "Not your turn"})
-            return
+    def get_player_by_name(self, name: str) -> Player:
+        try:
+            player = next(filter(lambda p: p.name == name, self.players))
+        except StopIteration as e:
+            logger.info(f"Could not find {name} in the lobby")
+            return None
+        return player
         
+
+    def play_choose(self, player: Player, choose):
+        # player = self.get_player_by_name(name)
+        name = player.name
+        if not self.started:
+            asyncio.create_task(player.connection.send_json({"error": "Game not started"}))
+            return
+        if self.game.current_player != self.players.index(player):
+            asyncio.create_task(player.connection.send_json({"error": "Not your turn"}))
+            return
         try:
             choose = int(choose)
         except ValueError:
-            await connection.send_json({"error": "Invalid choose"})
+            asyncio.create_task(player.connection.send_json({"error": "Invalid choose"}))
             return
-        await self.handle_play(choose)
+        self.game.play_turn(choose)
+        if self.game.has_won:
+            logger.info(f"{name} has won the game!")
+            self.update_boards(f"{name} has won the game!")
+            connections = map(lambda player: player.connection, self.players)
+            asyncio.gather(*[conn.close() for conn in connections])
+        else:
+            self.update_boards(message="")
 
-    def get_possible_ai_choose(self):
-        self.connections[self.game.current_player]
 
+# async def game_loop(websocket: Connection, name, lobby: Lobby):
+#     await lobby.add_connection(name, websocket)
+#     try:
+#         while not lobby.game.has_won:
+#             await lobby.get_choose(name)
+#             next_connection = lobby.connections[
+#                 lobby.names[lobby.game.current_player]
+#             ]
+#             if type(next_connection) == AIConnection:
+#                 next_connection: AIConnection
+#                 await asyncio.sleep(1)
+#                 choose = await next_connection.receive_text()
+#                 await lobby.handle_play(choose)
 
-async def game_loop(websocket: Connection, name, lobby: Game):
-    await lobby.add_connection(name, websocket)
-    try:
-        while not lobby.game.has_won:
-            await lobby.get_choose(name)
-            next_connection = lobby.connections[
-                lobby.names[lobby.game.current_player]
-            ]
-            if type(next_connection) == AIConnection:
-                next_connection: AIConnection
-                await asyncio.sleep(1)
-                choose = await next_connection.receive_text()
-                await lobby.handle_play(choose)
-
-            # Get choose of AI if AI's turn
-    except ConnectionDisconnect as e:
-        logger.error(f"websocket disconnected {e}")
+#             # Get choose of AI if AI's turn
+#     except ConnectionDisconnect as e:
+#         logger.error(f"websocket disconnected {e}")
 
 
 class LobbyCreate(BaseModel):
@@ -201,11 +237,11 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
     game = Pesten(size, 8, cards)
-    new_game = Game(game, user)
+    new_game = Lobby(game, user)
     return new_game
 
 
-lobbies: dict[str, Game] = {}
+lobbies: dict[str, Lobby] = {}
 class Lobbies:
     # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
     #TODO Maybe put auth stuff also in here, so 'user' can be removed from endpoints

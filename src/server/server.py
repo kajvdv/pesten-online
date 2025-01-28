@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from server.lobby import router as router_lobby, Pesten, AIConnection, game_loop
+from server.lobby import router as router_lobby, Pesten, AIConnection
 from pesten.game import card
 from server.auth import router as router_auth
 import server.lobby as lobby
@@ -41,5 +41,5 @@ cards = [card(suit, value) for suit in range(4) for value in range(13)]
 random.shuffle(cards)
 pesten = Pesten(2, 8, cards)
 
-game = lobby.Game(pesten, 'admin')
-lobby.lobbies = {'test game': game}
+# game = lobby.Lobby(pesten, 'admin')
+# lobby.lobbies = {'test game': game}
