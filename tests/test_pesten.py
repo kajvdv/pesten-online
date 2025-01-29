@@ -1,7 +1,10 @@
-import pytest
+import logging
 from random import shuffle
 
 from pesten.pesten import Pesten, card
+
+
+logger = logging.getLogger(__name__)
 
 
 def test_game():
@@ -24,8 +27,4 @@ def test_game():
             if choose >= len(game.curr_hand):
                 choose = 0
         turn_count += 1
-    print(turn_count)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+    logger.info(f"{turn_count=}")

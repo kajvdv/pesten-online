@@ -11,7 +11,9 @@ from pesten.rules import (
     changeSuit,
 )
 
-def get_rules():
+
+@pytest.fixture()
+def rules():
     return {
         0: drawCards,
         5: anotherTurn,
@@ -20,10 +22,6 @@ def get_rules():
         11: anotherTurn,
         12: reverseOrder,
     }
-
-@pytest.fixture()
-def rules():
-    return get_rules()
 
 def test_another_turn(rules):
     game = Pesten(4, 2, [5,5,5,5,5,5,5,5,5,5,5], rules)
@@ -52,8 +50,3 @@ def test_change_suit(rules):
     game.play_turn(1)
     game.play_turn(2)
     assert game.current_player == 2
-
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
