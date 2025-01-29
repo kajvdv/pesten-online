@@ -1,5 +1,6 @@
 import json 
 import time
+import os
 
 import pytest
 from sqlalchemy import select, create_engine, StaticPool
@@ -9,8 +10,11 @@ from fastapi.testclient import TestClient
 from server.server import app
 from pesten.pesten import Pesten, card
 from server.database import get_db
-from server.auth import register_user, get_user, User, get_current_user
-from server.lobby import LobbyCreate, create_lobby, auth_websocket, get_lobby, Game
+from server.auth import get_current_user
+from server.lobby import auth_websocket
+
+
+JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImV4cCI6MTc2OTE4NTU1MX0.2g_qDSqLD8nU5ergTFbwBjlhW9TPBfDaI9vlCkmgmvE"
 
 
 engine = create_engine(
@@ -26,19 +30,24 @@ def get_db_override():
         yield db
 
 
-def test_create_and_join_game():
-    app.dependency_overrides[get_current_user] = lambda: "admin"
-    app.dependency_overrides[auth_websocket] = lambda: "admin"
-    app.dependency_overrides[get_db] = get_db_override
-    client = TestClient(app)
+def test_create_and_join_game(client):
+    # client = TestClient(app)
+    # client.headers['Authorization'] = f"Bearer {JWT_TOKEN}"
 
     response = client.get("/lobbies")
-    response = client.post("/lobbies", json={"size": 2})
+    assert response.status_code < 300, response.text
+    response = client.post("/lobbies", json={"name": "test lobby", "size": 2})
+    assert response.status_code < 300, response.text
     response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
     assert len(response.json()) == 1
     lobby_id = response.json()[0]['id']
 
-    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}')
+    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={JWT_TOKEN}')
+    with connection:
+        ...
+    
+    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={JWT_TOKEN}')
     with connection:
         ...
 

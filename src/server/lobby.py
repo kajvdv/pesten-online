@@ -25,10 +25,6 @@ class Card(BaseModel):
         suit, value = card_string(card).split(' ')
         return cls(suit=suit, value=value)
 
-    # def __init__(self, card):
-    #     suit, value = card_string(card).split(' ')
-    #     super().__init__(suit=suit, value=value)
-
 
 class Board(BaseModel):
     topcard: Card
@@ -113,7 +109,8 @@ class Lobby:
     The game expects the client code to have a list that represents the chairs.
     The current_player attribute is suppose to point at the chair of the current_player
     You can get the player by dereferecing the list with that attribute."""
-    def __init__(self, game: Pesten) -> None:
+    def __init__(self, game: Pesten, creator: str) -> None:
+        self.creator = creator
         self.game = game
         self.started = False
         # self.connections: dict[str, Connection] = {}
@@ -151,15 +148,13 @@ class Lobby:
                 logger.debug(f"{new_player.name} choose {choose}")
                 self.play_choose(new_player, choose)
                 logger.info(f"{new_player.name} successfully played a choose")
-        except:
-            logger.error("Error in the connection")
+        except Exception as e:
+            logger.error(f"Error in the connection: {e}")
         logger.info(f"{new_player.name} exited its gameloop")
                 
 
     def update_boards(self, message=""):
         logger.debug("Updating player's board")
-        # connections = map(lambda player: player.connection, self.players)
-        # suit, value = card_string(card).split(' ')
         for player_id, player in enumerate(self.players):
             board = Board(
                 topcard=Card.from_int(self.game.play_stack[-1]),
@@ -205,34 +200,14 @@ class Lobby:
             self.update_boards(message="")
 
 
-# async def game_loop(websocket: Connection, name, lobby: Lobby):
-#     await lobby.add_connection(name, websocket)
-#     try:
-#         while not lobby.game.has_won:
-#             await lobby.get_choose(name)
-#             next_connection = lobby.connections[
-#                 lobby.names[lobby.game.current_player]
-#             ]
-#             if type(next_connection) == AIConnection:
-#                 next_connection: AIConnection
-#                 await asyncio.sleep(1)
-#                 choose = await next_connection.receive_text()
-#                 await lobby.handle_play(choose)
-
-#             # Get choose of AI if AI's turn
-#     except ConnectionDisconnect as e:
-#         logger.error(f"websocket disconnected {e}")
-
-
 class LobbyCreate(BaseModel):
     name: str
     size: int
 
-# lobbies = {}
 router = APIRouter()
 
 
-def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)):
+def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lobby:
     size = lobby.size
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
@@ -248,12 +223,12 @@ class Lobbies:
 
     def get_lobbies(self):
         return [{
-        'id': id,
-        'size': len(lobby.names),
-        'capacity': lobby.capacity,
-        'creator': lobby.names[0],
-        'players': lobby.names,
-    } for id, lobby in lobbies.items()]
+            'id': id,
+            'size': len(lobby.players),
+            'capacity': lobby.capacity,
+            'creator': lobby.creator,
+            'players': list(map(lambda p: p.name, lobby.players)),
+        } for id, lobby in lobbies.items()]
 
     def get_lobby(self, lobby_name):
         return lobbies[lobby_name]
@@ -267,10 +242,10 @@ class Lobbies:
         print(f"Total lobbies now {len(lobbies)}")
         return {
             'id': lobby_create.name,
-            'size': len(new_game.names),
+            'size': len(new_game.players),
             'capacity': new_game.capacity,
             'creator': user,
-            'players': new_game.names,
+            'players': list(map(lambda p: p.name, new_game.players)),
         }
 
     def delete_lobby(self, lobby_name, user):
@@ -302,7 +277,8 @@ class Lobbies:
             logger.error(f"Could not find {lobby_name} in lobbies")
             logger.error(f"Current lobbies: {lobbies}")
             return
-        await game_loop(connection, connection.username, lobby)
+        # await game_loop(connection, connection.username, lobby)
+        await lobby.connect(Player(connection.username, connection))
 
 
 class LobbyResponse(BaseModel):
