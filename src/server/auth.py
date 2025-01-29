@@ -1,4 +1,5 @@
 from subprocess import Popen
+import logging
 import os
 import requests
 from datetime import datetime, timedelta, timezone
@@ -13,10 +14,12 @@ from sqlalchemy.exc import IntegrityError
 
 from server.database import Base, get_db
 
+
 SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+logger = logging.getLogger(__name__)
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter()
@@ -67,9 +70,10 @@ def register_user(username = Form(), password = Form(), db: Session = Depends(ge
     db.add(user)
     try:
         db.commit()
-    except IntegrityError:
-        print("User already exists")
+    except IntegrityError as e:
+        logger.error("User already exists")
         db.rollback()
+        raise HTTPException(status_code=400, detail='User already exists')
 
 
 @router.get('/users/me')

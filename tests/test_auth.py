@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_creating_account_and_loggin_in(client_with_auth):
     client = client_with_auth
     token_response = client.post("http://localhost:8000/token", data={'username': "kaj", 'password': '123'})
@@ -17,6 +14,3 @@ def test_creating_account_and_loggin_in(client_with_auth):
     user_response = client.get("http://localhost:8000/users/me", headers={"Authorization": "Bearer" + " " + access_token['access_token']})
     print("Data krijgen van user", user_response.text)
 
-
-if __name__ == "__main__":
-    pytest.main([__file__])
