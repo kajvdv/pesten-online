@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect, createContext, useRef } from "react"
 import './LobbiesPage.css'
-import server from "../server"
+import server, {getUser} from "../server"
 
 
 const LobbiesContext = createContext()
@@ -33,18 +33,18 @@ function LobbiesProvider({children}) {
     const [lobbies, setLobbies] = useState([])
 
     async function getLobbies() {
-        const lobbies = await server.getLobbies()
-        setLobbies(lobbies)
+        const response = await server.get('/lobbies')
+        setLobbies(response.data)
     }
 
     async function createLobby(name, size, aiCount) {
-        const lobby = await server.postLobby(name, size, aiCount)
-        setLobbies(lobbies => [...lobbies, lobby])
+        const response = await server.post('/lobbies', {name, size, aiCount})
+        setLobbies(lobbies => [...lobbies, response.data])
     }
 
     async function deleteLobby(id) {
-        const deletedLobby = await server.deleteLobby(id)
-        setLobbies(lobbies => lobbies.filter(lobby => lobby.id !== deletedLobby.id))
+        const response = await server.delete(`/lobbies/${id}`)
+        setLobbies(lobbies => lobbies.filter(lobby => lobby.id !== response.data.id))
     }
     
     useEffect(() => {
@@ -52,7 +52,12 @@ function LobbiesProvider({children}) {
     }, [])
 
 
-    return <LobbiesContext.Provider value={{lobbies, getLobbies, createLobby, deleteLobby}}>
+    return <LobbiesContext.Provider value={{
+        lobbies,
+        getLobbies,
+        createLobby,
+        deleteLobby
+    }}>
         {children}
     </LobbiesContext.Provider>
 }
@@ -88,8 +93,7 @@ function LobbyList() {
     const [showModal, setShowModal] = useState(false)
 
     useEffect(() => {
-        server.getUser()
-            .then(userName => setUserName(userName))
+        getUser().then(userName => setUserName(userName))
     }, [])
 
     useEffect(() => {

@@ -11,8 +11,12 @@ function LoginPage() {
 
     async function submit(event) {
         event.preventDefault()
-        // const form = new FormData(loginForm.current)
-        await server.login(loginForm.current)
+        const response = await server.post("/token", loginForm.current)
+        const {token_type, access_token} = response.data
+        const headerField = token_type.toUpperCase() + " " + access_token
+        server.defaults.headers.common['Authorization'] = headerField
+        sessionStorage.setItem('accessToken', access_token)
+        
         // navigate('/lobbies')
         window.location.href = '/lobbies'
     }

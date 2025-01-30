@@ -50,7 +50,7 @@ async function connect(lobbyId) {
 }
 
 
-async function getUser() {
+export async function getUser() {
     const token = sessionStorage.getItem('accessToken')
     if (!token) {
         throw new Error("No token in client storage")
@@ -60,27 +60,4 @@ async function getUser() {
 }
 
 
-async function getLobbies() {
-    const response = await server.get('/lobbies')
-    return response.data
-}
-
-async function postLobby(name, size, aiCount) {
-    const response = await server.post('/lobbies', {name, size, aiCount})
-    return response.data
-}
-
-async function deleteLobby(id) {
-    const response = await server.delete(`/lobbies/${id}`)
-    return response.data
-}
-
-
-export default {
-    login,
-    connect,
-    getUser,
-    getLobbies,
-    postLobby,
-    deleteLobby,
-}
+export default server
