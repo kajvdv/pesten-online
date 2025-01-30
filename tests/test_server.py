@@ -108,23 +108,23 @@ def test_auth(client):
     assert response.json() == "kaj" # Getting the username based of token
 
 
-@pytest.mark.asyncio
-async def test_playing_game(init_lobby):
-    # This test is nice because it didn't need auth, but that is kind of resolved now.
-    from server.lobby import Lobbies
-    lobbies_crud = Lobbies()
-    player_1 = MockConnection('testuser1')
-    player_2 = MockConnection('testuser2')
-    lobby_name = "testlobby"
-    assert len(init_lobby.players) == 0
-    p2_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_1))
-    # await asyncio.sleep(3)
-    p1_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_2))
-    # await asyncio.sleep(3)
-    await p1_connect_task
-    await p2_connect_task
-    assert init_lobby.game.has_won == True
-    assert init_lobby.game.current_player == 0 # first player (player_1)
+# @pytest.mark.asyncio
+# async def test_playing_game(init_lobby):
+#     # This test is nice because it didn't need auth, but that is kind of resolved now.
+#     from server.lobby import Lobbies
+#     lobbies_crud = Lobbies()
+#     player_1 = MockConnection('testuser1')
+#     player_2 = MockConnection('testuser2')
+#     lobby_name = "testlobby"
+#     assert len(init_lobby.players) == 0
+#     p2_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_1))
+#     # await asyncio.sleep(3)
+#     p1_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_2))
+#     # await asyncio.sleep(3)
+#     await p1_connect_task
+#     await p2_connect_task
+#     assert init_lobby.game.has_won == True
+#     assert init_lobby.game.current_player == 0 # first player (player_1)
 
 
 def test_create_and_join_game(
@@ -171,3 +171,21 @@ def test_playing_simple_game(
         connections[0].send_text('1')
     assert init_lobby.game.has_won
     assert init_lobby.game.current_player == 0
+
+
+def test_create_simple_two_ai_game(
+        client: TestClient,
+        jwt_token_testuser1: str
+):
+    response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
+    response = client.post("/lobbies", json={"name": "test_lobby", "size": 3, 'aiCount': 2})
+    assert response.status_code < 300, response.text
+    response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
+    assert len(response.json()) == 1
+    lobby_id = response.json()[0]['id']
+    
+    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
+    with connection:
+        ...

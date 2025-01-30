@@ -19,6 +19,7 @@ function CreateLobbyModal({onCancel, defaultGameName}) {
                 onCancel()
         }}>
             <input type="text" defaultValue={defaultGameName}></input>
+            {/* TODO: Make sure that player cannot choose too many AI's */}
             <input type="number" min="2" max="6" defaultValue={2}></input>
             <input type="number" min="0" max="5" defaultValue={0}></input>
             <button type="submit">Create</button>

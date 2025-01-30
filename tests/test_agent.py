@@ -64,7 +64,7 @@ async def test_two_ais_playing():
     random.seed(1)
     random.shuffle(cards)
     game = Pesten(2, 8, cards)
-    lobby = Lobby(game)
+    lobby = Lobby(game, 'player1')
     await asyncio.gather(
         lobby.connect(Player('player1', AIConnection(game, 0))),
         lobby.connect(Player('player2', AIConnection(game, 1)))

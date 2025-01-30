@@ -74,7 +74,6 @@ class Pesten:
         self.curr_hand = self.hands[self.current_player]
         
     def play_turn(self, choose) -> int:
-        print("chosing", choose)
         # Returns index next player
         if self.has_won:
             return int(self.current_player)

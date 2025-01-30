@@ -269,12 +269,16 @@ class Lobbies:
         if lobby_create.name in lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
-        for i in range(lobby_create.aiCount):
-            logger.debug(f"Adding AI")
-            self.background_tasks.add_task(new_game.connect, Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
+
+        logger.debug(f"Adding AI")
+        async def connect_ais():
+            asyncio.gather(*[
+                new_game.connect(Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
+                for i in range(lobby_create.aiCount)
+            ])
+        self.background_tasks.add_task(connect_ais)
+
         lobbies[lobby_create.name] = new_game
-        print(f"Added new lobby with name {lobby_create.name}")
-        print(f"Total lobbies now {len(lobbies)}")
         return {
             'id': lobby_create.name,
             'size': 1 + lobby_create.aiCount,
@@ -314,7 +318,7 @@ class Lobbies:
             return
         # await game_loop(connection, connection.username, lobby)
         await lobby.connect(Player(connection.username, connection))
-        if lobby.game.has_won:
+        if lobby.game.has_won and lobby_name in lobbies:
             logger.info(f"Deleting {lobby_name}")
             lobbies.pop(lobby_name)
 
@@ -357,10 +361,6 @@ def auth_websocket(token: str):
     name = get_current_user(token)
     return name
 
-# def get_lobby(lobby_id: str):
-#     print(lobbies)
-#     return lobbies[lobby_id]
-
 def get_current_user_websocket(token: str): #TODO: Check if this can be removed
     return get_current_user(token)
 
@@ -369,11 +369,7 @@ async def connect_to_lobby(
     lobby_id: str,
     connection: HumanConnection = Depends(),
     lobbies_crud: Lobbies = Depends(),
-    # lobby = Depends(get_lobby),
-    # name: str = Depends(auth_websocket)
 ):
-    # lobby = lobbies_crud.get_lobby(lobby_id)
-    # await game_loop(connection, connection.username, lobby)
     await lobbies_crud.connect_to_lobby(lobby_id, connection)
 
 
