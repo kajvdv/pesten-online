@@ -189,3 +189,21 @@ def test_create_simple_two_ai_game(
     connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
     with connection:
         ...
+
+
+def test_play_game_against_ai(
+        client: TestClient,
+        jwt_token_testuser1: str
+):
+    lobby_id = 'test_lobby'
+    response = client.post("/lobbies", json={"name": lobby_id, "size": 2, 'aiCount': 1})
+    assert response.status_code < 300, response.text
+    
+    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
+    with connection:
+        board = connection.receive_json()
+        connection.send_text("1")
+        board = connection.receive_json()
+        assert board['message']
+
+    

@@ -184,16 +184,18 @@ class Lobby:
 
     def update_boards(self, message=""):
         logger.debug("Updating player's board")
-        for player_id, player in enumerate(self.players):
-            board = Board(
+        asyncio.gather(*[
+            player.connection.send_json(Board(
                 topcard=Card.from_int(self.game.play_stack[-1]),
                 can_draw=bool(self.game.draw_stack),
                 current_player=self.players[self.game.current_player].name,
                 otherPlayers={player.name: len(self.game.hands[self.players.index(player)]) for player in self.players},
                 hand=[Card.from_int(card) for card in self.game.hands[player_id]],
                 message=message
-            )
-            asyncio.create_task(player.connection.send_json({**board.model_dump()}))
+            ).model_dump())
+            for player_id, player in enumerate(self.players)
+        ])
+            # asyncio.create_task(player.connection.send_json({**board.model_dump()}))
 
     
     def get_player_by_name(self, name: str) -> Player:
@@ -242,6 +244,13 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lo
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
     game = Pesten(size, 8, cards)
+    # For debugging
+    # pesten = Pesten(2, 1, [
+    #     card(0, 0),
+    #     card(0, 0),
+    #     card(0, 0),
+    #     card(0, 0),
+    # ])
     new_game = Lobby(game, user)
     return new_game
 
@@ -320,6 +329,7 @@ class Lobbies:
             return
         # await game_loop(connection, connection.username, lobby)
         await lobby.connect(Player(connection.username, connection))
+        await asyncio.sleep(0)
         if lobby.game.has_won and lobby_name in lobbies:
             logger.info(f"Deleting {lobby_name}")
             lobbies.pop(lobby_name)
