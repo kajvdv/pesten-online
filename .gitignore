@@ -32,3 +32,4 @@ dist-ssr
 .next
 .env.test
 keys.txt
+things.txt

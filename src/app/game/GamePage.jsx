@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import "./styles.css"
-import server from "../server"
+import server, {getUser, connect} from "../server"
 
 
 // class GameConnection {
@@ -42,7 +42,7 @@ function DrawDeck({onClick}) {
 function useUser() {
     const [user, setUser] = useState("")
     useEffect(() => {
-        server.getUser()
+        getUser()
             .then(user => setUser(user))
     }, [])
     return user
@@ -63,7 +63,7 @@ function useConnection(lobby_id, onMessage, onError) {
         //     }
         // })
         console.log(server)
-        server.connect(lobby_id)
+        connect(lobby_id)
             .then(connection => {
                 console.log(connection)
                 connection.onReceive(onMessage, onError)

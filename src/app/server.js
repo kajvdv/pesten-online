@@ -44,7 +44,7 @@ async function login(form) {
 }
 
 
-async function connect(lobbyId) {
+export async function connect(lobbyId) {
     const connection = new GameConnection(lobbyId)
     return connection
 }
