@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 # Secure endpoints with Depends(get_current_user)
 app.include_router(router_auth)
 app.include_router(

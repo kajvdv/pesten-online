@@ -12,7 +12,6 @@ class MockConnection:
         self.username = username
         self.closed = False
         self.can_play = True
-        self.receive_count = 1
     
     async def accept(self):
         logger.info("Accepted mock connection")
@@ -35,8 +34,6 @@ class MockConnection:
     async def receive_text(self):
         if self.closed:
             raise ConnectionDisconnect("Connection was closed")
-        if not self.can_play:
-            await asyncio.sleep(1 * self.receive_count)
-        self.receive_count += 1
+        await asyncio.sleep(1)
         logger.info(f"{self.username} plays 1")
         return "1"

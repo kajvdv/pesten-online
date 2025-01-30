@@ -70,3 +70,19 @@ async def test_two_ais_playing():
         lobby.connect(Player('player2', AIConnection(game, 1)))
     )
 
+
+@pytest.mark.asyncio
+async def test_three_ais_playing():
+    from pesten.pesten import Pesten, card
+    from server.lobby import Lobby, Player, AIConnection
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.seed(1)
+    random.shuffle(cards)
+    game = Pesten(3, 8, cards)
+    lobby = Lobby(game, 'player0')
+    await asyncio.gather(
+        lobby.connect(Player('player0', AIConnection(game, 0))),
+        lobby.connect(Player('player1', AIConnection(game, 1))),
+        lobby.connect(Player('player2', AIConnection(game, 2)))
+    )
+

@@ -65,8 +65,8 @@ async function getLobbies() {
     return response.data
 }
 
-async function postLobby(name, size, creator) {
-    const response = await server.post('/lobbies', {name, size, creator})
+async function postLobby(name, size, aiCount) {
+    const response = await server.post('/lobbies', {name, size, aiCount})
     return response.data
 }
 

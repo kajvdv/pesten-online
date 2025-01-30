@@ -14,11 +14,13 @@ function CreateLobbyModal({onCancel, defaultGameName}) {
                 event.preventDefault()
                 const name = event.target[0].value
                 const count = event.target[1].value
-                await lobbies.createLobby(name, count)
+                const aiCount = event.target[2].value
+                await lobbies.createLobby(name, count, aiCount)
                 onCancel()
         }}>
             <input type="text" defaultValue={defaultGameName}></input>
             <input type="number" min="2" max="6" defaultValue={2}></input>
+            <input type="number" min="0" max="5" defaultValue={0}></input>
             <button type="submit">Create</button>
             <button onClick={onCancel}>Cancel</button>
         </form>
@@ -34,8 +36,8 @@ function LobbiesProvider({children}) {
         setLobbies(lobbies)
     }
 
-    async function createLobby(name, size, creator) {
-        const lobby = await server.postLobby(name, size, creator)
+    async function createLobby(name, size, aiCount) {
+        const lobby = await server.postLobby(name, size, aiCount)
         setLobbies(lobbies => [...lobbies, lobby])
     }
 

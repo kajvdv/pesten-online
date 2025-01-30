@@ -1,12 +1,14 @@
 # TODO: Structure file with all routes together and all models together and so on.
 # TODO: Have a player be replaced by an AI if they don't join back on time
 import json
+import time
 import random
 import logging
 import asyncio
+from typing import Protocol
 
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Depends, status, BackgroundTasks
 
 from pesten.pesten import Pesten, card, card_string, CannotDraw
 from pesten.agent import Agent
@@ -39,7 +41,30 @@ class ConnectionDisconnect(Exception):
     ...
 
 
-class Connection():
+class NullClosing(Exception):
+    """This exception will prevent a NullConnection to get stuck in its gameloop inside Lobby.connect"""
+    ...
+
+
+class Connection(Protocol):
+    async def accept(self): ...
+    async def close(self): ...
+    async def send_json(self, data): ...
+    async def receive_text(self) -> str: ...
+
+
+class NullConnection:
+    async def accept(self): ...
+
+    async def close(self): ...
+
+    async def send_json(self, data): ...
+
+    async def receive_text(self) -> str:
+        raise NullClosing()
+
+
+class HumanConnection:
     def __init__(self, websocket: WebSocket, token: str):
         self.username = get_current_user(token) # For authentication
         self.websocket = websocket
@@ -63,8 +88,8 @@ class Connection():
             raise ConnectionDisconnect(e)
         
 
-class AIConnection(Connection):
-    def __init__(self, game: Pesten, player_index):
+class AIConnection():
+    def __init__(self, game: Pesten, player_index): # Resolve player_index automatically
         self.game = game
         self.agent = Agent(player_index)
         self.event = asyncio.Event()
@@ -91,12 +116,13 @@ class AIConnection(Connection):
         logger.debug(f"{self.agent.player_index} generating choose")
         choose = self.agent.generate_choose(self.game)
         self.event.clear()
+        await asyncio.sleep(1)
         return choose
 
 
 class Player:
     # Structure holding player information 
-    def __init__(self, name, connection: Connection):
+    def __init__(self, name, connection: HumanConnection):
         self.name = name
         self.connection = connection
 
@@ -148,6 +174,8 @@ class Lobby:
                 logger.debug(f"{new_player.name} choose {choose}")
                 self.play_choose(new_player, choose)
                 logger.info(f"{new_player.name} successfully played a choose")
+        except NullClosing as e:
+            logger.debug("Null connection closing")
         except Exception as e:
             logger.error(f"Error in the connection: {e}")
         logger.info(f"{new_player.name} exited its gameloop")
@@ -203,6 +231,7 @@ class Lobby:
 class LobbyCreate(BaseModel):
     name: str
     size: int
+    aiCount: int = 0
 
 router = APIRouter()
 
@@ -220,6 +249,8 @@ lobbies: dict[str, Lobby] = {}
 class Lobbies:
     # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
     #TODO Maybe put auth stuff also in here, so 'user' can be removed from endpoints
+    def __init__(self, background_tasks: BackgroundTasks):
+        self.background_tasks = background_tasks
 
     def get_lobbies(self):
         return [{
@@ -237,15 +268,19 @@ class Lobbies:
         new_game = create_game(lobby_create, user)
         if lobby_create.name in lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
+        self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
+        for i in range(lobby_create.aiCount):
+            logger.debug(f"Adding AI")
+            self.background_tasks.add_task(new_game.connect, Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
         lobbies[lobby_create.name] = new_game
         print(f"Added new lobby with name {lobby_create.name}")
         print(f"Total lobbies now {len(lobbies)}")
         return {
             'id': lobby_create.name,
-            'size': len(new_game.players),
+            'size': 1 + lobby_create.aiCount,
             'capacity': new_game.capacity,
             'creator': user,
-            'players': list(map(lambda p: p.name, new_game.players)),
+            'players': [user],
         }
 
     def delete_lobby(self, lobby_name, user):
@@ -269,7 +304,7 @@ class Lobbies:
         del lobby # Not sure if this is necessary
         return to_be_returned
 
-    async def connect_to_lobby(self, lobby_name: str, connection: Connection):
+    async def connect_to_lobby(self, lobby_name: str, connection: HumanConnection):
         await connection.accept()
         try:
             lobby = lobbies[lobby_name]
@@ -279,6 +314,9 @@ class Lobbies:
             return
         # await game_loop(connection, connection.username, lobby)
         await lobby.connect(Player(connection.username, connection))
+        if lobby.game.has_won:
+            logger.info(f"Deleting {lobby_name}")
+            lobbies.pop(lobby_name)
 
 
 class LobbyResponse(BaseModel):
@@ -329,7 +367,7 @@ def get_current_user_websocket(token: str): #TODO: Check if this can be removed
 @router.websocket("/connect")
 async def connect_to_lobby(
     lobby_id: str,
-    connection: Connection = Depends(),
+    connection: HumanConnection = Depends(),
     lobbies_crud: Lobbies = Depends(),
     # lobby = Depends(get_lobby),
     # name: str = Depends(auth_websocket)

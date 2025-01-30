@@ -116,11 +116,11 @@ async def test_playing_game(init_lobby):
     player_1 = MockConnection('testuser1')
     player_2 = MockConnection('testuser2')
     lobby_name = "testlobby"
-    assert len(init_lobby.connections) == 0
+    assert len(init_lobby.players) == 0
     p2_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_1))
-    await asyncio.sleep(2)
+    # await asyncio.sleep(3)
     p1_connect_task = asyncio.create_task(lobbies_crud.connect_to_lobby(lobby_name, player_2))
-    await asyncio.sleep(2)
+    # await asyncio.sleep(3)
     await p1_connect_task
     await p2_connect_task
     assert init_lobby.game.has_won == True
