@@ -168,6 +168,7 @@ class Lobby:
         if len(self.players) == self.capacity:
             self.started = True
         self.update_boards(message=f"{name} joined the game")
+        # Maybe put try inside while?
         try:
             while not self.game.has_won:
                 choose = await connection.receive_text()
@@ -247,8 +248,9 @@ def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lo
 
 lobbies: dict[str, Lobby] = {}
 class Lobbies:
-    # Defining CRUD operations. Keep clean of FastAPI stuff, or put in constructor
-    #TODO Maybe put auth stuff also in here, so 'user' can be removed from endpoints
+    # Fastapi dependency for lobby crud operations
+    # TODO: Make ready for debug server.
+    # TODO: Maybe put auth stuff also in here, so 'user' can be removed from endpoints
     def __init__(self, background_tasks: BackgroundTasks):
         self.background_tasks = background_tasks
 
@@ -333,26 +335,26 @@ class LobbyResponse(BaseModel):
 
 @router.get('', response_model=list[LobbyResponse])
 def get_lobbies(
-    user: str = Depends(get_current_user),
-    lobbies_crud: Lobbies = Depends(),
+        user: str = Depends(get_current_user),
+        lobbies_crud: Lobbies = Depends(),
 ):
     return sorted(lobbies_crud.get_lobbies(), key=lambda lobby: lobby['creator'] != user)
 
 
 @router.post('', response_model=LobbyResponse)
 def create_lobby_route(
-    lobby: LobbyCreate,
-    user: str = Depends(get_current_user),
-    lobbies_crud: Lobbies = Depends(),
+        lobby: LobbyCreate,
+        user: str = Depends(get_current_user),
+        lobbies_crud: Lobbies = Depends(),
 ):
     new_lobby = lobbies_crud.create_lobby(lobby, user)
     return new_lobby
 
 @router.delete('/{id}', response_model=LobbyResponse)
 def delete_lobby(
-    lobby_name: str,
-    user: str = Depends(get_current_user),
-    lobbies_crud: Lobbies = Depends(),
+        lobby_name: str,
+        user: str = Depends(get_current_user),
+        lobbies_crud: Lobbies = Depends(),
 ):
     return lobbies_crud.delete_lobby(lobby_name, user)
 
@@ -366,9 +368,9 @@ def get_current_user_websocket(token: str): #TODO: Check if this can be removed
 
 @router.websocket("/connect")
 async def connect_to_lobby(
-    lobby_id: str,
-    connection: HumanConnection = Depends(),
-    lobbies_crud: Lobbies = Depends(),
+        lobby_id: str,
+        connection: HumanConnection = Depends(),
+        lobbies_crud: Lobbies = Depends(),
 ):
     await lobbies_crud.connect_to_lobby(lobby_id, connection)
 
