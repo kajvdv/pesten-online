@@ -77,10 +77,8 @@ lobbies: dict[str, Lobby] = {}
 def get_lobbies():
     return lobbies
 
+
 class Lobbies:
-    # Fastapi dependency for lobby crud operations
-    # TODO: Make ready for debug server.
-    # TODO: Maybe put auth stuff also in here, so 'user' can be removed from endpoints
     def __init__(
             self,
             background_tasks: BackgroundTasks,
