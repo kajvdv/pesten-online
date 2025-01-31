@@ -67,10 +67,11 @@ class HumanConnection:
         
 
 class AIConnection():
-    def __init__(self, game: Pesten, player_index): # Resolve player_index automatically
+    def __init__(self, game: Pesten, player_index, delay = 1): # Resolve player_index automatically
         self.game = game
         self.agent = Agent(player_index)
         self.event = asyncio.Event()
+        self.delay = delay
 
     async def accept(self):
         ...
@@ -93,7 +94,7 @@ class AIConnection():
         await self.event.wait()
         logger.debug(f"{self.agent.player_index} generating choose")
         choose = self.agent.generate_choose(self.game)
-        await asyncio.sleep(1)
+        await asyncio.sleep(self.delay)
         return choose
 
 

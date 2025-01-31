@@ -16,8 +16,8 @@ from fastapi.testclient import TestClient
 from server.server import app
 from pesten.pesten import Pesten, card
 from server.database import get_db
-from server.lobby import auth_websocket, Lobby, WebSocketDisconnect
-from mocks import MockConnection
+from server.lobby.lobby import Lobby
+from server.lobby.dependencies import GameFactory
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,17 @@ engine = create_engine(
 def get_db_override():
     with Session(engine) as db:
         yield db
+
+
+class GameFactoryOverride(GameFactory):
+    def create_game(self, size, user):
+        game = Pesten(2, 1, [
+            card(0, 0),
+            card(0, 0),
+            card(0, 0),
+            card(0, 0),
+        ])
+        return Lobby(game, user)
 
 
 @pytest.fixture
@@ -69,9 +80,18 @@ def client(jwt_token_testuser1):
     Base.metadata.drop_all(engine)
 
 
+@pytest.fixture(autouse=True)
+def reload():
+    from importlib import reload
+    import server.lobby.dependencies
+    logger.debug(f"Reloading dependencies module to reset lobbies")
+    reload(server.lobby.dependencies)
+    assert len(server.lobby.dependencies.lobbies) == 0
+
+
 @pytest.fixture
 def init_lobby():
-    import server.lobby
+    import server.lobby.dependencies
     lobby_id = 'testlobby'
     pesten = Pesten(2, 1, [
         card(0, 0),
@@ -80,10 +100,8 @@ def init_lobby():
         card(0, 0),
     ])
     lobby = Lobby(pesten, 'testuser1')
-    server.lobby.lobbies = {lobby_id: lobby}
-    yield lobby
-    from importlib import reload
-    reload(server.lobby)
+    server.lobby.dependencies.lobbies = {lobby_id: lobby}
+    return (lobby_id, lobby)
 
 
 def test_auth(client):
@@ -155,10 +173,7 @@ def test_playing_simple_game(
         jwt_token_testuser2: str,
         init_lobby
 ):
-    lobby_id = 'testlobby'
-    response = client.get('/lobbies')
-    logger.info(f"Response was {json.dumps(response.json(), indent=2)}")
-    
+    lobby_id, lobby = init_lobby
     connections = [
         client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}'),
         client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser2}')
@@ -169,8 +184,8 @@ def test_playing_simple_game(
         board = connections[0].receive_json()
         logger.debug(f"Board was {json.dumps(board, indent=2)}")
         connections[0].send_text('1')
-    assert init_lobby.game.has_won
-    assert init_lobby.game.current_player == 0
+    assert lobby.game.has_won
+    assert lobby.game.current_player == 0
 
 
 def test_create_simple_two_ai_game(
@@ -195,9 +210,10 @@ def test_play_game_against_ai(
         client: TestClient,
         jwt_token_testuser1: str
 ):
-    lobby_id = 'test_lobby'
+    client.app.dependency_overrides[GameFactory] = GameFactoryOverride
+    lobby_id = "testlobby"
     response = client.post("/lobbies", json={"name": lobby_id, "size": 2, 'aiCount': 1})
-    assert response.status_code < 300, response.text
+    assert response.status_code < 300
     
     connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
     with connection:
