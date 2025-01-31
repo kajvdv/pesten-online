@@ -42,14 +42,6 @@ def delete_lobby(
     return lobbies_crud.delete_lobby(lobby_name, user)
 
 
-def auth_websocket(token: str):
-    name = get_current_user(token)
-    return name
-
-def get_current_user_websocket(token: str): #TODO: Check if this can be removed
-    return get_current_user(token)
-
-
 @router.websocket("/connect")
 async def connect_to_lobby(
         lobby_id: str,
