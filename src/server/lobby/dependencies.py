@@ -6,33 +6,46 @@ import random
 
 from fastapi import Depends, BackgroundTasks, status
 from fastapi.exceptions import HTTPException
-from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 from server.auth import get_current_user
-from pesten.agent import Agent
 from pesten.pesten import Pesten, card
 
-from .schemas import Board, Card, LobbyCreate
+from .schemas import LobbyCreate
 from .lobby import Lobby, HumanConnection, NullConnection, AIConnection, Player
 
 
 logger = logging.getLogger(__name__)
 
 
-def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lobby:
-    size = lobby.size
-    cards = [card(suit, value) for suit in range(4) for value in range(13)]
-    random.shuffle(cards)
-    game = Pesten(size, 8, cards)
-    # For debugging
-    # game = Pesten(2, 1, [
-    #     card(0, 0),
-    #     card(0, 0),
-    #     card(0, 0),
-    #     card(0, 0),
-    # ])
-    new_game = Lobby(game, user)
-    return new_game
+# def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lobby:
+#     size = lobby.size
+#     cards = [card(suit, value) for suit in range(4) for value in range(13)]
+#     random.shuffle(cards)
+#     game = Pesten(size, 8, cards)
+#     # For debugging
+#     # game = Pesten(2, 1, [
+#     #     card(0, 0),
+#     #     card(0, 0),
+#     #     card(0, 0),
+#     #     card(0, 0),
+#     # ])
+#     new_game = Lobby(game, user)
+#     return new_game
+
+
+class GameFactory:
+    def create_game(self, size, user: str):
+        cards = [card(suit, value) for suit in range(4) for value in range(13)]
+        random.shuffle(cards)
+        game = Pesten(size, 8, cards)
+        # game = Pesten(2, 1, [
+        #     card(0, 0),
+        #     card(0, 0),
+        #     card(0, 0),
+        #     card(0, 0),
+        # ])
+        new_game = Lobby(game, user)
+        return new_game
 
 
 lobbies: dict[str, Lobby] = {}
@@ -40,7 +53,8 @@ class Lobbies:
     # Fastapi dependency for lobby crud operations
     # TODO: Make ready for debug server.
     # TODO: Maybe put auth stuff also in here, so 'user' can be removed from endpoints
-    def __init__(self, background_tasks: BackgroundTasks):
+    def __init__(self, background_tasks: BackgroundTasks, game_factory: GameFactory = Depends()):
+        self.game_factory = game_factory
         self.background_tasks = background_tasks
 
     def get_lobbies(self):
@@ -56,7 +70,7 @@ class Lobbies:
         return lobbies[lobby_name]
 
     def create_lobby(self, lobby_create: LobbyCreate, user):
-        new_game = create_game(lobby_create, user)
+        new_game = self.game_factory.create_game(lobby_create.size, user)
         if lobby_create.name in lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
@@ -109,7 +123,6 @@ class Lobbies:
             return
         # await game_loop(connection, connection.username, lobby)
         await lobby.connect(Player(connection.username, connection))
-        await asyncio.sleep(0) # This prevents the websocket to close before the last message is send
         # TODO: I don't like that cleaning up depends on connections
         if lobby.game.has_won and lobby_name in lobbies:
             logger.info(f"Deleting {lobby_name}")

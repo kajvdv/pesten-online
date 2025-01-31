@@ -83,17 +83,16 @@ class AIConnection():
         logger.debug(f"Received for {self.agent.player_index} : \n{json.dumps(data, indent=2)}")
         if 'error' in data:
             return
-        message = Board(**data)
         if self.game.current_player == self.agent.player_index:
             logger.debug(f"{self.agent.player_index}: Setting the event")
             self.event.set()
+            self.event.clear()
     
     async def receive_text(self) -> str:
         logger.debug(f"Waiting for event to be set on {self.agent.player_index}")
         await self.event.wait()
         logger.debug(f"{self.agent.player_index} generating choose")
         choose = self.agent.generate_choose(self.game)
-        self.event.clear()
         await asyncio.sleep(1)
         return choose
 
@@ -151,7 +150,7 @@ class Lobby:
             while not self.game.has_won:
                 choose = await connection.receive_text()
                 logger.debug(f"{new_player.name} choose {choose}")
-                self.play_choose(new_player, choose)
+                await self.play_choose(new_player, choose)
                 logger.info(f"{new_player.name} successfully played a choose")
         except NullClosing as e:
             logger.debug("Null connection closing")
@@ -185,7 +184,7 @@ class Lobby:
         return player
         
 
-    def play_choose(self, player: Player, choose):
+    async def play_choose(self, player: Player, choose):
         # player = self.get_player_by_name(name)
         name = player.name
         if not self.started:
@@ -204,6 +203,6 @@ class Lobby:
             logger.info(f"{name} has won the game!")
             self.update_boards(f"{name} has won the game!")
             connections = map(lambda player: player.connection, self.players)
-            asyncio.gather(*[conn.close() for conn in connections])
+            await asyncio.gather(*[conn.close() for conn in connections])
         else:
             self.update_boards(message="")
