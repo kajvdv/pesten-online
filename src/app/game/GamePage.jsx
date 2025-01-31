@@ -102,7 +102,7 @@ function GamePage() {
     console.log(Object.entries(otherHands))
     otherHands = Object.entries(otherHands)
 
-    const emptySpot = <img className="card" src="game/cards/null.png"/>
+    const emptySpot = <img className="card" src="game/cards/null.png" onClick={drawCard}/>
     const upsideDown = <img className="card" src="game/cards/back.png"/>
 
     let classNames = []
