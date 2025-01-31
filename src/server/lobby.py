@@ -302,22 +302,18 @@ class Lobbies:
         try:
             lobby_to_be_deleted = lobbies[lobby_name]
         except KeyError as e:
-            print(f'Lobby with name of {e} does not exist')
+            logger.error(f'Lobby with name of {e} does not exist')
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
-        if lobby_to_be_deleted.names[0] != user:
+        if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
-        print("deleting lobby")
         lobby = lobbies.pop(lobby_name)
-        print("address lobby", lobby)
-        to_be_returned = {
+        return {
             'id': lobby_name,
-            'size': len(lobby.names),
+            'size': len(lobby.players),
             'capacity': lobby.capacity,
             'creator': user,
-            'players': lobby.names,
+            'players': [p.name for p in lobby.players],
         }
-        del lobby # Not sure if this is necessary
-        return to_be_returned
 
     async def connect_to_lobby(self, lobby_name: str, connection: HumanConnection):
         await connection.accept()
@@ -360,7 +356,7 @@ def create_lobby_route(
     new_lobby = lobbies_crud.create_lobby(lobby, user)
     return new_lobby
 
-@router.delete('/{id}', response_model=LobbyResponse)
+@router.delete('/{lobby_name}', response_model=LobbyResponse)
 def delete_lobby(
         lobby_name: str,
         user: str = Depends(get_current_user),
