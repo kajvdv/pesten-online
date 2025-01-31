@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 
 from server.auth import get_current_user
 
-from .models import LobbyCreate, LobbyResponse
+from .schemas import LobbyCreate, LobbyResponse
 from .dependencies import Lobbies, HumanConnection
 
 

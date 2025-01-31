@@ -10,8 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from server.lobby import router as router_lobby
-from pesten.pesten import card, Pesten
+from server.lobby.routes import router as router_lobby
 from server.auth import router as router_auth
 
 
