@@ -9,7 +9,6 @@ from httpx import AsyncClient
 from server.auth import User, get_current_user
 from server.server import app
 from server.database import get_db, Base
-from server.lobby import auth_websocket
 
 
 engine = create_engine(
