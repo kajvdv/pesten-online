@@ -6,12 +6,13 @@ import random
 
 from fastapi import Depends, BackgroundTasks, status
 from fastapi.exceptions import HTTPException
+from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 from server.auth import get_current_user
 from pesten.pesten import Pesten, card
 
 from .schemas import LobbyCreate
-from .lobby import Lobby, HumanConnection, NullConnection, AIConnection, Player
+from .lobby import Lobby, NullConnection, AIConnection, Player, ConnectionDisconnect
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,30 @@ class GameFactory:
         return new_game
 
 
+class HumanConnection:
+    def __init__(self, websocket: WebSocket, token: str):
+        self.username = get_current_user(token)
+        self.websocket = websocket
+
+    async def accept(self):
+        await self.websocket.accept()
+
+    async def close(self):
+        await self.websocket.close()
+
+    async def send_json(self, data):
+        try:
+            await self.websocket.send_json(data)
+        except WebSocketDisconnect as e:
+            raise ConnectionDisconnect(e)
+
+    async def receive_text(self) -> str:
+        try:
+            return await self.websocket.receive_text()
+        except WebSocketDisconnect as e:
+            raise ConnectionDisconnect(e)
+
+
 lobbies: dict[str, Lobby] = {}
 def get_lobbies():
     return lobbies
@@ -59,26 +84,30 @@ class Lobbies:
     def __init__(
             self,
             background_tasks: BackgroundTasks,
+            user: str = Depends(get_current_user),
             game_factory: GameFactory = Depends(),
             lobbies: dict[str, Lobby] = Depends(get_lobbies)
     ):
         self.game_factory = game_factory
         self.background_tasks = background_tasks
         self.lobbies = lobbies
+        self.user = user
 
     def get_lobbies(self):
-        return [{
+        user = self.user
+        return sorted([{
             'id': id,
             'size': len(lobby.players),
             'capacity': lobby.capacity,
             'creator': lobby.creator,
             'players': list(map(lambda p: p.name, lobby.players)),
-        } for id, lobby in self.lobbies.items()]
+        } for id, lobby in self.lobbies.items()], key=lambda lobby: lobby['creator'] != user)
 
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
 
-    def create_lobby(self, lobby_create: LobbyCreate, user):
+    def create_lobby(self, lobby_create: LobbyCreate):
+        user = self.user
         if lobby_create.name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
         new_game = self.game_factory.create_game(lobby_create.size, user)
@@ -101,7 +130,8 @@ class Lobbies:
             'players': [user],
         }
 
-    def delete_lobby(self, lobby_name, user):
+    def delete_lobby(self, lobby_name):
+        user = self.user
         try:
             lobby_to_be_deleted = self.lobbies[lobby_name]
         except KeyError as e:
@@ -122,6 +152,11 @@ class Lobbies:
         del lobby # Not sure if this is necessary
         return to_be_returned
 
+
+class Connector:
+    def __init__(self, lobbies = Depends(get_lobbies)):
+        self.lobbies = lobbies
+
     async def connect_to_lobby(self, lobby_name: str, connection: HumanConnection):
         await connection.accept()
         try:
@@ -130,9 +165,8 @@ class Lobbies:
             logger.error(f"Could not find {lobby_name} in lobbies")
             logger.error(f"Current lobbies: {self.lobbies}")
             return
-        # await game_loop(connection, connection.username, lobby)
         await lobby.connect(Player(connection.username, connection))
-        # TODO: I don't like that cleaning up depends on connections
+        # TODO: I don't like that the connector deletes the lobby
         if lobby.game.has_won and lobby_name in self.lobbies:
             logger.info(f"Deleting {lobby_name}")
             self.lobbies.pop(lobby_name)

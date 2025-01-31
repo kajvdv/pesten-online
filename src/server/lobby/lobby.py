@@ -3,9 +3,6 @@ import logging
 from typing import Protocol
 import json
 
-from fastapi.websockets import WebSocket, WebSocketDisconnect
-
-from server.auth import get_current_user
 from pesten.pesten import Pesten
 from pesten.agent import Agent
 
@@ -40,30 +37,6 @@ class NullConnection:
 
     async def receive_text(self) -> str:
         raise NullClosing()
-
-
-class HumanConnection:
-    def __init__(self, websocket: WebSocket, token: str):
-        self.username = get_current_user(token) # For authentication
-        self.websocket = websocket
-
-    async def accept(self):
-        await self.websocket.accept()
-
-    async def close(self):
-        await self.websocket.close()
-
-    async def send_json(self, data):
-        try:
-            await self.websocket.send_json(data)
-        except WebSocketDisconnect as e:
-            raise ConnectionDisconnect(e)
-
-    async def receive_text(self) -> str:
-        try:
-            return await self.websocket.receive_text()
-        except WebSocketDisconnect as e:
-            raise ConnectionDisconnect(e)
         
 
 class AIConnection():
@@ -100,7 +73,7 @@ class AIConnection():
 
 class Player:
     # Structure holding player information 
-    def __init__(self, name, connection: HumanConnection):
+    def __init__(self, name, connection: Connection):
         self.name = name
         self.connection = connection
 
