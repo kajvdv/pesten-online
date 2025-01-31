@@ -10,17 +10,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from server.lobby import router as router_lobby, Pesten, AIConnection
-from pesten.game import card
+from server.lobby.routes import router as router_lobby
 from server.auth import router as router_auth
-import server.lobby as lobby
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await lobby.lobbies['test game'].add_connection('AI', AIConnection(pesten, 1))
-    yield
-    
 
 
 app = FastAPI()
@@ -35,11 +26,3 @@ app.include_router(
 @app.get('/')
 def get_static():
     return RedirectResponse('/static/home.html')
-
-cards = [card(suit, value) for suit in range(4) for value in range(13)]
-# random.seed(1)
-random.shuffle(cards)
-pesten = Pesten(2, 8, cards)
-
-# game = lobby.Lobby(pesten, 'admin')
-# lobby.lobbies = {'test game': game}
