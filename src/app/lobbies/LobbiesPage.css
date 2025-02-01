@@ -84,4 +84,12 @@ header {
     width: 30vw;
     height: 50vh;
     margin: auto ;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.create-modal.visible {
+    opacity: 1;
+    transform: translateY(0);
 }

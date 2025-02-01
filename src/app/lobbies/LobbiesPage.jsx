@@ -4,40 +4,24 @@ import server, { getUser } from "../server";
 
 const LobbiesContext = createContext();
 
-function CreateLobbyModal({ onCancel, defaultGameName }) {
+function CreateLobbyModal({ visible, onCancel, defaultGameName }) {
     const lobbies = useContext(LobbiesContext);
     const modalRef = useRef(null);
 
-    useEffect(() => {
-        modalRef.current.style.opacity = 0;
-        modalRef.current.style.transform = "translateY(-20px)";
-        requestAnimationFrame(() => {
-            modalRef.current.style.transition = "opacity 0.3s, transform 0.3s";
-            modalRef.current.style.opacity = 1;
-            modalRef.current.style.transform = "translateY(0)";
-        });
-    }, []);
-
-    function handleClose() {
-        modalRef.current.style.opacity = 0;
-        modalRef.current.style.transform = "translateY(-20px)";
-        setTimeout(onCancel, 300);
-    }
-
     return (
-        <form ref={modalRef} className="create-modal" onSubmit={async (event) => {
+        <form ref={modalRef} className={"create-modal" + (visible ? " visible" : "")} onSubmit={async (event) => {
             event.preventDefault();
             const name = event.target[0].value;
             const count = event.target[1].value;
             const aiCount = event.target[2].value;
             await lobbies.createLobby(name, count, aiCount);
-            handleClose();
+            onCancel();
         }}>
             <input type="text" defaultValue={defaultGameName}></input>
             <input type="number" min="2" max="6" defaultValue={2}></input>
             <input type="number" min="0" max="5" defaultValue={0}></input>
             <button type="submit">Create</button>
-            <button type="button" onClick={handleClose}>Cancel</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
         </form>
     );
 }
@@ -122,12 +106,11 @@ function LobbyList() {
                         Create new game
                     </button>
                 </div>
-                {showModal && (
-                    <CreateLobbyModal
-                        onCancel={() => setShowModal(false)}
-                        defaultGameName={userName + "'s game"}
-                    />
-                )}
+                <CreateLobbyModal
+                    visible={showModal}
+                    onCancel={() => setShowModal(false)}
+                    defaultGameName={userName + "'s game"}
+                />
             </div>
         </>
     );
