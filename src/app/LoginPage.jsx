@@ -22,12 +22,20 @@ function LoginPage() {
     }
 
     return (
-        <form ref={loginForm} id="login-form" onSubmit={submit}>
-            <input id="username" name="username" type="text" placeholder="Username" onChange={val => setUsername(val.target.value)} value={username} size="25" required  />
-            <input id="password" name="password" type="password" placeholder="Password" onChange={val => setPassword(val.target.value)} value={password} size="25" required  />
-            <input type="submit" value="Login" />
-            <Link to='register' className="register-link">Register</Link>
-        </form>
+        <div className='login-page'>
+            <title>Pesten</title>
+            <form ref={loginForm} id="login-form" onSubmit={submit}>
+                <div className='form-input-fields'>
+                    <input id="username" name="username" type="text" placeholder="Username" onChange={val => setUsername(val.target.value)} value={username} size="25" required  />
+                    <input id="password" name="password" type="password" placeholder="Password" onChange={val => setPassword(val.target.value)} value={password} size="25" required  />
+                </div>
+                <div className='form-actions'>
+                    <button className='form-button'>Register</button>
+                    <input className='form-button' type="submit" value="Login" />
+                </div>
+                {/* <Link to='register' className="register-link">Register</Link> */}
+            </form>
+        </div>
     )
 }
 

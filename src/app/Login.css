@@ -1,5 +1,6 @@
 body {
-    background: green;
+    background: rgb(91,197,70);
+    background: radial-gradient(farthest-side at 50% 37%, rgba(91,197,70,1) 0%, rgba(22,107,5,1) 137%);
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -10,32 +11,69 @@ body {
 }
 
 form {
-    border: solid black 5px;
-    border-radius: 10px;
-    width: fit-content;
-    /* height: 20em; */
+    border: solid black 3px;
+    background-color: rgba(147, 227, 127, 1);
+    border-radius: 5px;
+    width: 440px;
     max-height: 100%;
     display: flex;
     padding: 10px;
     margin: 10px;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    /* gap: 20px; */
+    padding: 40px 20px;
 }
 
-form input {
-    width: 73%;
+form input#username, form input#password {
+    width: 100%;
     box-sizing: border-box;
     border: solid black 2px;
     font-size: 200%;
     text-align: center;
 }
 
-form input[type='submit'] {
+.form-input-fields {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+form .form-button {
     width: 50%;
     padding: 10px;
 }
 
 .register-link {
     color: black;
+}
+
+.login-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4rem;
+}
+
+title {
+    -webkit-text-stroke: 6px black;
+    display: block;
+    paint-order: stroke fill;
+    font-family: "Mogra", serif;
+    font-size: 160px;
+    color: rgba(253, 225, 248, 1);
+    letter-spacing: 24px;
+}
+
+.form-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.form-actions .form-button {
+    width: 200px;
 }
