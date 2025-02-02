@@ -10,18 +10,20 @@ body {
     padding: 0;
 }
 
-form {
+.login-form {
     border: solid black 3px;
     background-color: rgba(147, 227, 127, 1);
     border-radius: 5px;
-    width: 440px;
+    max-width: 440px;
     max-height: 100%;
     display: flex;
     padding: 10px;
     margin: 10px;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
-    /* gap: 20px; */
+    gap: 10px;
     padding: 40px 20px;
 }
 
@@ -41,8 +43,14 @@ form input#username, form input#password {
 }
 
 form .form-button {
-    width: 50%;
+    background-color: rgba(44, 236, 79, 1);
+    border: 2px solid black;
+    border-radius: 5px;
+    font-size: 24px;
+    font-weight: bold;
+    width: 184px;
     padding: 10px;
+    margin-top: 24px;
 }
 
 .register-link {
@@ -57,13 +65,23 @@ form .form-button {
 }
 
 title {
-    -webkit-text-stroke: 6px black;
+    -webkit-text-stroke: 4px black;
     display: block;
     paint-order: stroke fill;
     font-family: "Mogra", serif;
     font-size: 160px;
-    color: rgba(253, 225, 248, 1);
+    /* background: rgba(253, 225, 248, 1); */
+    background: linear-gradient(to right, rgba(253, 225, 248, 1), rgb(221, 37, 187), rgba(253, 225, 248, 1));
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     letter-spacing: 24px;
+    animation: move 120s linear infinite;
+}
+
+@keyframes move {
+    to {
+        background-position: 4500vh;
+    }
 }
 
 .form-actions {
@@ -72,8 +90,4 @@ title {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-between;
-}
-
-.form-actions .form-button {
-    width: 200px;
 }
