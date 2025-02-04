@@ -115,23 +115,32 @@ header {
 
 }
 
-#gamename-input {
+input[name="gamename"] {
     width: 100%;
     text-align: center;
 }
 
-#playercount-input {
+input[name="playercount"] {
     width: 100%;
     text-align: center;
 }
 
-#aicount-input {
+input[name="aicount"] {
     width: 100%;
     text-align: center;
 }
 
 .rule-mappings {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.rule-mapping {
+    display: flex ;
+    gap: 3px;
 }
 
 .modal-buttons {

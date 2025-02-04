@@ -4,13 +4,48 @@ import server, { getUser } from "../server";
 
 const LobbiesContext = createContext();
 
+
+function CardValuesDropDown({name}) {
+    console.log("Rerendering", name)
+    return (
+        <select name={name}>
+            {/* TODO: Change values to ints */}
+            {/* TODO: Dynamically get rules from server */}
+            <option value="Nog een keer">Nog een keer</option>
+            <option value="Kaart pakken">Kaart pakken</option>
+            <option value="Suit uitkiezen">Suit uitkiezen</option>
+            <option value="Volgende speler beurt overslaan">Volgende speler beurt overslaan</option>
+        </select>
+    )
+}
+
+
 function RuleMapping({}) {
+    const [cardValue, setCardValue] = useState("Twee")
+
     return (
         <div className="rule-mapping">
-
+            <select onChange={e => setCardValue(e.target.value)}>
+                <option value="2">Twee</option>
+                <option value="3">Drie</option>
+                <option value="4">Vier</option>
+                <option value="5">Vijf</option>
+                <option value="6">Zes</option>
+                <option value="7">Zeven</option>
+                <option value="8">Acht</option>
+                <option value="9">Negen</option>
+                <option value="10">Tien</option>
+                <option value="J">Boer</option>
+                <option value="Q">Koningin</option>
+                <option value="K">Koning</option>
+                <option value="A">Aas</option>
+            </select>
+            <CardValuesDropDown name={cardValue}/>
         </div>
     )
 }
+
+
 
 function CreateLobbyModal({ visible, onCancel, userName }) {
     const lobbies = useContext(LobbiesContext);
@@ -18,12 +53,18 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
 
     const formElements = (
         <>
-            <label htmlFor="gamename-input">Name of game</label>
-            <input id="gamename-input" type="text" defaultValue={userName + "'s game"}></input>
-            <label htmlFor="playercount-input">Amount of players</label>
-            <input id="playercount-input" type="number" min="2" max="6" defaultValue={2}></input>
-            <label htmlFor="aicount-input">Amount of AI's</label>
-            <input id="aicount-input" type="number" min="0" max="5" defaultValue={0}></input>
+            <label htmlFor="gamename">Name of game</label>
+            <input name="gamename" type="text" defaultValue={userName + "'s game"}></input>
+            <label htmlFor="playercount">Amount of players</label>
+            <input name="playercount" type="number" min="2" max="6" defaultValue={2}></input>
+            <label htmlFor="aicount">Amount of AI's</label>
+            <input name="aicount" type="number" min="0" max="5" defaultValue={0}></input>
+            <h3>Speciale regels</h3>
+            <div className="rule-mappings">
+                <RuleMapping cardValue={2}/>
+                <RuleMapping cardValue={3}/>
+                <RuleMapping cardValue={4}/>
+            </div>
             <div className="modal-buttons">
                 <button type="button" onClick={onCancel}>Cancel</button>
                 <button type="submit">Create</button>
@@ -34,12 +75,10 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
     return (
         <div className={"create-modal" + (visible ? " visible" : "")}>
             <h1>Create a new game</h1>
-            <form className="create-form" ref={modalRef} onSubmit={async (event) => {
+            <form className="create-form" ref={modalRef} 
+            onSubmit={async (event) => {
                 event.preventDefault();
-                const name = event.target[0].value;
-                const count = event.target[1].value;
-                const aiCount = event.target[2].value;
-                await lobbies.createLobby(name, count, aiCount);
+                await lobbies.createLobby(new FormData(event.target));
                 onCancel();
             }}>
                 {userName ? formElements : null}
@@ -56,8 +95,8 @@ function LobbiesProvider({ children }) {
         setLobbies(response.data);
     }
 
-    async function createLobby(name, size, aiCount) {
-        const response = await server.post("/lobbies", { name, size, aiCount });
+    async function createLobby(form) {
+        const response = await server.post("/lobbies", form);
         setLobbies((lobbies) => [...lobbies, response.data]);
     }
 
