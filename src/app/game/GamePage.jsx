@@ -97,7 +97,7 @@ function GamePage() {
     //     console.log(game)
     // }, [game])
 
-    let otherHands = game?.otherPlayers || {'': 0}
+    let otherHands = {...game?.otherPlayers} || {'': 0}
     delete otherHands[user]
     console.log(Object.entries(otherHands))
     otherHands = Object.entries(otherHands)
@@ -105,13 +105,19 @@ function GamePage() {
     const emptySpot = <img className="card" src="game/cards/null.png" onClick={drawCard}/>
     const upsideDown = <img className="card" src="game/cards/back.png"/>
 
+    let playerIndex = -1
+    if (game) {
+        playerIndex = Object.keys(game.otherPlayers).indexOf(game.current_player)
+    }
+
     let classNames = []
     if (otherHands.length <= 1) {
+        playerIndex *= 2
         classNames = ['topplayer']
     } else {
         classNames = ['leftplayer', 'topplayer', 'rightplayer']
     }
-    
+
     return (
         <div className="board">
             <div id="nameplate">
@@ -122,11 +128,11 @@ function GamePage() {
             {otherHands.map((hand, index) => <div className={classNames[index]}>
                 {Array(hand[1]).fill(upsideDown)}
             </div>)}
-            <div className="middle">
+            <div className={"middle" + (playerIndex > -1 ? " indicator" + playerIndex : "")}>
                 {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
             </div>
-            <div className="hand">
+            <div className={"hand"}>
                 {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={card => playCard(card, index+1)}/>)}
             </div>
         </div>
