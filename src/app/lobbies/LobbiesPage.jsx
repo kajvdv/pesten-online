@@ -18,9 +18,12 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
 
     const formElements = (
         <>
-            <input className="gamename-input" type="text" defaultValue={userName + "'s game"}></input>
-            <input className="playercount-input" type="number" min="2" max="6" defaultValue={2}></input>
-            <input className="aicount-input" type="number" min="0" max="5" defaultValue={0}></input>
+            <label htmlFor="gamename-input">Name of game</label>
+            <input id="gamename-input" type="text" defaultValue={userName + "'s game"}></input>
+            <label htmlFor="playercount-input">Amount of players</label>
+            <input id="playercount-input" type="number" min="2" max="6" defaultValue={2}></input>
+            <label htmlFor="aicount-input">Amount of AI's</label>
+            <input id="aicount-input" type="number" min="0" max="5" defaultValue={0}></input>
             <div className="modal-buttons">
                 <button type="button" onClick={onCancel}>Cancel</button>
                 <button type="submit">Create</button>
@@ -29,16 +32,19 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
     )
 
     return (
-        <form ref={modalRef} className={"create-modal" + (visible ? " visible" : "")} onSubmit={async (event) => {
-            event.preventDefault();
-            const name = event.target[0].value;
-            const count = event.target[1].value;
-            const aiCount = event.target[2].value;
-            await lobbies.createLobby(name, count, aiCount);
-            onCancel();
-        }}>
-            {userName ? formElements : null}
-        </form>
+        <div className={"create-modal" + (visible ? " visible" : "")}>
+            <h1>Create a new game</h1>
+            <form className="create-form" ref={modalRef} onSubmit={async (event) => {
+                event.preventDefault();
+                const name = event.target[0].value;
+                const count = event.target[1].value;
+                const aiCount = event.target[2].value;
+                await lobbies.createLobby(name, count, aiCount);
+                onCancel();
+            }}>
+                {userName ? formElements : null}
+            </form>
+        </div>
     );
 }
 
@@ -102,7 +108,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext);
     const [userName, setUserName] = useState("");
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState(true);
 
     useEffect(() => {
         getUser().then((userName) => setUserName(userName));
