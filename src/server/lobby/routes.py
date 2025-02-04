@@ -2,7 +2,7 @@
 # TODO: Have a player be replaced by an AI if they don't join back on time
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Form
 
 from server.auth import get_current_user
 
@@ -21,7 +21,7 @@ def get_lobbies(lobbies_crud: Lobbies = Depends()):
 
 @router.post('', response_model=LobbyResponse)
 def create_lobby_route(
-        lobby: LobbyCreate,
+        lobby: LobbyCreate = Form(),
         lobbies_crud: Lobbies = Depends(),
 ):
     new_lobby = lobbies_crud.create_lobby(lobby)

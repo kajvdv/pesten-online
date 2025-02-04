@@ -10,6 +10,7 @@ from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 from server.auth import get_current_user
 from pesten.pesten import Pesten, card
+from pesten.rules import RULES_NAMES
 
 from .schemas import LobbyCreate
 from .lobby import Lobby, NullConnection, AIConnection, Player, ConnectionDisconnect
@@ -34,11 +35,55 @@ logger = logging.getLogger(__name__)
 #     return new_game
 
 
+def construct_rules(lobby: LobbyCreate):
+    rules = {}
+    if lobby.two:
+        rules[0] = RULES_NAMES[lobby.two]
+
+    if lobby.three:
+        rules[1] = RULES_NAMES[lobby.three]
+
+    if lobby.four:
+        rules[2] = RULES_NAMES[lobby.four]
+
+    if lobby.five:
+        rules[3] = RULES_NAMES[lobby.five]
+
+    if lobby.six:
+        rules[4] = RULES_NAMES[lobby.six]
+
+    if lobby.seven:
+        rules[5] = RULES_NAMES[lobby.seven]
+
+    if lobby.eight:
+        rules[6] = RULES_NAMES[lobby.eight]
+
+    if lobby.nine:
+        rules[7] = RULES_NAMES[lobby.nine]
+
+    if lobby.ten:
+        rules[8] = RULES_NAMES[lobby.ten]
+
+    if lobby.jack:
+        rules[9] = RULES_NAMES[lobby.jack]
+
+    if lobby.queen:
+        rules[10] = RULES_NAMES[lobby.queen]
+
+    if lobby.king:
+        rules[11] = RULES_NAMES[lobby.king]
+
+    if lobby.ace:
+        rules[12] = RULES_NAMES[lobby.ace]
+
+    return rules
+
+
 class GameFactory:
-    def create_game(self, size, user: str):
+    def create_game(self, size, rules, user: str):
         cards = [card(suit, value) for suit in range(4) for value in range(13)]
         random.shuffle(cards)
-        game = Pesten(size, 8, cards)
+        game = Pesten(size, 8, cards, rules)
         # game = Pesten(2, 1, [
         #     card(0, 0),
         #     card(0, 0),
@@ -108,7 +153,8 @@ class Lobbies:
         user = self.user
         if lobby_create.name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
-        new_game = self.game_factory.create_game(lobby_create.size, user)
+        rules = construct_rules(lobby_create)
+        new_game = self.game_factory.create_game(lobby_create.size, rules, user)
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
 
         logger.debug(f"Adding AI")

@@ -7,6 +7,19 @@ class LobbyCreate(BaseModel):
     name: str
     size: int
     aiCount: int = 0
+    two: str = ""
+    three: str = ""
+    four: str = ""
+    five: str = ""
+    six: str = ""
+    seven: str = ""
+    eight: str = ""
+    nine: str = ""
+    ten: str = ""
+    jack: str = ""
+    queen: str = ""
+    king: str = ""
+    ace: str = ""
 
 
 class LobbyResponse(BaseModel):

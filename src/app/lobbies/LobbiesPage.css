@@ -115,17 +115,17 @@ header {
 
 }
 
-input[name="gamename"] {
+input[name="name"] {
     width: 100%;
     text-align: center;
 }
 
-input[name="playercount"] {
+input[name="size"] {
     width: 100%;
     text-align: center;
 }
 
-input[name="aicount"] {
+input[name="aiCount"] {
     width: 100%;
     text-align: center;
 }
