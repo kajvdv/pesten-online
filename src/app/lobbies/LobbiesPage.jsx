@@ -4,9 +4,29 @@ import server, { getUser } from "../server";
 
 const LobbiesContext = createContext();
 
-function CreateLobbyModal({ visible, onCancel, defaultGameName }) {
+function RuleMapping({}) {
+    return (
+        <div className="rule-mapping">
+
+        </div>
+    )
+}
+
+function CreateLobbyModal({ visible, onCancel, userName }) {
     const lobbies = useContext(LobbiesContext);
     const modalRef = useRef(null);
+
+    const formElements = (
+        <>
+            <input className="gamename-input" type="text" defaultValue={userName + "'s game"}></input>
+            <input className="playercount-input" type="number" min="2" max="6" defaultValue={2}></input>
+            <input className="aicount-input" type="number" min="0" max="5" defaultValue={0}></input>
+            <div className="modal-buttons">
+                <button type="button" onClick={onCancel}>Cancel</button>
+                <button type="submit">Create</button>
+            </div>
+        </>
+    )
 
     return (
         <form ref={modalRef} className={"create-modal" + (visible ? " visible" : "")} onSubmit={async (event) => {
@@ -17,11 +37,7 @@ function CreateLobbyModal({ visible, onCancel, defaultGameName }) {
             await lobbies.createLobby(name, count, aiCount);
             onCancel();
         }}>
-            <input type="text" defaultValue={defaultGameName}></input>
-            <input type="number" min="2" max="6" defaultValue={2}></input>
-            <input type="number" min="0" max="5" defaultValue={0}></input>
-            <button type="submit">Create</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
+            {userName ? formElements : null}
         </form>
     );
 }
@@ -109,7 +125,7 @@ function LobbyList() {
                 <CreateLobbyModal
                     visible={showModal}
                     onCancel={() => setShowModal(false)}
-                    defaultGameName={userName + "'s game"}
+                    userName={userName}
                 />
             </div>
         </>

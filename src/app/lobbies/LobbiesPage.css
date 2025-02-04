@@ -76,20 +76,59 @@ header {
     border-radius: 8px;
     background-color: lightgreen;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
     width: 30vw;
-    height: 50vh;
+    height: min-content;
     margin: auto ;
     transform: translateY(-20px);
     opacity: 0;
     transition: opacity 0.3s, transform 0.3s;
+    gap: 8px;   
+    /* align-items: center; */
+    padding: 12px;
+}
+
+.create-modal > * {
+    margin: 0 20%;
+
 }
 
 .create-modal.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+.rule-mapping {
+
+}
+
+.gamename-input {
+    width: 100%;
+}
+
+.playercount-input {
+    width: 100%;
+}
+
+.aicount-input {
+    width: 100%;
+}
+
+.rule-mappings {
+    width: 100%;
+}
+
+.modal-buttons {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
 }
