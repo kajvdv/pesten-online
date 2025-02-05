@@ -1,6 +1,8 @@
 import { useContext, useState, useEffect, createContext, useRef } from "react";
 import "./LobbiesPage.css";
 import server, { getUser } from "../server";
+import personOutline from "../../../public/9035563_person_outline_icon.svg";
+import personFill from "../../../public/309035_user_account_human_person_icon.svg";
 
 
 const LobbiesContext = createContext();
@@ -142,8 +144,12 @@ function Lobby({id, size, capacity, creator, user, players}) {
 
     return <div className="lobby" style={players.includes(user) ? {backgroundColor: 'yellow'} : {}}>
         <h1 className="lobby-join">{id}</h1>
-        <div>Created by {creator}</div>
-        <div>{size} / {capacity}</div>
+        <div className="player-icons">
+            {Array.from({length: size}).map(() => <img className="icon-person-fill" src={personFill} alt="person"></img>)}
+            {Array.from({length: capacity - size}).map(() => <img className="icon-person-outline" src={personOutline} alt="person"></img>)}
+            {Array.from({length: 6 - capacity - size}).map(() => <img className="icon-person-outline empty" src={personOutline} alt="person"></img>)}
+        </div>
+        <div className="lobby-buttons"></div>
         {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}
         <button onClick={join}>Join</button>
     </div>
@@ -159,7 +165,7 @@ function LobbyList() {
     }, []);
 
     return (
-        <>
+        <div className="lobbies-page">
             <header>Lobbies of {userName}</header>
             <div className="lobbies">
                 <div id="lobby-list">
@@ -167,18 +173,18 @@ function LobbyList() {
                         <Lobby key={lobby.id} {...lobby} user={userName} />
                     ))}
                 </div>
-                <div className="lobby-buttons">
-                    <button className="new-lobby-button" onClick={() => setShowModal(true)}>
-                        Create new game
-                    </button>
-                </div>
-                <CreateLobbyModal
-                    visible={showModal}
-                    onCancel={() => setShowModal(false)}
-                    userName={userName}
-                />
             </div>
-        </>
+            <div className="lobby-buttons">
+                <button className="new-lobby-button" onClick={() => setShowModal(true)}>
+                    Create new game
+                </button>
+            </div>
+            <CreateLobbyModal
+                visible={showModal}
+                onCancel={() => setShowModal(false)}
+                userName={userName}
+            />
+        </div>
     );
 }
 
