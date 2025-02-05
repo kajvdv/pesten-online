@@ -174,7 +174,8 @@ class Lobbies:
             'players': [user],
         }
 
-    def delete_lobby(self, lobby_name, user):
+    def delete_lobby(self, lobby_name):
+        user = self.user
         try:
             lobby_to_be_deleted = lobbies[lobby_name]
         except KeyError as e:

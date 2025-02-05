@@ -30,10 +30,10 @@ def create_lobby_route(
 
 @router.delete('/{id}', response_model=LobbyResponse)
 def delete_lobby(
-        lobby_name: str,
+        id: str,
         lobbies_crud: Lobbies = Depends(),
 ):
-    return lobbies_crud.delete_lobby(lobby_name)
+    return lobbies_crud.delete_lobby(id)
 
 
 @router.websocket("/connect")
