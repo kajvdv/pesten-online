@@ -8,6 +8,7 @@ body {
 
 .board {
     background-color: green;
+    border-radius: 200px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 70px 1fr 1fr 1fr;
@@ -225,4 +226,9 @@ body {
 
 .current .player-name {
     color: yellow;
+}
+
+#root {
+    width: 100%;
+    background-color: darkgreen;
 }
