@@ -206,6 +206,21 @@ body {
 
 .player-name {
     font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.leftplayer .player-name {
+    transform: rotate(-90deg);
+}
+
+.topplayer .player-name {
+    transform: rotate(180deg);
+}
+
+.rightplayer .player-name {
+    transform: rotate(90deg);
 }
 
 .current .player-name {
