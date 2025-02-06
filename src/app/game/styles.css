@@ -136,45 +136,32 @@ body {
 }
 
 .middle.indicator0::before {
-    content: "..................";
-    display: block;
-    position: absolute;
-    bottom: 26vh;
-    height: 30px;
-    border-radius: 30px;
-    background-color: yellow;
-    color: yellow;
+    top: 67%;
+    left: 50%;
 }
 
 .middle.indicator1::before {
-    content: "..................";
-    display: block;
-    position: absolute;
+    top: 50%;
     left: 25%;
-    height: 30px;
-    border-radius: 30px;
-    background-color: yellow;
-    color: yellow;
 }
 
 .middle.indicator2::before {
-    content: "..................";
-    display: block;
-    position: absolute;
     top: 35%;
-    height: 30px;
-    border-radius: 30px;
-    background-color: yellow;
-    color: yellow;
+    left: 50%;
 }
 
 .middle.indicator3::before {
+    top: 50%;
+    left: 75%;
+}
+
+.middle::before {
     content: "..................";
     display: block;
     position: absolute;
-    right: 25%;
     height: 30px;
     border-radius: 30px;
     background-color: yellow;
     color: yellow;
+    transition: top 0.2s linear, left 0.2s linear;
 }
