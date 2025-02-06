@@ -125,8 +125,9 @@ function GamePage() {
                 <div className="board-message">{game?.message}</div>
                 {game?.message.includes('has won the game') ? <a href='/lobbies'>Go back to lobbies</a> : null}
             </div>
-            {otherHands.map((hand, index) => <div className={classNames[index]}>
-                <div className={"player" + (index === playerIndex-1 ? " current" : "")}>
+            {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
+                <div className="player-name">{hand[0]}</div>
+                <div className={"player"}>
                     {Array(hand[1]).fill(upsideDown)}
                 </div>
             </div>)}
@@ -134,9 +135,9 @@ function GamePage() {
                 {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
             </div>
-            <div className={"hand"}>
-                Naam
-                <div className={"player" + (0 === playerIndex ? " current" : "")}>
+            <div className={"hand" + (0 === playerIndex ? " current" : "")}>
+                <div className="player-name">{user}</div>
+                <div className={"player"}>
                     {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={card => playCard(card, index+1)}/>)}
                 </div>
             </div>
