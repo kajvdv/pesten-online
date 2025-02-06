@@ -126,14 +126,19 @@ function GamePage() {
                 {game?.message.includes('has won the game') ? <a href='/lobbies'>Go back to lobbies</a> : null}
             </div>
             {otherHands.map((hand, index) => <div className={classNames[index]}>
-                {Array(hand[1]).fill(upsideDown)}
+                <div className={"player" + (index === playerIndex-1 ? " current" : "")}>
+                    {Array(hand[1]).fill(upsideDown)}
+                </div>
             </div>)}
             <div className={"middle" + (playerIndex > -1 ? " indicator" + playerIndex : "")}>
                 {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot}
             </div>
             <div className={"hand"}>
-                {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={card => playCard(card, index+1)}/>)}
+                Naam
+                <div className={"player" + (0 === playerIndex ? " current" : "")}>
+                    {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={card => playCard(card, index+1)}/>)}
+                </div>
             </div>
         </div>
     )
