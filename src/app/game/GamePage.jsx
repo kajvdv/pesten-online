@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import "./styles.css"
+import "./cards.css"
 import server, {getUser, connect} from "../server"
 
 
@@ -26,16 +27,21 @@ import server, {getUser, connect} from "../server"
 //     }
 // }
 
+const suits = ["hearts", "diamonds", "clubs", "spades"];
+const values = {
+  "2": 'two', "3": 'three', "4": 'four', "5": 'five', "6": 'six', "7": 'seven', "8": 'eight', "9": 'nine', "10": 'ten',
+  "jack": 'jack', "queen": 'queen', "king": 'king', "ace": 'ace'
+};
+
 
 function Card({card, onClick}) {
-    const src = "/game/cards/" + card.value.toLowerCase() + "_of_" + card.suit.toLowerCase() + ".png"
-    
-    return <img className="card" onClick={() => onClick(card)} src={src}/>
+    const cardClass = values[card.value.toLowerCase()] + "_of_" + card.suit.toLowerCase()
+    return <img className={"card" + " " + cardClass} onClick={() => onClick(card)} src='/game/cards/null.png'/>
 }
 
 
 function DrawDeck({onClick}) {
-    return <img onClick={onClick} className="card drawdeck" src="game/cards/back.png"/>
+    return <img onClick={onClick} className="card card-back drawdeck" src="game/cards/null.png"/>
 }
 
 
@@ -92,10 +98,6 @@ function GamePage() {
     const [playCard, drawCard] = useConnection(lobby_id, setGame, setError)
     const [otherHandCounts, setOtherHandCounts] = useState({})
 
-    // useEffect(() => {
-    //     if (!game) return
-    //     console.log(game)
-    // }, [game])
 
     let otherHands = {...game?.otherPlayers} || {'': 0}
     delete otherHands[user]
@@ -103,19 +105,28 @@ function GamePage() {
     otherHands = Object.entries(otherHands)
 
     const emptySpot = <img className="card" src="game/cards/null.png" onClick={drawCard}/>
-    const upsideDown = <img className="card" src="game/cards/back.png"/>
+    const upsideDown = <img className="card card-back" src="game/cards/null.png"/>
 
     let playerIndex = -1
     if (game) {
-        playerIndex = Object.keys(game.otherPlayers).indexOf(game.current_player)
+        const playerNames = Object.keys(game?.otherPlayers)
+        playerIndex = playerNames.indexOf(game.current_player)
+        const ownIndex = playerNames.indexOf(user)
+        playerIndex = (playerIndex - ownIndex + playerNames.length) % playerNames.length
     }
 
     let classNames = []
     if (otherHands.length <= 1) {
         playerIndex *= 2
-        classNames = ['topplayer']
-    } else {
-        classNames = ['leftplayer', 'topplayer', 'rightplayer']
+        classNames = ['player-position-1']
+    } else if (otherHands.length === 2) {
+        classNames = ['player-position-9', 'player-position-11']
+    } else if (otherHands.length === 3) {
+        classNames = ['player-position-2', 'player-position-1', 'player-position-3']
+    } else if (otherHands.length === 4) {
+        classNames = ['player-position-8', 'player-position-9', 'player-position-11', 'player-position-12']
+    } else if (otherHands.length === 5) {
+        classNames = ['player-position-8', 'player-position-9', 'player-position-10', 'player-position-11', 'player-position-12']
     }
 
     return (
