@@ -119,6 +119,7 @@ header {
 }
 
 .create-modal {
+    font: 15px Ariel, sans-serif;
     position: absolute;
     border: 2px solid black;
     border-radius: 8px;
@@ -139,19 +140,20 @@ header {
 }
 
 .create-modal h1 {
+    font: 36px Ariel, sans-serif;
+    font-weight: bold;
     width: 100%;
     text-align: center;
 }
 
-.create-modal > form {
+.create-form {
     /* overflow-x: hidden; */
     margin: 0 20%;
-
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: space-between;
-    gap: 2px;   
+    gap: 5px;   
     align-items: center;
 }
 
@@ -206,4 +208,10 @@ input[name="aiCount"] {
     justify-content: space-between;
     align-items: center;
     margin-top: 3rem;
+}
+
+.create-form label {
+    font: 18px Ariel, sans-serif;
+    font-weight: bold;
+    margin-top: 7px;
 }

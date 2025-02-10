@@ -71,11 +71,6 @@ function Slider({name, min, max, onSelect}) {
     return (
         <div className="playericons" onMouseLeave={_ => setHoover(count)}>
             <input
-                // onChange={(event) => {
-                //     setCount(event.target.value)
-                //     console.log("selecting", event.target.value)
-                //     onSelect(event.target.value)
-                // }}
                 readOnly={true}
                 style={{display: 'none'}}
                 value={count}
@@ -113,7 +108,11 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
     const [playerCount, setPlayerCount] = useState(2)
 
     function _onCancel() {
-        setTimeout(() => setError(null), 300) // For the animation
+        setTimeout(() => {
+            setError(null)
+            modalRef.current.reset()
+            setPlayerCount(2)
+        }, 300) // For the animation
         onCancel()
     }
 
