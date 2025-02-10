@@ -8,7 +8,7 @@ import personFill from "../../../public/309035_user_account_human_person_icon.sv
 const LobbiesContext = createContext();
 
 
-function RuleMapping({}) {
+function RuleMapping({onDelete}) {
     const [cardValue, setCardValue] = useState("two")
 
     return (
@@ -44,15 +44,18 @@ function RuleMapping({}) {
 
 function RuleMappings({}) {
     const [ruleCount, setRuleCount] = useState(0)
+    const [selected, setSelected] = useState([])
 
-    // TODO: Use card value as key instead of index
-    // I'll have to decide if it is okay to put multiple rules on one card. Would be nice
-    // If so, then the card value together with the rule should be the key
+    function onSelectHandler(value) {
+        
+    }
+    
+    // Only one rule for each card
     const mappings = Array.from({length: ruleCount}, (_, i) => <RuleMapping key={i}/>)
     return (
         <div className="rule-mappings">
             {mappings}
-            <button type="button" onClick={() => setRuleCount(val => val+1)}>Add New Rule</button>
+            <button className="create-form-button" type="button" onClick={() => setRuleCount(val => val+1)}>Add New Rule</button>
         </div>
     )
 }
@@ -71,7 +74,8 @@ function Slider({name, min, max, onSelect}) {
     return (
         <div className="playericons" onMouseLeave={_ => setHoover(count)}>
             <input
-                readOnly={true}
+                // readOnly={true}
+                onChange={event => setCount(event.target.value)}
                 style={{display: 'none'}}
                 value={count}
                 name={name}
@@ -129,17 +133,18 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
             <label htmlFor="aiCount">Amount of AI's</label>
             {/* <input name="aiCount" type="number" min="0" max="5" defaultValue={0}></input> */}
             <Slider name="aiCount" min={0} max={playerCount-1}/>
-            <h3>Speciale regels</h3>
+            <h3>Special Rules</h3>
             <RuleMappings/>
             {error ? <p className="error-message">{error.response.data.detail}</p> : null}
             <div className="modal-buttons">
-                <button type="button" onClick={_onCancel}>Cancel</button>
-                <button type="submit">Create</button>
+                <button className="create-form-button" type="button" onClick={_onCancel}>Cancel</button>
+                <button className="create-form-button" type="submit">Create</button>
             </div>
         </>
     )
 
-    return (
+    return (<>
+        <div className={"modal-overlay" + (visible ? " visible" : "")}></div>
         <div className={"create-modal" + (visible ? " visible" : "")}>
             <h1>Create a new game</h1>
             <form className="create-form" ref={modalRef} 
@@ -156,7 +161,7 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
                 {userName ? formElements : null}
             </form>
         </div>
-    );
+    </>);
 }
 
 function LobbiesProvider({ children }) {

@@ -148,7 +148,7 @@ header {
 
 .create-form {
     /* overflow-x: hidden; */
-    margin: 0 20%;
+    margin: 0 10px;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -214,4 +214,35 @@ input[name="aiCount"] {
     font: 18px Ariel, sans-serif;
     font-weight: bold;
     margin-top: 7px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10; /* Ensure it's above other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, backdrop-filter 0.3s;
+}
+
+.modal-overlay.visible {
+    background: rgba(0, 0, 0, 0.4); /* Darkened background */
+    backdrop-filter: blur(5px); /* Blurred effect */
+    opacity: 1;
+    visibility: visible;
+}
+
+.create-modal {
+    z-index: 20;
+}
+
+.create-form-button {
+    background-color: rgba(44, 236, 79, 1);
+    border: 3px solid black;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
 }
