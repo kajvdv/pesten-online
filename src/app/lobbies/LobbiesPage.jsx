@@ -58,22 +58,83 @@ function RuleMappings({}) {
 }
 
 
+function Slider({name, min, max, onSelect}) {
+    const [count, setCount] = useState(min)
+    const [hoover, setHoover] = useState(min)
+
+    useEffect(() => {
+        // Resetting the count if it falls out of the range
+        setCount(count => min <= count && count <= max ? count : min)
+        setHoover(count => min <= count && count <= max ? count : min)
+    }, [min, max])
+
+    return (
+        <div className="playericons" onMouseLeave={_ => setHoover(count)}>
+            <input
+                // onChange={(event) => {
+                //     setCount(event.target.value)
+                //     console.log("selecting", event.target.value)
+                //     onSelect(event.target.value)
+                // }}
+                readOnly={true}
+                style={{display: 'none'}}
+                value={count}
+                name={name}
+                type="range"
+                min={min}
+                max={max}
+            />    
+            {Array.from({length: hoover}).map((_, index) => <img
+                className="icon-person-fill"
+                src={personFill}
+                onMouseOver={event => setHoover(index+1 > min ? index+1 : min)}
+                onClick={ _ => {
+                    const value = index+1 > min ? index+1 : min
+                    setCount(value)
+                    if (onSelect) onSelect(value)
+                }}
+                alt="person"
+            />)}
+            {Array.from({length: max - hoover}).map((_, index) => <img
+                className="icon-person-outline"
+                src={personOutline}
+                onMouseOver={event => setHoover(index+hoover+1)}
+                alt="person"
+            />)}
+        </div>
+    )
+}
+
+
 function CreateLobbyModal({ visible, onCancel, userName }) {
     const lobbies = useContext(LobbiesContext);
     const modalRef = useRef(null);
+    const [error, setError] = useState(null)
+    const [playerCount, setPlayerCount] = useState(2)
+
+    function _onCancel() {
+        setTimeout(() => setError(null), 300) // For the animation
+        onCancel()
+    }
+
+    useEffect(() => {
+        console.log(playerCount)
+    }, [playerCount])
 
     const formElements = (
         <>
             <label htmlFor="name">Name of game</label>
             <input name="name" type="text" defaultValue={userName + "'s game"}></input>
             <label htmlFor="size">Amount of players</label>
-            <input name="size" type="number" min="2" max="6" defaultValue={2}></input>
+            <Slider name="size" min={2} max={6} onSelect={setPlayerCount}/>
             <label htmlFor="aiCount">Amount of AI's</label>
-            <input name="aiCount" type="number" min="0" max="5" defaultValue={0}></input>
+            {/* <input name="aiCount" type="number" min="0" max="5" defaultValue={0}></input> */}
+            <Slider name="aiCount" min={0} max={playerCount-1}/>
             <h3>Speciale regels</h3>
             <RuleMappings/>
+            {error ? <p className="error-message">{error.response.data.detail}</p> : null}
             <div className="modal-buttons">
-                <button type="button" onClick={onCancel}>Cancel</button>
+                <button type="button" onClick={_onCancel}>Cancel</button>
                 <button type="submit">Create</button>
             </div>
         </>
@@ -83,11 +144,16 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
         <div className={"create-modal" + (visible ? " visible" : "")}>
             <h1>Create a new game</h1>
             <form className="create-form" ref={modalRef} 
-            onSubmit={async (event) => {
-                event.preventDefault();
-                await lobbies.createLobby(new FormData(event.target));
-                onCancel();
-            }}>
+                onSubmit={async (event) => {
+                    try {
+                        event.preventDefault();
+                        await lobbies.createLobby(new FormData(event.target));
+                        _onCancel();
+                    }
+                    catch(err) {
+                        setError(err)
+                    }}}
+            >
                 {userName ? formElements : null}
             </form>
         </div>
@@ -158,7 +224,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext);
     const [userName, setUserName] = useState("");
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState(true);
 
     useEffect(() => {
         getUser().then((userName) => setUserName(userName));

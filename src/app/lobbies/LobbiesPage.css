@@ -166,8 +166,10 @@ header {
 }
 
 input[name="name"] {
-    width: 100%;
+    border: 1px solid black;
+    font-size: 24px;
     text-align: center;
+    border-radius: 5px;
 }
 
 input[name="size"] {
@@ -191,6 +193,10 @@ input[name="aiCount"] {
 .rule-mapping {
     display: flex ;
     gap: 3px;
+}
+
+.error-message {
+    color: red;
 }
 
 .modal-buttons {
