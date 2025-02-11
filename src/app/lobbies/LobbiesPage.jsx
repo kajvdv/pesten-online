@@ -8,6 +8,34 @@ import personFill from "../../../public/309035_user_account_human_person_icon.sv
 const LobbiesContext = createContext();
 
 
+function RuleMapping({values, defaultValue, onSelect, onDelete}) {
+    const [currentValue, setCurrentValue] = useState(defaultValue)
+
+    return (
+        <div className="rule-mapping">
+            <select 
+                onChange={e => {
+                    onSelect(e.target.value)
+                    setCurrentValue(e.target.value)
+                }}
+                defaultValue={currentValue}
+            >
+                {values.map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}
+            </select>
+            <select name={currentValue}>
+                {/* TODO: Change values to ints */}
+                {/* TODO: Dynamically get rules from server */}
+                <option value="Nog een keer">Nog een keer</option>
+                <option value="Kaart pakken">Kaart pakken</option>
+                <option value="Suit uitkiezen">Suit uitkiezen</option>
+                <option value="Volgende speler beurt overslaan">Volgende speler beurt overslaan</option>
+            </select>
+            <button onClick={onDelete} type="button">Delete</button>
+        </div>
+    )
+}
+
+
 const VALUES = [
     "two",
     "three",
@@ -24,41 +52,10 @@ const VALUES = [
     "ace",
 ]
 
-
-function RuleMapping({index, selected, cardValue, onSelect, onDelete}) {
-    const [currentValue, setCurrentValue] = useState(cardValue)
-
-    return (
-        <div className="rule-mapping">
-            <select 
-                onChange={e => {
-                    onSelect(index, e.target.value)
-                    setCurrentValue(e.target.value)
-                }}
-                defaultValue={currentValue}
-            >
-                {VALUES.map(value => currentValue == value || !selected.includes(value) ? <option value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option> : null)}
-            </select>
-            <select name={currentValue}>
-                {/* TODO: Change values to ints */}
-                {/* TODO: Dynamically get rules from server */}
-                <option value="Nog een keer">Nog een keer</option>
-                <option value="Kaart pakken">Kaart pakken</option>
-                <option value="Suit uitkiezen">Suit uitkiezen</option>
-                <option value="Volgende speler beurt overslaan">Volgende speler beurt overslaan</option>
-            </select>
-            <button onClick={() => onDelete(index)} type="button">Delete</button>
-        </div>
-    )
-}
-
-
 function RuleMappings({}) {
-    const [ruleCount, setRuleCount] = useState(0)
     const [selected, setSelected] = useState([])
 
     function deleteHandler(id) {
-        console.log(id)
         setSelected(selected => selected.filter((_, i) => i != id))
     }
 
@@ -74,7 +71,16 @@ function RuleMappings({}) {
     }
     
     // Only one rule for each card
-    const mappings = selected.map((cardValue, i) => <RuleMapping selected={[...selected]} onSelect={selectHandler} onDelete={deleteHandler} index={i} cardValue={cardValue} key={cardValue}/>)
+    const mappings = selected
+        .sort((a, b) => VALUES.indexOf(a) - VALUES.indexOf(b))
+        .map((cardValue, i) => <RuleMapping 
+            values={VALUES.filter(value => cardValue == value || !selected.includes(value))}
+            onSelect={value => selectHandler(i, value)}
+            onDelete={_ => deleteHandler(i)}
+            defaultValue={cardValue}
+            key={cardValue}
+        />)
+
     return (
         <div className="rule-mappings">
             {mappings}
@@ -133,20 +139,24 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
     const modalRef = useRef(null);
     const [error, setError] = useState(null)
     const [playerCount, setPlayerCount] = useState(2)
+    const [renderForm, setRenderForm] = useState(visible)
 
     function _onCancel() {
         setTimeout(() => {
-            setError(null)
-            modalRef.current.reset()
-            setPlayerCount(2)
+            setRenderForm(false)
         }, 300) // For the animation
         onCancel()
     }
 
-    useEffect(() => {
-        console.log(playerCount)
-    }, [playerCount])
+    useEffect(_ => {
+        if (!renderForm) {
+            setPlayerCount(2)
+            setError(null)
+            setRenderForm(true)
+        }
+    }, [renderForm])
 
+    // Everything in here will be unmounted on canceling the modal
     const formElements = (
         <>
             <label htmlFor="name">Name of game</label>
@@ -181,7 +191,7 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
                         setError(err)
                     }}}
             >
-                {userName ? formElements : null}
+                {userName && renderForm ? formElements : null}
             </form>
         </div>
     </>);
@@ -251,7 +261,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext);
     const [userName, setUserName] = useState("");
-    const [showModal, setShowModal] = useState(true);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         getUser().then((userName) => setUserName(userName));
