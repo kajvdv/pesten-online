@@ -8,27 +8,38 @@ import personFill from "../../../public/309035_user_account_human_person_icon.sv
 const LobbiesContext = createContext();
 
 
-function RuleMapping({onDelete}) {
-    const [cardValue, setCardValue] = useState("two")
+const VALUES = [
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "jack",
+    "queen",
+    "king",
+    "ace",
+]
+
+
+function RuleMapping({index, selected, cardValue, onSelect, onDelete}) {
+    const [currentValue, setCurrentValue] = useState(cardValue)
 
     return (
         <div className="rule-mapping">
-            <select onChange={e => setCardValue(e.target.value)}>
-                <option value="two">Twee</option>
-                <option value="three">Drie</option>
-                <option value="four">Vier</option>
-                <option value="five">Vijf</option>
-                <option value="six">Zes</option>
-                <option value="seven">Zeven</option>
-                <option value="eight">Acht</option>
-                <option value="nine">Negen</option>
-                <option value="ten">Tien</option>
-                <option value="jack">Boer</option>
-                <option value="queen">Koningin</option>
-                <option value="king">Koning</option>
-                <option value="ace">Aas</option>
+            <select 
+                onChange={e => {
+                    onSelect(index, e.target.value)
+                    setCurrentValue(e.target.value)
+                }}
+                defaultValue={currentValue}
+            >
+                {VALUES.map(value => currentValue == value || !selected.includes(value) ? <option value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option> : null)}
             </select>
-            <select name={cardValue}>
+            <select name={currentValue}>
                 {/* TODO: Change values to ints */}
                 {/* TODO: Dynamically get rules from server */}
                 <option value="Nog een keer">Nog een keer</option>
@@ -36,7 +47,7 @@ function RuleMapping({onDelete}) {
                 <option value="Suit uitkiezen">Suit uitkiezen</option>
                 <option value="Volgende speler beurt overslaan">Volgende speler beurt overslaan</option>
             </select>
-            <button type="button">Delete</button>
+            <button onClick={() => onDelete(index)} type="button">Delete</button>
         </div>
     )
 }
@@ -46,16 +57,28 @@ function RuleMappings({}) {
     const [ruleCount, setRuleCount] = useState(0)
     const [selected, setSelected] = useState([])
 
-    function onSelectHandler(value) {
-        
+    function deleteHandler(id) {
+        console.log(id)
+        setSelected(selected => selected.filter((_, i) => i != id))
+    }
+
+    function selectHandler(id, value) {
+        setSelected(selected => selected.map((item, index) => id == index ? value : item))
+    }
+
+    function addHandler() {
+        const difference = VALUES.filter(val => !selected.includes(val))
+        if (!difference.length) return
+        const value = difference[0]
+        setSelected(selected => [...selected, value])
     }
     
     // Only one rule for each card
-    const mappings = Array.from({length: ruleCount}, (_, i) => <RuleMapping key={i}/>)
+    const mappings = selected.map((cardValue, i) => <RuleMapping selected={[...selected]} onSelect={selectHandler} onDelete={deleteHandler} index={i} cardValue={cardValue} key={cardValue}/>)
     return (
         <div className="rule-mappings">
             {mappings}
-            <button className="create-form-button" type="button" onClick={() => setRuleCount(val => val+1)}>Add New Rule</button>
+            <button className="create-form-button" type="button" onClick={addHandler}>Add New Rule</button>
         </div>
     )
 }
