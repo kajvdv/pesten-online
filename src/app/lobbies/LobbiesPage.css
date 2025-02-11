@@ -64,6 +64,10 @@ header {
     margin: 2px
 }
 
+.lobby button:hover {
+    background-color: rgb(19, 207, 54);
+}
+
 .lobby button:first-of-type {
     margin-left: auto !important;
 }
@@ -116,6 +120,10 @@ header {
     height: 60px;
     width: 336px;
     font-weight: bold;
+}
+
+.new-lobby-button:hover {
+    background-color: rgb(19, 207, 54);
 }
 
 .create-modal {
@@ -245,4 +253,8 @@ input[name="aiCount"] {
     border-radius: 20px;
     font-size: 20px;
     font-weight: bold;
+}
+
+.create-form-button:hover {
+    background-color: rgb(19, 207, 54);
 }
