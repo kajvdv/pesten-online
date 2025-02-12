@@ -15,16 +15,16 @@ def test_game():
     curr = 0
     turn_count = 0
     while not game.has_won:
-        choose = 1
+        choose = 0
         while True:
             new_curr = game.play_turn(choose)
-            if choose == 0:
+            if choose < 0:
                 break
             if new_curr != curr:
                 curr = new_curr
                 break
             choose += 1
             if choose >= len(game.curr_hand):
-                choose = 0
+                choose = -1
         turn_count += 1
     logger.info(f"{turn_count=}")

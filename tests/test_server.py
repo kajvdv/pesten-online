@@ -38,7 +38,7 @@ def get_db_override():
 
 
 class GameFactoryOverride(GameFactory):
-    def create_game(self, size, user):
+    def create_game(self, size, rules, user):
         game = Pesten(2, 1, [
             card(0, 0),
             card(0, 0),
@@ -152,7 +152,7 @@ def test_create_and_join_game(
 ):
     response = client.get("/lobbies")
     assert response.status_code < 300, response.text
-    response = client.post("/lobbies", json={"name": "test_lobby", "size": 2})
+    response = client.post("/lobbies", data={"name": "test_lobby", "size": 2})
     assert response.status_code < 300, response.text
     response = client.get("/lobbies")
     assert response.status_code < 300, response.text
@@ -183,7 +183,7 @@ def test_playing_simple_game(
         board = connections[1].receive_json()
         board = connections[0].receive_json()
         logger.debug(f"Board was {json.dumps(board, indent=2)}")
-        connections[0].send_text('1')
+        connections[0].send_text('0')
     assert lobby.game.has_won
     assert lobby.game.current_player == 0
 
@@ -194,7 +194,7 @@ def test_create_simple_two_ai_game(
 ):
     response = client.get("/lobbies")
     assert response.status_code < 300, response.text
-    response = client.post("/lobbies", json={"name": "test_lobby", "size": 3, 'aiCount': 2})
+    response = client.post("/lobbies", data={"name": "test_lobby", "size": 3, 'aiCount': 2})
     assert response.status_code < 300, response.text
     response = client.get("/lobbies")
     assert response.status_code < 300, response.text
@@ -212,13 +212,13 @@ def test_play_game_against_ai(
 ):
     client.app.dependency_overrides[GameFactory] = GameFactoryOverride
     lobby_id = "testlobby"
-    response = client.post("/lobbies", json={"name": lobby_id, "size": 2, 'aiCount': 1})
+    response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1})
     assert response.status_code < 300
     
     connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
     with connection:
         board = connection.receive_json()
-        connection.send_text("1")
+        connection.send_text("0")
         board = connection.receive_json()
         assert board['message']
 

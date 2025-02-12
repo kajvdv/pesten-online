@@ -23,30 +23,43 @@ def rules():
         12: reverseOrder,
     }
 
-def test_another_turn(rules):
-    game = Pesten(4, 2, [5,5,5,5,5,5,5,5,5,5,5], rules)
-    game.play_turn(1)
+def test_another_turn():
+    game = Pesten(4, 2, [5,5,5,5,5,5,5,5,5,5,5], {5: 'another_turn'})
+    assert game.play_turn(0) == 0
     assert game.current_player == 0
 
-def test_skip_turn(rules):
-    game = Pesten(4, 2, [6,6,6,6,6,6,6,6,6,6,6], rules)
-    game.play_turn(1)
+def test_skip_turn():
+    game = Pesten(4, 2, [6,6,6,6,6,6,6,6,6,6,6], {6: 'skip_turn'})
+    game.play_turn(0)
     assert game.current_player == 2
 
-def test_reverse_order(rules):
-    game = Pesten(4, 2, [12,12,12,12,12,12,12,12,12,12,12], rules)
-    game.play_turn(1)
+def test_reverse_order():
+    game = Pesten(4, 2, [12,12,12,12,12,12,12,12,12,12,12], {12: 'reverse_order'})
+    game.play_turn(0)
     assert game.current_player == 3
 
-def test_draw_cards(rules):
-    game = Pesten(4, 2, [0,0,0,0,0,0,0,0,0,0,], rules)
-    game.play_turn(1)
+def test_draw_cards():
+    game = Pesten(4, 2, [0,0,0,0,0,0,0,0,0,0,], {0: 'draw_card'})
+    game.play_turn(0)
+    game.play_turn(-1)
     assert len(game.hands[game.current_player]) == 4
 
-def test_change_suit(rules):
-    game = Pesten(4, 2, [1,2,3,4+3*13,5,6,7,8,9,10,], rules)
-    game.play_turn(1)
-    game.play_turn(4)
-    game.play_turn(1)
-    game.play_turn(2)
-    assert game.current_player == 2
+def test_change_suit():
+    game = Pesten(4, 2, [1,2,3,4+3*13,5,6,7,8,9,10,], {9: 'change_suit'})
+#                                               ^ playstack
+#                          ^3^2^1     ^0^3^2^1^0                                        
+    assert game.play_turn(0) == 0
+    assert game.play_turn(3) == 1
+    assert game.play_turn(1) == 2
+    assert game.play_turn(0) == 2
+
+
+def test_change_suit_on_change_suit():
+    game = Pesten(4, 2, [1,2,3,48,5,6,7,8,9,10,], {9: 'change_suit'})
+#                                           ^ playstack
+#                          ^3^2^1 ^0^3^2^1^0                                        
+    assert game.play_turn(0) == 0
+    assert game.play_turn(1) == 1
+    assert game.play_turn(1) == 1
+    assert game.play_turn(0) == 2
+    assert game.play_turn(0) == 3

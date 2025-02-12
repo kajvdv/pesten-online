@@ -18,8 +18,8 @@ class Agent:
     def get_possible_chooses(self, game: Pesten):
         card_count = len(game.curr_hand)
         possible_choosese = []
-        for possible_choose in range(1, card_count + 1):
-            if game.check(possible_choose - 1): # From player perspective to game perspective
+        for possible_choose in range(card_count):
+            if game.check(possible_choose):
                 possible_choosese.append(possible_choose)
         return possible_choosese
     
@@ -29,7 +29,7 @@ class Agent:
         if possible_choosese:
             choose = possible_choosese[0]
         else:
-            choose = 0
+            choose = -1
         return choose
 
     
