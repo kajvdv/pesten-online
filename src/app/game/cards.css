@@ -103,110 +103,131 @@
 }
 
 .two_of_clubs {
-    background: url(game/cards.png) calc(-110px * 0) -20rem;
-}
-
-.three_of_clubs {
-    background: url(game/cards.png) calc(-110px * 1) -20rem;
-}
-
-.four_of_clubs {
-    background: url(game/cards.png) calc(-110px * 2) -20rem;
-}
-
-.five_of_clubs {
-    background: url(game/cards.png) calc(-110px * 3) -20rem;
-}
-
-.six_of_clubs {
-    background: url(game/cards.png) calc(-110px * 4) -20rem;
-}
-
-.seven_of_clubs {
-    background: url(game/cards.png) calc(-110px * 5) -20rem;
-}
-
-.eight_of_clubs {
-    background: url(game/cards.png) calc(-110px * 6) -20rem;
-}
-
-.nine_of_clubs {
-    background: url(game/cards.png) calc(-110px * 7) -20rem;
-}
-
-.ten_of_clubs {
-    background: url(game/cards.png) calc(-110px * 8) -20rem;
-}
-
-.jack_of_clubs {
-    background: url(game/cards.png) calc(-110px * 9) -20rem;
-}
-
-.queen_of_clubs {
-    background: url(game/cards.png) calc(-110px * 10) -20rem;
-}
-
-.king_of_clubs {
-    background: url(game/cards.png) calc(-110px * 11) -20rem;
-}
-
-.ace_of_clubs {
-    background: url(game/cards.png) calc(-110px * 12) -20rem;
-}
-
-.two_of_spades {
     background: url(game/cards.png) calc(-110px * 0) -30rem;
 }
 
-.three_of_spades {
+.three_of_clubs {
     background: url(game/cards.png) calc(-110px * 1) -30rem;
 }
 
-.four_of_spades {
+.four_of_clubs {
     background: url(game/cards.png) calc(-110px * 2) -30rem;
 }
 
-.five_of_spades {
+.five_of_clubs {
     background: url(game/cards.png) calc(-110px * 3) -30rem;
 }
 
-.six_of_spades {
+.six_of_clubs {
     background: url(game/cards.png) calc(-110px * 4) -30rem;
 }
 
-.seven_of_spades {
+.seven_of_clubs {
     background: url(game/cards.png) calc(-110px * 5) -30rem;
 }
 
-.eight_of_spades {
+.eight_of_clubs {
     background: url(game/cards.png) calc(-110px * 6) -30rem;
 }
 
-.nine_of_spades {
+.nine_of_clubs {
     background: url(game/cards.png) calc(-110px * 7) -30rem;
 }
 
-.ten_of_spades {
+.ten_of_clubs {
     background: url(game/cards.png) calc(-110px * 8) -30rem;
 }
 
-.jack_of_spades {
+.jack_of_clubs {
     background: url(game/cards.png) calc(-110px * 9) -30rem;
 }
 
-.queen_of_spades {
+.queen_of_clubs {
     background: url(game/cards.png) calc(-110px * 10) -30rem;
 }
 
-.king_of_spades {
+.king_of_clubs {
     background: url(game/cards.png) calc(-110px * 11) -30rem;
 }
 
+.ace_of_clubs {
+    background: url(game/cards.png) calc(-110px * 12) -30rem;
+}
+
+.two_of_spades {
+    background: url(game/cards.png) calc(-110px * 0) -20rem;
+}
+
+.three_of_spades {
+    background: url(game/cards.png) calc(-110px * 1) -20rem;
+}
+
+.four_of_spades {
+    background: url(game/cards.png) calc(-110px * 2) -20rem;
+}
+
+.five_of_spades {
+    background: url(game/cards.png) calc(-110px * 3) -20rem;
+}
+
+.six_of_spades {
+    background: url(game/cards.png) calc(-110px * 4) -20rem;
+}
+
+.seven_of_spades {
+    background: url(game/cards.png) calc(-110px * 5) -20rem;
+}
+
+.eight_of_spades {
+    background: url(game/cards.png) calc(-110px * 6) -20rem;
+}
+
+.nine_of_spades {
+    background: url(game/cards.png) calc(-110px * 7) -20rem;
+}
+
+.ten_of_spades {
+    background: url(game/cards.png) calc(-110px * 8) -20rem;
+}
+
+.jack_of_spades {
+    background: url(game/cards.png) calc(-110px * 9) -20rem;
+}
+
+.queen_of_spades {
+    background: url(game/cards.png) calc(-110px * 10) -20rem;
+}
+
+.king_of_spades {
+    background: url(game/cards.png) calc(-110px * 11) -20rem;
+}
+
 .ace_of_spades {
- background: url(game/cards.png) calc(-110px * 12) -30rem;
+ background: url(game/cards.png) calc(-110px * 12) -20rem;
     
 }
 
 .card-back {
     background: url(game/cards.png) calc(-110px * 0) -40rem;
+}
+
+
+.mirror_of_hearts {
+    background: url(game/cards.png) calc(-110px * 13) 0rem;
+    opacity: 0.7;
+}
+
+.mirror_of_diamonds {
+    background: url(game/cards.png) calc(-110px * 13) -10rem;
+    opacity: 0.7;
+}
+
+.mirror_of_spades {
+    background: url(game/cards.png) calc(-110px * 13) -20rem;
+    opacity: 0.7;
+}
+
+.mirror_of_clubs {
+    background: url(game/cards.png) calc(-110px * 13) -30rem;
+    opacity: 0.7;
 }

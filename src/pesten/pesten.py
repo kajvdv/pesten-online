@@ -19,7 +19,11 @@ def card(suit, value):
 
 
 def card_string(c):
-    return SUITS[c // 13] + " " + VALUES[c % 13]
+    if c >= 52:
+        value = 'mirror'
+    else:
+        value = VALUES[c % 13]
+    return SUITS[(c // 13) % 4] + " " + value
 
 
 class CannotDraw(Exception):

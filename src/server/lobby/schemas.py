@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 from pesten.pesten import card_string
 
@@ -43,7 +45,9 @@ class Card(BaseModel):
 
 class Board(BaseModel):
     topcard: Card
+    previous_topcard: Optional[Card] = None
     can_draw: bool
+    choose_suit: bool
     current_player: str
     otherPlayers: dict[str, int]
     hand: list[Card]
