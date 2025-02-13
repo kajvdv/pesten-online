@@ -38,43 +38,43 @@ logger = logging.getLogger(__name__)
 def construct_rules(lobby: LobbyCreate):
     rules = {}
     if lobby.two:
-        rules[0] = RULES_NAMES[lobby.two]
+        rules[0] = lobby.two
 
     if lobby.three:
-        rules[1] = RULES_NAMES[lobby.three]
+        rules[1] = lobby.three
 
     if lobby.four:
-        rules[2] = RULES_NAMES[lobby.four]
+        rules[2] = lobby.four
 
     if lobby.five:
-        rules[3] = RULES_NAMES[lobby.five]
+        rules[3] = lobby.five
 
     if lobby.six:
-        rules[4] = RULES_NAMES[lobby.six]
+        rules[4] = lobby.six
 
     if lobby.seven:
-        rules[5] = RULES_NAMES[lobby.seven]
+        rules[5] = lobby.seven
 
     if lobby.eight:
-        rules[6] = RULES_NAMES[lobby.eight]
+        rules[6] = lobby.eight
 
     if lobby.nine:
-        rules[7] = RULES_NAMES[lobby.nine]
+        rules[7] = lobby.nine
 
     if lobby.ten:
-        rules[8] = RULES_NAMES[lobby.ten]
+        rules[8] = lobby.ten
 
     if lobby.jack:
-        rules[9] = RULES_NAMES[lobby.jack]
+        rules[9] = lobby.jack
 
     if lobby.queen:
-        rules[10] = RULES_NAMES[lobby.queen]
+        rules[10] = lobby.queen
 
     if lobby.king:
-        rules[11] = RULES_NAMES[lobby.king]
+        rules[11] = lobby.king
 
     if lobby.ace:
-        rules[12] = RULES_NAMES[lobby.ace]
+        rules[12] = lobby.ace
 
     return rules
 
@@ -184,13 +184,15 @@ class Lobbies:
         if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
         lobby = lobbies.pop(lobby_name)
-        return {
+        to_be_returned = {
             'id': lobby_name,
             'size': len(lobby.players),
             'capacity': lobby.capacity,
             'creator': user,
             'players': [p.name for p in lobby.players],
         }
+        del lobby
+        return to_be_returned
 
 
 class Connector:

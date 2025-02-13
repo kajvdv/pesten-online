@@ -48,6 +48,7 @@ class Board(BaseModel):
     previous_topcard: Optional[Card] = None
     can_draw: bool
     choose_suit: bool
+    draw_count: int = 0
     current_player: str
     otherPlayers: dict[str, int]
     hand: list[Card]

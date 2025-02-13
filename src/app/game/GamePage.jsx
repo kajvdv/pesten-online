@@ -117,17 +117,17 @@ function GamePage() {
     const upsideDown = <img className="card card-back" src="game/cards/null.png"/>
 
     let playerIndex = -1
+    let ownIndex = -1
     if (game) {
         const playerNames = Object.keys(game.otherPlayers)
         playerIndex = playerNames.indexOf(game.current_player)
-        const ownIndex = playerNames.indexOf(user)
+        ownIndex = playerNames.indexOf(user)
         playerIndex = (playerIndex - ownIndex + playerNames.length) % playerNames.length
     }
 
     // Define css-classes for every playercount possibility
     let classNames = []
     if (otherHands.length <= 1) {
-        playerIndex *= 2
         classNames = ['player-position-1']
     } else if (otherHands.length === 2) {
         classNames = ['player-position-9', 'player-position-11']
@@ -166,13 +166,16 @@ function GamePage() {
                 {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
                 {playdeck}
             </div>
+            {game?.draw_count > 0 ? <div className="draw-counter">
+                {game.draw_count}
+            </div> : null}
             <div className={"hand" + (0 === playerIndex ? " current" : "")}>
                 <div className="player-name">{user}</div>
                 <div className={"player"}>
                     {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={_ => playCard(index)}/>)}
                 </div>
             </div>
-            <ChooseSuit visible={game?.choose_suit} onChoose={index => playCard(index)}/>
+            <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
         </div>
     )
 }

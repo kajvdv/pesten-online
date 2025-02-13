@@ -44,6 +44,7 @@ class Pesten:
         self.rules = rules
         self.change_suit_state: Literal["not asked", "asking", "asked"] = "not_asked"
         self.drawing = False
+        self.draw_count = 0
         for _ in range(hand_count):
             for hand in self.hands:
                 hand.append(self.draw_stack.pop())
@@ -100,12 +101,7 @@ class Pesten:
         # I explicitly return in all cases to be explicit about the flow
         if self.has_won:
             return int(self.current_player)
-        
-        if self.drawing:
-            if choose < 0:
-                self.draw()
-                self.draw()
-            return self.current_player
+
 
         if self.asking_suit:
             if choose >= len(SUITS):
@@ -120,6 +116,18 @@ class Pesten:
             return self.current_player
 
 
+        if self.draw_count > 0:
+            if choose < 0:
+                for _ in range(self.draw_count):
+                    self.draw()
+                self.draw_count = 0
+                return self.current_player
+            value_choose = self.curr_hand[choose] % 13
+            rule = self.rules.get(value_choose, None)
+            if rule != 'draw_card' or not self.check(choose):
+                return self.current_player
+            # Continue as normal because I'm sure it will enter the draw_card if-block later
+
         if choose < 0:
             self.draw()
             self.next()
@@ -131,11 +139,13 @@ class Pesten:
             rule = self.rules.get(value_choose, None)
             if rule == 'another_turn':
                 if self.check(choose):
+                    logger.debug('another turn')
                     self.play(choose)
                 return self.current_player
             
             if rule == 'skip_turn':
                 if self.check(choose):
+                    logger.debug('skip turn')
                     self.play(choose)
                     self.next()
                     self.next()
@@ -143,6 +153,7 @@ class Pesten:
             
             if rule == 'reverse_order':
                 if self.check(choose):
+                    logger.debug('reverse order')
                     self.play(choose)
                     self.reverse = not self.reverse
                     self.next()
@@ -150,18 +161,22 @@ class Pesten:
 
             if rule == 'draw_card':
                 if self.check(choose):
+                    logger.debug('draw card')
                     self.play(choose)
-                    self.drawing = True
+                    # self.drawing = True
+                    self.draw_count += 2
                     self.next()
                 return self.current_player
 
             if rule == 'change_suit':
                 if self.check(choose):
+                    logger.debug('Change suit')
                     self.play(choose)
                     self.asking_suit = True
                 return self.current_player
                 
             # default play
+            logger.debug("Default play")
             if self.check(choose):
                 self.play(choose)       
                 self.next()

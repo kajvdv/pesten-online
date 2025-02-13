@@ -25,10 +25,11 @@ function RuleMapping({values, defaultValue, onSelect, onDelete}) {
             <select name={currentValue}>
                 {/* TODO: Change values to ints */}
                 {/* TODO: Dynamically get rules from server */}
-                <option value="Nog een keer">Nog een keer</option>
-                <option value="Kaart pakken">Kaart pakken</option>
-                <option value="Suit uitkiezen">Suit uitkiezen</option>
-                <option value="Volgende speler beurt overslaan">Volgende speler beurt overslaan</option>
+                <option value="another_turn">Nog een keer</option>
+                <option value="draw_card">Kaart pakken</option>
+                <option value="change_suit">Suit uitkiezen</option>
+                <option value="skip_turn">Volgende speler beurt overslaan</option>
+                <option value="reverse_order">Volgorde omdraaien</option>
             </select>
             <button onClick={onDelete} type="button">Delete</button>
         </div>

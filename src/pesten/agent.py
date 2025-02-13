@@ -30,11 +30,20 @@ class Agent:
             choose = possible_choosese[0]
         else:
             choose = -1
+        
+        if game.asking_suit:
+            choose = 0
+        elif game.draw_count > 0:
+            choose = -1
         return choose
 
     
     def play_turn(self, game: Pesten):
         assert game.current_player == self.player_index
+        if game.asking_suit:
+            choose = 0
+        elif game.drawing:
+            choose = -1
         choose = self.generate_choose(game)
         try:
             topcard = game.play_stack[-1]

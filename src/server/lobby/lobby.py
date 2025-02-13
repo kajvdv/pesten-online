@@ -141,6 +141,7 @@ class Lobby:
                 previous_topcard=Card.from_int(self.game.play_stack[-2]) if len(self.game.play_stack) > 1 else None,
                 can_draw=bool(self.game.draw_stack),
                 choose_suit=self.game.asking_suit,
+                draw_count=self.game.draw_count,
                 current_player=self.players[self.game.current_player].name,
                 otherPlayers={player.name: len(self.game.hands[self.players.index(player)]) for player in self.players},
                 hand=[Card.from_int(card) for card in self.game.hands[player_id]],
