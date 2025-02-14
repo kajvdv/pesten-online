@@ -82,6 +82,7 @@ def construct_rules(lobby: LobbyCreate):
 class GameFactory:
     def create_game(self, size, rules, user: str):
         cards = [card(suit, value) for suit in range(4) for value in range(13)]
+        cards += [77, 78, 77]
         random.shuffle(cards)
         game = Pesten(size, 8, cards, rules)
         # game = Pesten(2, 1, [
