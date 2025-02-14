@@ -121,7 +121,13 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
                 onMouseOver={event => setHoover(index+1 > min ? index+1 : min)}
                 onClick={ _ => {
                     const value = index+1 > min ? index+1 : min
-                    setCount(value)
+                    setCount(prev => {
+                        if (value == prev) {
+                            setHoover(min)
+                            return min
+                        }
+                        return value
+                    })
                     if (onSelect) onSelect(value)
                 }}
                 alt="person"
