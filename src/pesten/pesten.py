@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 SUITS = ["hearts", "diamonds", "spades", "clubs"]
 VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]
-
+BLACK_JOKER = 77
+RED_JOKER = 78
 
 def card(suit, value):
     # suit: 0-4, value 0-13
@@ -72,6 +73,8 @@ class Pesten:
         # TODO: Check if the choose is a special card and a last one
         played_card = self.curr_hand[choose]
         top_card = self.play_stack[-1]
+        if played_card or top_card == BLACK_JOKER or RED_JOKER:
+            return True
         suit_top_card = (top_card // 13) % 4 # There should only be 52 cards with 51 being the highest
         return played_card // 13 == suit_top_card or played_card % 13 == top_card % 13
 

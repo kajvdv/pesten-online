@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel
-from pesten.pesten import card_string
+from pesten.pesten import card_string, RED_JOKER, BLACK_JOKER
 
 
 
@@ -39,6 +39,10 @@ class Card(BaseModel):
 
     @classmethod
     def from_int(cls, card):
+        if card == RED_JOKER:
+            return cls(suit='red', value='joker')
+        if card == BLACK_JOKER:
+            return cls(suit='black', value='joker')
         suit, value = card_string(card).split(' ')
         return cls(suit=suit, value=value)
 

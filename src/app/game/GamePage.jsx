@@ -30,7 +30,7 @@ import server, {getUser, connect} from "../server"
 const suits = ["hearts", "diamonds", "clubs", "spades"];
 const values = {
   "2": 'two', "3": 'three', "4": 'four', "5": 'five', "6": 'six', "7": 'seven', "8": 'eight', "9": 'nine', "10": 'ten',
-  "jack": 'jack', "queen": 'queen', "king": 'king', "ace": 'ace', 'mirror': 'mirror'
+  "jack": 'jack', "queen": 'queen', "king": 'king', "ace": 'ace', 'mirror': 'mirror', 'joker': 'joker'
 };
 
 

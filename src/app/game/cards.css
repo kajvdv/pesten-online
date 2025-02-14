@@ -231,3 +231,11 @@
     background: url(game/cards.png) calc(-110px * 13) -30rem;
     opacity: 0.7;
 }
+
+.joker_of_black {
+    background: url(game/cards.png) calc(-110px * 1) -40rem;
+}
+
+.joker_of_red {
+    background: url(game/cards.png) calc(-110px * 2) -40rem;
+}
