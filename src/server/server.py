@@ -36,6 +36,30 @@ async def lifespan(app: FastAPI):
     # asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI3', AIConnection(get_lobbies()[lobby_name].game, 3))))
     # asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI4', AIConnection(get_lobbies()[lobby_name].game, 4))))
     # asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI5', AIConnection(get_lobbies()[lobby_name].game, 5))))
+
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.shuffle(cards)
+    lobby_name = "Alleen maar pakken"
+    get_lobbies()[lobby_name] = Lobby(Pesten(6, 8, cards, {
+        0: 'draw_card',
+        1: 'draw_card',
+        2: 'draw_card',
+        3: 'draw_card',
+        4: 'draw_card',
+        5: 'draw_card',
+        6: 'draw_card',
+        7: 'draw_card',
+        8: 'draw_card',
+        9: 'draw_card',
+        10: 'draw_card',
+        11: 'draw_card',
+    }), 'admin')
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'admin', NullConnection())))
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI1', AIConnection(get_lobbies()[lobby_name].game, 1))))
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI2', AIConnection(get_lobbies()[lobby_name].game, 2))))
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI3', AIConnection(get_lobbies()[lobby_name].game, 3))))
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI4', AIConnection(get_lobbies()[lobby_name].game, 4))))
+    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'test AI5', AIConnection(get_lobbies()[lobby_name].game, 5))))
     yield
 
 

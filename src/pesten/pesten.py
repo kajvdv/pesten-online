@@ -126,8 +126,8 @@ class Pesten:
                 self.draw_count = 0
                 return self.current_player
             value_choose = self.curr_hand[choose]
-            if value_choose != BLACK_JOKER or RED_JOKER:
-                value_choose % 13
+            if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
+                value_choose = value_choose % 13
             rule = self.rules.get(value_choose, None)
             if rule != 'draw_card' or not self.check(choose):
                 return self.current_player
@@ -141,8 +141,8 @@ class Pesten:
         
         if choose < len(self.curr_hand):
             value_choose = self.curr_hand[choose]
-            if value_choose != BLACK_JOKER or RED_JOKER:
-                value_choose % 13
+            if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
+                value_choose = value_choose % 13
             rule = self.rules.get(value_choose, None)
             if rule == 'another_turn':
                 if self.check(choose):
