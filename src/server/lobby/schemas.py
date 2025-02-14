@@ -9,6 +9,7 @@ class LobbyCreate(BaseModel):
     name: str
     size: int
     aiCount: int = 0
+    jokerCount: int = 0
     two: str = ""
     three: str = ""
     four: str = ""

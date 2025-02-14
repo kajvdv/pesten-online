@@ -3,6 +3,8 @@ import "./LobbiesPage.css";
 import server, { getUser } from "../server";
 import personOutline from "../../../public/9035563_person_outline_icon.svg";
 import personFill from "../../../public/309035_user_account_human_person_icon.svg";
+import jokerOutline from "../../../public/joker_outline.svg"
+import jokerFill from "../../../public/joker_fill.svg"
 
 
 const LobbiesContext = createContext();
@@ -91,7 +93,7 @@ function RuleMappings({}) {
 }
 
 
-function Slider({name, min, max, onSelect}) {
+function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
     const [count, setCount] = useState(min)
     const [hoover, setHoover] = useState(min)
 
@@ -115,7 +117,7 @@ function Slider({name, min, max, onSelect}) {
             />    
             {Array.from({length: hoover}).map((_, index) => <img
                 className="icon-person-fill"
-                src={personFill}
+                src={iconFill}
                 onMouseOver={event => setHoover(index+1 > min ? index+1 : min)}
                 onClick={ _ => {
                     const value = index+1 > min ? index+1 : min
@@ -126,7 +128,7 @@ function Slider({name, min, max, onSelect}) {
             />)}
             {Array.from({length: max - hoover}).map((_, index) => <img
                 className="icon-person-outline"
-                src={personOutline}
+                src={iconOutline}
                 onMouseOver={event => setHoover(index+hoover+1)}
                 alt="person"
             />)}
@@ -163,10 +165,12 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
             <label htmlFor="name">Name of game</label>
             <input name="name" type="text" defaultValue={userName + "'s game"}></input>
             <label htmlFor="size">Amount of players</label>
-            <Slider name="size" min={2} max={6} onSelect={setPlayerCount}/>
+            <Slider iconOutline={personOutline} iconFill={personFill} name="size" min={2} max={6} onSelect={setPlayerCount}/>
             <label htmlFor="aiCount">Amount of AI's</label>
             {/* <input name="aiCount" type="number" min="0" max="5" defaultValue={0}></input> */}
-            <Slider name="aiCount" min={0} max={playerCount-1}/>
+            <Slider iconOutline={personOutline} iconFill={personFill} name="aiCount" min={0} max={playerCount-1}/>
+            <label htmlFor="jokerCount">Amount of Jokers</label>
+            <Slider iconOutline={jokerOutline} iconFill={jokerFill} name="jokerCount" min={0} max={5}/>
             <h3>Special Rules</h3>
             <RuleMappings/>
             {error ? <p className="error-message">{error.response.data.detail}</p> : null}

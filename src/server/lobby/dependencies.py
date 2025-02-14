@@ -80,17 +80,13 @@ def construct_rules(lobby: LobbyCreate):
 
 
 class GameFactory:
-    def create_game(self, size, rules, user: str):
+    def create_game(self, size, rules, jokerCount, user: str):
         cards = [card(suit, value) for suit in range(4) for value in range(13)]
-        cards += [77, 78, 77]
+        jokers = [77, 78]
+        for i in range(jokerCount):
+            cards.append(jokers[i%2])
         random.shuffle(cards)
         game = Pesten(size, 8, cards, rules)
-        # game = Pesten(2, 1, [
-        #     card(0, 0),
-        #     card(0, 0),
-        #     card(0, 0),
-        #     card(0, 0),
-        # ])
         new_game = Lobby(game, user)
         return new_game
 
@@ -155,7 +151,7 @@ class Lobbies:
         if lobby_create.name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
         rules = construct_rules(lobby_create)
-        new_game = self.game_factory.create_game(lobby_create.size, rules, user)
+        new_game = self.game_factory.create_game(lobby_create.size, rules, lobby_create.jokerCount, user)
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
 
         logger.debug(f"Adding AI")
