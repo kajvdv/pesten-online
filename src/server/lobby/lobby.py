@@ -3,13 +3,13 @@ import logging
 from typing import Protocol
 import json
 
-from pesten.pesten import Pesten
+from pesten.pesten import Pesten, CannotDraw
 from pesten.agent import Agent
 
 from .schemas import Board, Card
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 
 class ConnectionDisconnect(Exception):
@@ -45,19 +45,28 @@ class AIConnection():
         self.agent = Agent(player_index)
         self.event = asyncio.Event()
         self.delay = delay
+        self.messages = []
+        self.exit = False
 
     async def accept(self):
         ...
     
     async def close(self):
-        self.event.set() # Unblock if it was waiting on the event
+        self.event.set() # makes it raise exception in receive_text method to stop loop
+        self.exit = True
     
     async def send_json(self, data: dict):
         # This function can trigger the event when it detects that its this AI its turn
-        logger.debug(f"Received for {self.agent.player_index} : \n{json.dumps(data, indent=2)}")
+        # logger.debug(f"Received for {self.agent.player_index} : \n{json.dumps(data, indent=2)}")
         if 'error' in data:
             return
         if self.game.current_player == self.agent.player_index:
+            # if len(self.messages) < 3:
+            #     self.messages.append(data)
+            # else:
+            #     if all([msg["current_player"] == data["current_player"] for msg in self.messages]):
+            #         raise Exception("AI is getting stuck")
+            #     self.messages = []
             logger.debug(f"{self.agent.player_index}: Setting the event")
             self.event.set()
             self.event.clear()
@@ -65,6 +74,8 @@ class AIConnection():
     async def receive_text(self) -> str:
         logger.debug(f"Waiting for event to be set on {self.agent.player_index}")
         await self.event.wait()
+        if self.exit:
+            raise Exception("Closing AI")
         logger.debug(f"{self.agent.player_index} generating choose")
         choose = self.agent.generate_choose(self.game)
         await asyncio.sleep(self.delay)
@@ -120,19 +131,25 @@ class Lobby:
             self.started = True
         self.update_boards(message=f"{name} joined the game")
         # Maybe put try inside while?
-        try:
-            while not self.game.has_won:
+        run = True
+        while run:
+            try:
                 choose = await connection.receive_text()
                 logger.debug(f"{new_player.name} choose {choose}")
                 await self.play_choose(new_player, choose)
+                run = not self.game.has_won
                 logger.info(f"{new_player.name} successfully played a choose")
-        except NullClosing as e:
-            logger.debug("Null connection closing")
-        except Exception as e:
-            logger.error(f"Error in the connection: {e}")
+            except CannotDraw:
+                logger.error("Cannot draw")
+            except NullClosing as e:
+                logger.debug("Null connection closing")
+                run = False
+            except Exception as e:
+                logger.error(f"Error in the connection: {e}")
+                run = False
         logger.info(f"{new_player.name} exited its gameloop")
-                
 
+    
     def update_boards(self, message=""):
         logger.debug("Updating player's board")
         asyncio.gather(*[

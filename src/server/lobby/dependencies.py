@@ -16,7 +16,7 @@ from .schemas import LobbyCreate
 from .lobby import Lobby, NullConnection, AIConnection, Player, ConnectionDisconnect
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('uvicorn.error')
 
 
 # def create_game(lobby: LobbyCreate, user: str = Depends(get_current_user)) -> Lobby:
@@ -120,6 +120,28 @@ def get_lobbies():
     return lobbies
 
 
+async def connect_ais(lobby: Lobby, ai_count):
+    # Important that this function is async, eventhough it is not using await
+    # To make it work well with BackgroundTasks of Fastapi
+    ai_connections = [AIConnection(lobby.game, i+1) for i in range(ai_count)]
+    def done_callback(task):
+        # Make sure other AI's also quit if one fails
+        for conn in ai_connections:
+            asyncio.create_task(conn.close())
+
+        for name, _lobby in get_lobbies().items():
+            if lobby == _lobby:
+                print(get_lobbies())
+                get_lobbies().pop(name)
+                print(get_lobbies())
+                break
+
+    for i in range(ai_count):
+        # new_game.connect(Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
+        task = asyncio.create_task(lobby.connect(Player(f'AI{i+1}', ai_connections[i])))
+        task.add_done_callback(done_callback)
+
+
 class Lobbies:
     def __init__(
             self,
@@ -153,14 +175,7 @@ class Lobbies:
         rules = construct_rules(lobby_create)
         new_game = self.game_factory.create_game(lobby_create.size, rules, lobby_create.jokerCount, user)
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
-
-        logger.debug(f"Adding AI")
-        async def connect_ais():
-            asyncio.gather(*[
-                new_game.connect(Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
-                for i in range(lobby_create.aiCount)
-            ])
-        self.background_tasks.add_task(connect_ais)
+        self.background_tasks.add_task(connect_ais, new_game, lobby_create.aiCount)
 
         self.lobbies[lobby_create.name] = new_game
         return {
