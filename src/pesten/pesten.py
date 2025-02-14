@@ -73,7 +73,7 @@ class Pesten:
         # TODO: Check if the choose is a special card and a last one
         played_card = self.curr_hand[choose]
         top_card = self.play_stack[-1]
-        if played_card or top_card == BLACK_JOKER or RED_JOKER:
+        if played_card == BLACK_JOKER or played_card == RED_JOKER or top_card == BLACK_JOKER or top_card == RED_JOKER:
             return True
         suit_top_card = (top_card // 13) % 4 # There should only be 52 cards with 51 being the highest
         return played_card // 13 == suit_top_card or played_card % 13 == top_card % 13
