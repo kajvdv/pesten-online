@@ -131,9 +131,7 @@ async def connect_ais(lobby: Lobby, ai_count):
 
         for name, _lobby in get_lobbies().items():
             if lobby == _lobby:
-                print(get_lobbies())
-                get_lobbies().pop(name)
-                print(get_lobbies())
+                get_lobbies().pop(name, None)
                 break
 
     for i in range(ai_count):
@@ -196,6 +194,8 @@ class Lobbies:
         if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
         lobby = lobbies.pop(lobby_name)
+        for conn in [player.connection for player in lobby.players if type(player.connection) == AIConnection]:
+            asyncio.create_task(conn.close())
         to_be_returned = {
             'id': lobby_name,
             'size': len(lobby.players),

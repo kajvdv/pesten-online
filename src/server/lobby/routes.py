@@ -13,14 +13,15 @@ from .dependencies import Lobbies, Connector, HumanConnection
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# The routes need to be async to make sure that everything is on the same thread
 
 @router.get('', response_model=list[LobbyResponse])
-def get_lobbies(lobbies_crud: Lobbies = Depends()):
+async def get_lobbies(lobbies_crud: Lobbies = Depends()):
     return lobbies_crud.get_lobbies()
 
 
 @router.post('', response_model=LobbyResponse)
-def create_lobby_route(
+async def create_lobby_route(
         lobby: LobbyCreate = Form(),
         lobbies_crud: Lobbies = Depends(),
 ):
@@ -29,7 +30,7 @@ def create_lobby_route(
 
 
 @router.delete('/{id}', response_model=LobbyResponse)
-def delete_lobby(
+async def delete_lobby(
         id: str,
         lobbies_crud: Lobbies = Depends(),
 ):
