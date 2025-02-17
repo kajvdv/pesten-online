@@ -57,17 +57,6 @@ function useUser() {
 function useConnection(lobby_id, onMessage, onError) {
     const serverConnection = useRef()
     useEffect(() => {
-        // const websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
-        // websocket.addEventListener('message', event => {
-        //     const data = JSON.parse(event.data)
-        //     console.log(data)
-        //     if ('error' in data) {
-        //         onError(data.error)
-        //         console.log(data.error)
-        //     } else {
-        //         onReceive(data)
-        //     }
-        // })
         connect(lobby_id)
             .then(connection => {
                 connection.onReceive(onMessage, onError)
@@ -100,14 +89,35 @@ function ChooseSuit({visible, onChoose}) {
 }
 
 
+function ErrorModal({visible, error}) {
+    return (
+        <>
+            {visible ? <div className="error-modal">
+                {error}
+            </div> : null}
+        </>
+    )
+}
+
+
 function GamePage() {
     const params = new URLSearchParams(window.location.search)
     const lobby_id = params.get("lobby_id")
     const user = useUser()
     const [game, setGame] = useState()
+    const [showError, setShowError] = useState(false)
     const [error, setError] = useState("")
     const [playCard, drawCard] = useConnection(lobby_id, setGame, setError)
     const [otherHandCounts, setOtherHandCounts] = useState({})
+
+    useEffect(_ => {
+        if (error == '') return
+        setShowError(true)
+        setTimeout(_ => {
+            setShowError(false)
+            setError("")
+        }, 2000)
+    }, [error])
 
     let otherHands = {...game?.otherPlayers} || {'': 0}
     delete otherHands[user]
@@ -152,7 +162,6 @@ function GamePage() {
     return (
         <div className="board">
             <div id="nameplate">
-                {user}
                 <div className="board-message">{game?.message}</div>
                 {game?.message.includes('has won the game') ? <a href='/lobbies'>Go back to lobbies</a> : null}
             </div>
@@ -176,6 +185,7 @@ function GamePage() {
                 </div>
             </div>
             <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
+            <ErrorModal visible={showError} error={error}/>
         </div>
     )
 }
