@@ -29,6 +29,7 @@ class Agent:
         if possible_choosese:
             choose = possible_choosese[0]
         else:
+            game.assert_can_draw()
             choose = -1
         
         if game.asking_suit:

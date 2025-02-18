@@ -117,8 +117,8 @@ class Lobby:
             logger.info(f"rejoining {name}")
             try:
                 await player.connection.close()
-            except:
-                logger.error("Error while closing a connection of an already joined player")
+            except Exception as e:
+                logger.error(f"Error while closing a connection of an already joined player: {e}")
             # player = new_player This instead of the things below?
             index = self.players.index(player)
             self.players[index] = new_player # Replacing the player object
@@ -129,8 +129,8 @@ class Lobby:
             self.players.append(new_player)
         if len(self.players) == self.capacity:
             self.started = True
+        await new_player.connection.accept() # Accept as late as possible
         self.update_boards(message=f"{name} joined the game")
-        # Maybe put try inside while?
         run = True
         while run:
             try:
@@ -139,8 +139,9 @@ class Lobby:
                 await self.play_choose(new_player, choose)
                 run = not self.game.has_won
                 logger.info(f"{new_player.name} successfully played a choose")
-            except CannotDraw:
+            except CannotDraw as e:
                 logger.error("Cannot draw")
+                raise Exception("Cannot draw") from e
             except NullClosing as e:
                 logger.debug("Null connection closing")
                 run = False
@@ -152,8 +153,8 @@ class Lobby:
     
     def update_boards(self, message=""):
         logger.debug("Updating player's board")
-        asyncio.gather(*[
-            player.connection.send_json(Board(
+        for player_id, player in enumerate(self.players):
+            send_coro = player.connection.send_json(Board(
                 topcard=Card.from_int(self.game.play_stack[-1]),
                 previous_topcard=Card.from_int(self.game.play_stack[-2]) if len(self.game.play_stack) > 1 else None,
                 can_draw=bool(self.game.draw_stack),
@@ -164,9 +165,7 @@ class Lobby:
                 hand=[Card.from_int(card) for card in self.game.hands[player_id]],
                 message=message
             ).model_dump())
-            for player_id, player in enumerate(self.players)
-        ])
-            # asyncio.create_task(player.connection.send_json({**board.model_dump()}))
+            asyncio.create_task(send_coro)
 
     
     def get_player_by_name(self, name: str) -> Player:

@@ -119,25 +119,45 @@ lobbies: dict[str, Lobby] = {}
 def get_lobbies():
     return lobbies
 
+def get_lobby_name(lobby):
+    for k, v in get_lobbies().items():
+        if lobby == v:
+            return k
+    return None
 
+def delete_lobby(lobby):
+    for conn in [player.connection for player in lobby.players]: # Every gameloop of the lobby should stop when an AI stops
+        asyncio.create_task(conn.close())
+
+    for name, _lobby in get_lobbies().items():
+        if lobby == _lobby:
+            logger.info("Deleting lobbby")
+            get_lobbies().pop(name)
+            return
+    logger.info("Could not find lobby to delete")
+
+ai_tasks = set()
 async def connect_ais(lobby: Lobby, ai_count):
     # Important that this function is async, eventhough it is not using await
-    # To make it work well with BackgroundTasks of Fastapi
+    # To make it work well when added to BackgroundTasks of Fastapi
     ai_connections = [AIConnection(lobby.game, i+1) for i in range(ai_count)]
-    def done_callback(task):
-        # Make sure other AI's also quit if one fails
-        for conn in ai_connections:
-            asyncio.create_task(conn.close())
+    
+    def done_callback(task: asyncio.Task):
+        # Make sure everything closes if one AI stops
+        if get_lobby_name(lobby) not in get_lobbies():
+            # Lobby is already deleted by another stopped AI
+            return
 
-        for name, _lobby in get_lobbies().items():
-            if lobby == _lobby:
-                get_lobbies().pop(name, None)
-                break
+        # Closing all connection and deleting lobby
+        delete_lobby(lobby)
 
+    name = get_lobby_name(lobby)
     for i in range(ai_count):
         # new_game.connect(Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
-        task = asyncio.create_task(lobby.connect(Player(f'AI{i+1}', ai_connections[i])))
+        task = asyncio.create_task(lobby.connect(Player(f'AI{i+1}', ai_connections[i])), name=f"{name}-AI-{i+1}")
+        ai_tasks.add(task)
         task.add_done_callback(done_callback)
+        task.add_done_callback(ai_tasks.discard)
 
 
 class Lobbies:
@@ -173,9 +193,9 @@ class Lobbies:
         rules = construct_rules(lobby_create)
         new_game = self.game_factory.create_game(lobby_create.size, rules, lobby_create.jokerCount, user)
         self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
+        self.lobbies[lobby_create.name] = new_game
         self.background_tasks.add_task(connect_ais, new_game, lobby_create.aiCount)
 
-        self.lobbies[lobby_create.name] = new_game
         return {
             'id': lobby_create.name,
             'size': 1 + lobby_create.aiCount,
@@ -194,7 +214,7 @@ class Lobbies:
         if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
         lobby = lobbies.pop(lobby_name)
-        for conn in [player.connection for player in lobby.players if type(player.connection) == AIConnection]:
+        for conn in [player.connection for player in lobby.players]:
             asyncio.create_task(conn.close())
         to_be_returned = {
             'id': lobby_name,
@@ -212,7 +232,6 @@ class Connector:
         self.lobbies = lobbies
 
     async def connect_to_lobby(self, lobby_name: str, connection: HumanConnection):
-        await connection.accept()
         try:
             lobby = self.lobbies[lobby_name]
         except KeyError as e:
@@ -220,7 +239,3 @@ class Connector:
             logger.error(f"Current lobbies: {self.lobbies}")
             return
         await lobby.connect(Player(connection.username, connection))
-        # TODO: I don't like that the connector deletes the lobby
-        if lobby.game.has_won and lobby_name in self.lobbies:
-            logger.info(f"Deleting {lobby_name}")
-            self.lobbies.pop(lobby_name)

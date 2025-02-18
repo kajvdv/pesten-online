@@ -52,10 +52,14 @@ class Pesten:
         self.has_won = False
         self.asking_suit = False
 
-
-    def draw(self):
+    
+    def assert_can_draw(self):
         if len(self.draw_stack) + len(self.play_stack) <= 1:
             raise CannotDraw("Not enough cards on the board to draw. Please play a card")
+
+
+    def draw(self):
+        self.assert_can_draw()
         if not self.draw_stack and len(self.play_stack) > 1:
             top_card = self.play_stack.pop()
             shuffle(self.play_stack)
