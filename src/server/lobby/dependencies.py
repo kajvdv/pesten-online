@@ -144,6 +144,9 @@ async def connect_ais(lobby: Lobby, ai_count):
     
     def done_callback(task: asyncio.Task):
         # Make sure everything closes if one AI stops
+        execption = task.exception()
+        if execption:
+            logger.error(f"AI returned exception: {execption}")
         if get_lobby_name(lobby) not in get_lobbies():
             # Lobby is already deleted by another stopped AI
             return

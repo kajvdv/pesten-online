@@ -19,14 +19,24 @@ class GameConnection {
     onReceive(messageHandler, errorHandler) {
         this.websocket.addEventListener('message', event => {
             const data = JSON.parse(event.data)
-            console.log(data)
             if ('error' in data) {
                 errorHandler(data.error)
-                console.log(data.error)
             } else {
+                errorHandler("")
                 messageHandler(data)
             }
         })
+        this.websocket.addEventListener("close", event => {
+            errorHandler("Lost connection with the server")
+            console.log('close', event)
+        })
+        this.websocket.addEventListener('open', event => {
+            console.log("Opening websocket")
+        })
+    }
+
+    close() {
+        this.websocket.close()
     }
 
     send(index) {

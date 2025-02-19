@@ -17,12 +17,14 @@ from server.auth import router as router_auth
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from server.lobby.dependencies import get_lobbies, Player, AIConnection, NullConnection, Lobby, Pesten, card, connect_ais
+
+    lobby_name = "jokers"
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
-    lobby_name = "met regels"
-    get_lobbies()['jokers'] = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {}), 'admin')
-    asyncio.create_task(get_lobbies()['jokers'].connect(Player(f'admin', NullConnection())))
-    asyncio.create_task(get_lobbies()['jokers'].connect(Player(f'test AI1', AIConnection(get_lobbies()['jokers'].game, 1))))
+    game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {}), 'admin')
+    get_lobbies()[lobby_name] = game
+    asyncio.create_task(game.connect(Player(f'admin', NullConnection())))
+    asyncio.create_task(connect_ais(game, 1))
     game = Lobby(Pesten(2, 8, cards, {
         9: 'change_suit',
         0: 'draw_card',
@@ -30,6 +32,8 @@ async def lifespan(app: FastAPI):
         6: 'skip_turn',
         12: 'reverse_order',
     }), 'admin')
+
+    lobby_name = "met regels"
     get_lobbies()[lobby_name] = game
     asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'admin', NullConnection())))
     asyncio.create_task(connect_ais(game, 1))
@@ -58,7 +62,9 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan
+)
 # Secure endpoints with Depends(get_current_user)
 app.include_router(router_auth)
 app.include_router(

@@ -141,7 +141,6 @@ class Lobby:
                 logger.info(f"{new_player.name} successfully played a choose")
             except CannotDraw as e:
                 logger.error("Cannot draw")
-                raise Exception("Cannot draw") from e
             except NullClosing as e:
                 logger.debug("Null connection closing")
                 run = False
@@ -195,7 +194,7 @@ class Lobby:
         if self.game.has_won:
             logger.info(f"{name} has won the game!")
             self.update_boards(f"{name} has won the game!")
-            connections = map(lambda player: player.connection, self.players)
-            await asyncio.gather(*[conn.close() for conn in connections])
+            # connections = map(lambda player: player.connection, self.players)
+            # await asyncio.gather(*[conn.close() for conn in connections])
         else:
             self.update_boards(message="")
