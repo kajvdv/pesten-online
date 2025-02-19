@@ -204,4 +204,33 @@ def test_play_game_against_ai(
         board = connection.receive_json()
         assert board['message']
 
+
+class ErrorAIOverride(GameFactoryOverride):
+    def create_game(self, size, rules, joker_count, user):
+        return Lobby(Pesten(2, 1, [0, 0, 0, 14]), user)
+
+def test_ai_throws_error(
+        client: TestClient,
+        jwt_token_testuser1
+):
+    client.app.dependency_overrides[GameFactory] = ErrorAIOverride
+    lobby_id = "testlobby"
+    response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1})
+    assert response.status_code < 300
+
+    connection = client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}')
+    with connection:
+        board = connection.receive_json()
+        connection.send_text("-1")
+        board = connection.receive_json()
+        logger.info(board)
     
+
+def test_get_rules(client: TestClient):
+    lobby_id = "testlobby"
+    response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1, 'two': "testRule"})
+    assert response.status_code < 300, response.text
+
+    response = client.get(f"lobbies/{lobby_id}/rules")
+    assert response.status_code < 300
+    assert response.json()['two'] == 'testRule'

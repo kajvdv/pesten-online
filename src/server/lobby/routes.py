@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, Form
 
 from server.auth import get_current_user
 
-from .schemas import LobbyCreate, LobbyResponse
-from .dependencies import Lobbies, Connector, HumanConnection
+from .schemas import LobbyCreate, LobbyResponse, Card
+from .dependencies import Lobbies, Connector, HumanConnection, get_lobbies as fetch_lobbies
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,13 @@ async def delete_lobby(
         lobbies_crud: Lobbies = Depends(),
 ):
     return lobbies_crud.delete_lobby(id)
+
+
+@router.get('/{lobby_id}/rules')
+def get_lobby_rules(lobby_id, lobbies = Depends(fetch_lobbies)):
+    lobby = lobbies[lobby_id]
+    assert lobby
+    return {Card.from_int(value).value: rule for value, rule in lobby.game.rules.items()}
 
 
 @router.websocket("/connect")

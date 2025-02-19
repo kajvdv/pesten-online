@@ -1,4 +1,4 @@
-import { Children, useEffect, useRef, useState } from "react"
+import { useMemo, useEffect, useRef, useState } from "react"
 import "./styles.css"
 import "./cards.css"
 import server, {getUser, connect} from "../server"
@@ -57,11 +57,18 @@ function useUser() {
 function useConnection(lobby_id, onMessage, onError) {
     const serverConnection = useRef()
     useEffect(() => {
+        console.log("Mounting useConnection")
         connect(lobby_id)
             .then(connection => {
                 connection.onReceive(onMessage, onError)
                 serverConnection.current = connection
             })
+        return _ => {
+            console.log("Cleaning up websocket")
+            if (!serverConnection.current) return
+            console.log("Calling close")
+            serverConnection.current.close()
+        }
     }, [])
 
     function playCard(index) {
@@ -72,6 +79,7 @@ function useConnection(lobby_id, onMessage, onError) {
         console.log('drawing')
         serverConnection.current.send(-1)
     }
+
     return [playCard, drawCard]
 }
 
@@ -100,6 +108,48 @@ function ErrorModal({visible, error}) {
 }
 
 
+function getGameName() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('lobby_id');
+}
+
+
+function Rule({cardValue, rule}) {
+    return (
+        <div className="rule">
+            <Card card={{value: cardValue, suit: 'diamonds'}}/>
+            <div className="rule-description">{rule.replace('_', " ")}</div>
+        </div>
+    )
+}
+
+
+function RuleShower() {
+    const [extend, setExtend] = useState(false)
+    const [rules, setRules] = useState({})
+    const gameName = useMemo(getGameName, [])
+
+    useEffect(_ => {
+        server.get(`/lobbies/${gameName}/rules`)
+            .then(response => {
+                setRules(response.data)
+            })
+    }, [])
+
+    return (
+        <div className={"drawer" + (extend ? " extend" : "")}>
+            <div className="handle">
+                <img src="arrows-reverse.png" style={{"display": !extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+                <img src="arrows.png" style={{"display": extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+            </div>
+            <div className="drawer-container">
+                {Object.entries(rules).map(([cardValue, rule]) => <Rule cardValue={cardValue} rule={rule}/>)}
+            </div>
+        </div>
+    )
+}
+
+
 function GamePage() {
     const params = new URLSearchParams(window.location.search)
     const lobby_id = params.get("lobby_id")
@@ -111,13 +161,19 @@ function GamePage() {
     const [otherHandCounts, setOtherHandCounts] = useState({})
 
     useEffect(_ => {
+        setShowError(error != "")
         if (error == '') return
-        setShowError(true)
+        if (error.includes("Lost connection")) return
         setTimeout(_ => {
-            setShowError(false)
             setError("")
         }, 2000)
     }, [error])
+
+    const gameWon = game?.message.includes('has won the game')
+    useEffect(() => {
+        if (!gameWon) return
+        setError("")
+    }, [gameWon])
 
     let otherHands = {...game?.otherPlayers} || {'': 0}
     delete otherHands[user]
@@ -163,7 +219,7 @@ function GamePage() {
         <div className="board">
             <div id="nameplate">
                 <div className="board-message">{game?.message}</div>
-                {game?.message.includes('has won the game') ? <a href='/lobbies'>Go back to lobbies</a> : null}
+                {gameWon ? <a href='/lobbies'>Go back to lobbies</a> : null}
             </div>
             {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
                 <div className="player-name">{hand[0]}</div>
@@ -185,7 +241,8 @@ function GamePage() {
                 </div>
             </div>
             <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
-            <ErrorModal visible={showError} error={error}/>
+            <ErrorModal visible={showError && !gameWon} error={error}/>
+            <RuleShower/>
         </div>
     )
 }
