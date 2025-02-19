@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const accessToken = sessionStorage.getItem("accessToken")
+
+const accessToken = import.meta.env.DEV ? import.meta.env.VITE_DEV_TOKEN : sessionStorage.getItem("accessToken")
+if (accessToken) {
+    sessionStorage.setItem("accessToken", accessToken)
+}
 
 const server = axios.create({
     baseURL: '/api',
