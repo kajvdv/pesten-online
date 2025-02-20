@@ -5,6 +5,7 @@ Players can create new games using the post endpoint, to which they can connect 
 """
 import asyncio
 import random
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,7 +13,6 @@ from fastapi.responses import RedirectResponse
 
 from server.lobby.routes import router as router_lobby
 from server.auth import router as router_auth
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    lifespan=lifespan
+    lifespan=lifespan if "--init-lobbies" in sys.argv else None
 )
 # Secure endpoints with Depends(get_current_user)
 app.include_router(router_auth)
