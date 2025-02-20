@@ -413,6 +413,7 @@ body {
     flex-direction: column;
     overflow-y: scroll;
     padding: 20px 0;
+    box-sizing: border-box;
 }
 /* The 3 px here should be the same as the one in .rule .card */
 .rule {
