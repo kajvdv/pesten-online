@@ -32,9 +32,7 @@ class CannotDraw(Exception):
 
 
 class Pesten:
-    #TODO move all changeSuit logic to rule function 
     def __init__(self, player_count: int, hand_count, cards: list, rules: dict = {}) -> None:
-        # I dont't like current players and curr_hand being in diffirent places
         self.player_count = player_count
         self.current_player = 0
         self.draw_stack = cards
@@ -51,11 +49,19 @@ class Pesten:
                 hand.append(self.draw_stack.pop())
         self.has_won = False
         self.asking_suit = False
+        self.enable_logging = False
+        self.logs = []
 
     
     def assert_can_draw(self):
         if len(self.draw_stack) + len(self.play_stack) <= 1:
             raise CannotDraw("Not enough cards on the board to draw. Please play a card")
+
+    
+    def log(self, message):
+        if not self.enable_logging:
+            return
+        self.logs.append([self.current_player, message])
 
 
     def draw(self):
@@ -66,7 +72,7 @@ class Pesten:
             while self.play_stack:
                 card = self.play_stack.pop()
                 if card >= 52:
-                    # These were added when choosing suit. Don't put back
+                    # These were added when choosing suit. Don't put back in draw stack
                     continue
                 self.draw_stack.append(card)
             self.play_stack.append(top_card)
@@ -74,19 +80,28 @@ class Pesten:
 
 
     def check(self, choose):
-        # TODO: Check if the choose is a special card and a last one
         played_card = self.curr_hand[choose]
         top_card = self.play_stack[-1]
         if played_card == BLACK_JOKER or played_card == RED_JOKER or top_card == BLACK_JOKER or top_card == RED_JOKER:
             return True
         suit_top_card = (top_card // 13) % 4 # There should only be 52 cards with 51 being the highest
-        return played_card // 13 == suit_top_card or played_card % 13 == top_card % 13
+        can_play = played_card // 13 == suit_top_card or played_card % 13 == top_card % 13
+        if can_play:
+            self.log(f"Choose {choose}")
+        # Not allowed to end with special card
+        #TODO: Make this configurable
+        is_special = (played_card % 13) in self.rules
+        if is_special and len(self.current_hand()) == 1:
+            self.log("Can't end with rule card")
+            return False
+        return can_play
 
 
     def play(self, choose):
         self.play_stack.append(self.curr_hand.pop(choose))
         if not self.curr_hand:
-            self.has_won = True 
+            self.log("The game was won!")
+            self.has_won = True
 
 
     def next(self):
@@ -97,11 +112,18 @@ class Pesten:
         else:
             self.current_player -= 1
         self.current_player += self.player_count # Make sure it is a positive number
-        self.current_player %= self.player_count
+        self.current_player %= self.player_count # before modding
         self.curr_hand = self.hands[self.current_player]
+
+
+    def resolve_rule(self, choose):
+        value_choose = self.curr_hand[choose]
+        if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
+            value_choose = value_choose % 13
+        return self.rules.get(value_choose, None)
         
 
-    def play_turn(self, choose) -> int:
+    def _play_turn(self, choose) -> int:
         # Returns index player who's next turn will come from.
         # If choose is negative it will draw a card
 
@@ -117,6 +139,7 @@ class Pesten:
             self.chosen_suit = choose
             value_card = self.play_stack[-1] % 13
             suit_card = 52 + choose * 13 + value_card
+            self.log(f"Suit choosen: {SUITS[choose]}")
             self.play_stack.append(suit_card) # Will be removed on reshuffling deck
             self.next()
             self.asking_suit = False
@@ -125,38 +148,34 @@ class Pesten:
 
         if self.draw_count > 0:
             if choose < 0:
+                self.log(f"Has to draw {self.draw_count}")
                 for _ in range(self.draw_count):
                     self.draw()
                 self.draw_count = 0
                 return self.current_player
-            value_choose = self.curr_hand[choose]
-            if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
-                value_choose = value_choose % 13
-            rule = self.rules.get(value_choose, None)
+            rule = self.resolve_rule(choose)
             if rule != 'draw_card' or not self.check(choose):
                 return self.current_player
+            self.log("Countered with another draw card")
             # Continue as normal because I'm sure it will enter the draw_card if-block later
 
         if choose < 0:
+            self.log("Drawing card")
             self.draw()
             self.next()
             return int(self.current_player)
 
-        
         if choose < len(self.curr_hand):
-            value_choose = self.curr_hand[choose]
-            if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
-                value_choose = value_choose % 13
-            rule = self.rules.get(value_choose, None)
+            rule = self.resolve_rule(choose)
             if rule == 'another_turn':
                 if self.check(choose):
-                    logger.debug('another turn')
+                    self.log("Another turn")
                     self.play(choose)
                 return self.current_player
             
             if rule == 'skip_turn':
                 if self.check(choose):
-                    logger.debug('skip turn')
+                    self.log('skip turn')
                     self.play(choose)
                     self.next()
                     self.next()
@@ -164,7 +183,7 @@ class Pesten:
             
             if rule == 'reverse_order':
                 if self.check(choose):
-                    logger.debug('reverse order')
+                    self.log('reverse order')
                     self.play(choose)
                     self.reverse = not self.reverse
                     self.next()
@@ -172,28 +191,33 @@ class Pesten:
 
             if rule == 'draw_card':
                 if self.check(choose):
-                    logger.debug('draw card')
                     self.play(choose)
                     # self.drawing = True
                     self.draw_count += 2
+                    self.log(f'draw card. counter: {self.draw_count}')
                     self.next()
                 return self.current_player
 
             if rule == 'change_suit':
                 if self.check(choose):
-                    logger.debug('Change suit')
+                    self.log('Change suit')
                     self.play(choose)
                     self.asking_suit = True
                 return self.current_player
                 
             # default play
-            logger.debug("Default play")
             if self.check(choose):
+                self.log("Default play")
                 self.play(choose)       
                 self.next()
             return self.current_player
         return self.current_player
     
+    def play_turn(self, choose) -> int:
+        self.enable_logging = True # Makes sure logs are only added by this function
+        current_player = self._play_turn(choose)
+        self.enable_logging = False
+        return current_player
 
     def current_hand(self):
-        return self.hands[self.current_hand]
+        return self.hands[self.current_player]
