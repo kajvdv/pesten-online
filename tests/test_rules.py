@@ -1,3 +1,4 @@
+import logging
 import pytest
 
 from pesten.pesten import Pesten
@@ -10,6 +11,8 @@ from pesten.rules import (
     reverseOrder,
     changeSuit,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
@@ -63,3 +66,12 @@ def test_change_suit_on_change_suit():
     assert game.play_turn(1) == 1
     assert game.play_turn(0) == 2
     assert game.play_turn(0) == 3
+
+
+def test_dont_end_with_special_card():
+    game = Pesten(2, 2, [0,0,0,0,0,0], {0: ""})
+    assert game.play_turn(0) == 1
+    assert game.play_turn(0) == 0
+    assert game.play_turn(0) == 0
+    assert game.logs[-1] == [0, "Can't end with rule card"]
+    

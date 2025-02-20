@@ -38,7 +38,7 @@ def get_db_override():
 
 
 class GameFactoryOverride(GameFactory):
-    def create_game(self, size, rules, user):
+    def create_game(self, size, rules, joker_count, user):
         game = Pesten(2, 1, [
             card(0, 0),
             card(0, 0),
@@ -71,6 +71,7 @@ def jwt_token_testuser2():
 @pytest.fixture
 def client(jwt_token_testuser1):
     from server.database import Base
+    app.dependency_overrides = {}
     app.dependency_overrides[get_db] = get_db_override
     test_client = TestClient(app)
     test_client.headers['Authorization'] = f"Bearer {jwt_token_testuser1}"
@@ -228,9 +229,9 @@ def test_ai_throws_error(
 
 def test_get_rules(client: TestClient):
     lobby_id = "testlobby"
-    response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1, 'two': "testRule"})
+    response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1, 'jack': "testRule"})
     assert response.status_code < 300, response.text
 
     response = client.get(f"lobbies/{lobby_id}/rules")
     assert response.status_code < 300
-    assert response.json()['two'] == 'testRule'
+    assert response.json()['jack'] == 'testRule'
