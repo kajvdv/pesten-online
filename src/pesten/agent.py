@@ -1,6 +1,6 @@
 import logging
 
-from pesten.pesten import Pesten
+from pesten.pesten import Pesten, CannotDraw
 
 
 logger = logging.getLogger(__name__)
@@ -45,13 +45,15 @@ class Agent:
             choose = 0
         elif game.drawing:
             choose = -1
-        choose = self.generate_choose(game)
         try:
+            choose = self.generate_choose(game)
             topcard = game.play_stack[-1]
             index_next_player = game.play_turn(choose)
             if not game.has_won and index_next_player == self.player_index and topcard == game.play_stack[-1]:
                 # If the turn stays the same and the topcard the same then the choose was not good
                 raise AgentError("Wrong choose generated")
+        except CannotDraw as e:
+            raise AgentError from e
         except AgentError as e:
             raise e
         except Exception as e:

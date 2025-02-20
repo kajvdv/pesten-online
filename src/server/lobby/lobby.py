@@ -4,7 +4,7 @@ from typing import Protocol
 import json
 
 from pesten.pesten import Pesten, CannotDraw
-from pesten.agent import Agent
+from pesten.agent import Agent, AgentError
 
 from .schemas import Board, Card
 
@@ -131,22 +131,25 @@ class Lobby:
             self.started = True
         await new_player.connection.accept() # Accept as late as possible
         self.update_boards(message=f"{name} joined the game")
-        run = True
-        while run:
+        self.run = True
+        # break-statements only make sure that the current connection stops
+        while self.run:
             try:
                 choose = await connection.receive_text()
                 logger.debug(f"{new_player.name} choose {choose}")
                 await self.play_choose(new_player, choose)
-                run = not self.game.has_won
+                self.run = not self.game.has_won # Stop all connections if game was won
                 logger.info(f"{new_player.name} successfully played a choose")
+            except AgentError as e:
+                self.run = False # Stop all connection when AI has error
             except CannotDraw as e:
                 logger.error("Cannot draw")
             except NullClosing as e:
                 logger.debug("Null connection closing")
-                run = False
+                break
             except Exception as e:
                 logger.error(f"Error in the connection: {e}")
-                run = False
+                break
         logger.info(f"{new_player.name} exited its gameloop")
 
     
@@ -194,7 +197,7 @@ class Lobby:
         if self.game.has_won:
             logger.info(f"{name} has won the game!")
             self.update_boards(f"{name} has won the game!")
-            # connections = map(lambda player: player.connection, self.players)
-            # await asyncio.gather(*[conn.close() for conn in connections])
+            connections = map(lambda player: player.connection, self.players)
+            await asyncio.gather(*[conn.close() for conn in connections])
         else:
             self.update_boards(message="")
