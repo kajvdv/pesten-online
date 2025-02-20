@@ -42,7 +42,7 @@ def test_reverse_order():
     assert game.current_player == 3
 
 def test_draw_cards():
-    game = Pesten(4, 2, [0,0,0,0,0,0,0,0,0,0,], {0: 'draw_card'})
+    game = Pesten(4, 2, [0,0,0,0,0,0,0,0,0,0,], {0: 'draw_card-2'})
     game.play_turn(0)
     game.play_turn(-1)
     assert len(game.hands[game.current_player]) == 4

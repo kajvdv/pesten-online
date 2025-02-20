@@ -150,11 +150,15 @@ class Pesten:
             if choose < 0:
                 self.log(f"Has to draw {self.draw_count}")
                 for _ in range(self.draw_count):
-                    self.draw()
+                    try:
+                        self.draw()
+                    except CannotDraw:
+                        self.log(f"Not enough cards to draw {self.draw_count}")
+                        break
                 self.draw_count = 0
                 return self.current_player
             rule = self.resolve_rule(choose)
-            if rule != 'draw_card' or not self.check(choose):
+            if 'draw_card' not in rule or not self.check(choose):
                 return self.current_player
             self.log("Countered with another draw card")
             # Continue as normal because I'm sure it will enter the draw_card if-block later
@@ -189,11 +193,12 @@ class Pesten:
                     self.next()
                 return self.current_player
 
-            if rule == 'draw_card':
+            if 'draw_card' in rule:
                 if self.check(choose):
                     self.play(choose)
                     # self.drawing = True
-                    self.draw_count += 2
+                    _, count = rule.split("-")
+                    self.draw_count += int(count)
                     self.log(f'draw card. counter: {self.draw_count}')
                     self.next()
                 return self.current_player

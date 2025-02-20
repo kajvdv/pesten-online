@@ -36,6 +36,12 @@ class Agent:
             choose = 0
         elif game.draw_count > 0:
             choose = -1
+
+        # Make AI counter if it has draw_card cards
+        if "draw_card" in game.rules[(game.play_stack[-1] % 13)]:
+            for possible_choose in possible_choosese:
+                if "draw_card" in game.resolve_rule(possible_choose):
+                    choose = possible_choose
         return choose
 
     

@@ -12,6 +12,8 @@ const LobbiesContext = createContext();
 
 function RuleMapping({values, defaultValue, onSelect, onDelete}) {
     const [currentValue, setCurrentValue] = useState(defaultValue)
+    const [currentRule, setCurrentRule] = useState("")
+    const [drawCardCount, setDrawCardCount] = useState("2")
 
     return (
         <div className="rule-mapping">
@@ -24,15 +26,16 @@ function RuleMapping({values, defaultValue, onSelect, onDelete}) {
             >
                 {values.map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}
             </select>
-            <select name={currentValue}>
+            <select onChange={value => setCurrentRule(value.target.value)} name={currentValue}>
                 {/* TODO: Change values to ints */}
                 {/* TODO: Dynamically get rules from server */}
                 <option value="another_turn">Nog een keer</option>
-                <option value="draw_card">Kaart pakken</option>
+                <option value={"draw_card" + "-" + drawCardCount}>Kaart pakken</option>
                 <option value="change_suit">Suit uitkiezen</option>
                 <option value="skip_turn">Volgende speler beurt overslaan</option>
                 <option value="reverse_order">Volgorde omdraaien</option>
             </select>
+            {"draw_card" == currentRule.split('-')[0] ? <input onChange={value => setDrawCardCount(value.target.value)} type="number" min={2} defaultValue={2} max={5}></input> : null}
             <button onClick={onDelete} type="button">Delete</button>
         </div>
     )
@@ -272,7 +275,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext);
     const [userName, setUserName] = useState("");
-    const [showModal, setShowModal] = useState(false);
+    const [showModal, setShowModal] = useState(true);
 
     useEffect(() => {
         getUser().then((userName) => setUserName(userName));
