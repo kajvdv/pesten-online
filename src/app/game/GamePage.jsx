@@ -237,7 +237,11 @@ function GamePage() {
             <div className={"hand" + (0 === playerIndex ? " current" : "")}>
                 <div className="player-name">{user}</div>
                 <div className={"player"}>
-                    {game?.hand.map((card, index) => <Card key={card.suit + card.value} card={card} onClick={_ => playCard(index)}/>)}
+                    {game?.hand.map((card, index) => <Card
+                        key={card.value == 'joker' ? card.suit + card.value + index : card.suit + card.value}
+                        card={card}
+                        onClick={_ => playCard(index)}
+                    />)}
                 </div>
             </div>
             <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>

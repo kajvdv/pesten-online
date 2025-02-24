@@ -147,8 +147,8 @@ class Lobby:
             except NullClosing as e:
                 logger.debug("Null connection closing")
                 break
-            except Exception as e:
-                logger.error(f"Error in the connection: {e}")
+            except ConnectionDisconnect as e:
+                logger.error(f"Player disconnected: {e}")
                 break
         logger.info(f"{new_player.name} exited its gameloop")
 
@@ -163,7 +163,13 @@ class Lobby:
                 choose_suit=self.game.asking_suit,
                 draw_count=self.game.draw_count,
                 current_player=self.players[self.game.current_player].name,
-                otherPlayers={player.name: len(self.game.hands[self.players.index(player)]) for player in self.players},
+                otherPlayers={
+                    self.players[i].name
+                    if i < len(self.players)else "": 
+                    len(self.game.hands[i])
+                    if i < len(self.players) else 0
+                    for i in range(self.capacity)
+                },
                 hand=[Card.from_int(card) for card in self.game.hands[player_id]],
                 message=message
             ).model_dump())

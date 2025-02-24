@@ -56,6 +56,7 @@ const VALUES = [
     "queen",
     "king",
     "ace",
+    "joker",
 ]
 
 function RuleMappings({}) {
@@ -275,7 +276,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
 function LobbyList() {
     const lobbies = useContext(LobbiesContext);
     const [userName, setUserName] = useState("");
-    const [showModal, setShowModal] = useState(true);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         getUser().then((userName) => setUserName(userName));

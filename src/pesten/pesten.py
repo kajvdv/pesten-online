@@ -52,6 +52,17 @@ class Pesten:
         self.enable_logging = False
         self.logs = []
 
+
+    def shuffle(self):
+        new_stack = []
+        while len(self.draw_stack) > 1:
+            new_stack.append(self.draw_stack.pop(-1))
+            new_stack.append(self.draw_stack.pop(0))
+        if len(self.draw_stack) == 1:
+            new_stack.append(self.draw_stack.pop())
+        assert not self.draw_stack
+        self.draw_stack = new_stack
+    
     
     def assert_can_draw(self):
         if len(self.draw_stack) + len(self.play_stack) <= 1:
@@ -68,13 +79,14 @@ class Pesten:
         self.assert_can_draw()
         if not self.draw_stack and len(self.play_stack) > 1:
             top_card = self.play_stack.pop()
-            shuffle(self.play_stack)
             while self.play_stack:
                 card = self.play_stack.pop()
-                if card >= 52:
+                if card >= 52 and card != BLACK_JOKER and card != RED_JOKER:
                     # These were added when choosing suit. Don't put back in draw stack
                     continue
                 self.draw_stack.append(card)
+            for _ in range(100):
+                self.shuffle()
             self.play_stack.append(top_card)
         self.curr_hand.append(self.draw_stack.pop())
 
@@ -118,9 +130,9 @@ class Pesten:
 
     def resolve_rule(self, choose):
         value_choose = self.curr_hand[choose]
-        if value_choose != BLACK_JOKER or value_choose != RED_JOKER:
+        if value_choose != BLACK_JOKER and value_choose != RED_JOKER:
             value_choose = value_choose % 13
-        return self.rules.get(value_choose, None)
+        return self.rules.get(value_choose, "")
         
 
     def _play_turn(self, choose) -> int:
@@ -193,7 +205,7 @@ class Pesten:
                     self.next()
                 return self.current_player
 
-            if 'draw_card' in rule:
+            if rule and 'draw_card' in rule:
                 if self.check(choose):
                     self.play(choose)
                     # self.drawing = True
@@ -216,6 +228,7 @@ class Pesten:
                 self.play(choose)       
                 self.next()
             return self.current_player
+        # logger.info("Invalid choose")
         return self.current_player
     
     def play_turn(self, choose) -> int:

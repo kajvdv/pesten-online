@@ -75,6 +75,10 @@ def construct_rules(lobby: LobbyCreate):
 
     if lobby.ace:
         rules[12] = lobby.ace
+    
+    if lobby.joker:
+        rules[77] = lobby.joker
+        rules[78] = lobby.joker
 
     return rules
 
@@ -87,6 +91,12 @@ class GameFactory:
             cards.append(jokers[i%2])
         random.shuffle(cards)
         game = Pesten(size, 8, cards, rules)
+        # game = Pesten(2, 1, [
+        #     card(0, 0),
+        #     card(0, 0),
+        #     card(0, 0),
+        #     card(0, 0),
+        # ])
         new_game = Lobby(game, user)
         return new_game
 
@@ -112,7 +122,7 @@ class HumanConnection:
         try:
             return await self.websocket.receive_text()
         except WebSocketDisconnect as e:
-            raise ConnectionDisconnect(e)
+            raise ConnectionDisconnect from e
 
 
 lobbies: dict[str, Lobby] = {}

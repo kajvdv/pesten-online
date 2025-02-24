@@ -23,6 +23,7 @@ class LobbyCreate(BaseModel):
     queen: str = ""
     king: str = ""
     ace: str = ""
+    joker: str = ""
 
 
 class LobbyResponse(BaseModel):
