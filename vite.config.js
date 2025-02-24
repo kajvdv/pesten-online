@@ -33,14 +33,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '^/lobbies$': {
-        target: "http://localhost:5173",
-        rewrite: path => "/lobbies/index.html"
-      },
-      '/game?lobby_id=': {
-        target: "http://localhost:5173",
-        rewrite: path => "/game/index.html"
-      }
     }
   },
   preview: {
@@ -57,14 +49,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '^/lobbies$': {
-        target: "http://localhost:4173",
-        rewrite: path => "/lobbies/index.html"
-      },
-      '/game?lobby_id=': {
-        target: "http://localhost:4173",
-        rewrite: path => "/game/index.html"
-      }
     }
   },
   plugins: [react()],

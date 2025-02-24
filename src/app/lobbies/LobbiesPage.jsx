@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, createContext, useRef } from "react";
-import "./LobbiesPage.css";
+// import "./LobbiesPage.css";
 import server, { getUser } from "../server";
 import personOutline from "../../../public/9035563_person_outline_icon.svg";
 import personFill from "../../../public/309035_user_account_human_person_icon.svg";

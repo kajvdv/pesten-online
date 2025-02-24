@@ -1,0 +1,84 @@
+@keyframes rotate {
+    to {
+        rotate: 360deg;
+    }
+}
+
+@keyframes anti-rotate {
+    from {
+        rotate: 360deg
+    }
+    to {
+        rotate: 0deg;
+    }
+}
+
+.card-animation1 {
+    animation:  fall1 10s linear infinite, anti-rotate 10s linear infinite;
+    left: 25%;
+}
+
+@keyframes fall1 {
+    from {
+        top: -30vh;
+    }
+
+    to {
+        top: 100vh;
+    }
+}
+
+.card-animation2 {
+    animation:  fall2 10s linear infinite, anti-rotate 5s linear infinite;
+    right: 20%;
+}
+
+@keyframes fall2 {
+    from {
+        top: -13rem;
+    }
+
+    to {
+        top: 110vh;
+    }
+}
+.card-animation3 {
+    animation:  fall3 10s linear infinite, rotate 12s linear infinite;
+    left:15%
+}
+
+@keyframes fall3 {
+    from {
+        top: -12rem;
+    }
+
+    to {
+        top: 120vh;
+    }
+}
+.card-animation4 {
+    animation:  fall4 10s linear infinite, rotate 8s linear infinite;
+}
+
+@keyframes fall4 {
+    from {
+        top: -13rem;
+    }
+
+    to {
+        top: 110vh;
+    }
+}
+.card-animation5 {
+    animation:  fall5 10s linear infinite, rotate 14s linear infinite;
+}
+
+@keyframes fall5 {
+    from {
+        top: -25rem;
+    }
+
+    to {
+        top: 100vh;
+    }
+}

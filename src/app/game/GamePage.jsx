@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from "react"
-import "./styles.css"
+// import "./styles.css"
 import "./cards.css"
 import server, {getUser, connect} from "../server"
 
@@ -216,37 +216,39 @@ function GamePage() {
     ) : game?.topcard ? <Card onClick={() => {}} card={game.topcard}/> : emptySpot
 
     return (
-        <div className="board">
-            <div id="nameplate">
-                <div className="board-message">{game?.message}</div>
-                {gameWon ? <a href='/lobbies'>Go back to lobbies</a> : null}
-            </div>
-            {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
-                <div className="player-name">{hand[0]}</div>
-                <div className={"player"}>
-                    {Array(hand[1]).fill(upsideDown)}
+        <div className="ground">
+            <div className="board">
+                <div id="nameplate">
+                    <div className="board-message">{game?.message}</div>
+                    {gameWon ? <a href='/lobbies'>Go back to lobbies</a> : null}
                 </div>
-            </div>)}
-            <div className={"middle" + (playerIndex > -1 ? " indicator" + playerIndex : "")}>
-                {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
-                {playdeck}
-            </div>
-            {game?.draw_count > 0 ? <div className="draw-counter">
-                {game.draw_count}
-            </div> : null}
-            <div className={"hand" + (0 === playerIndex ? " current" : "")}>
-                <div className="player-name">{user}</div>
-                <div className={"player"}>
-                    {game?.hand.map((card, index) => <Card
-                        key={card.value == 'joker' ? card.suit + card.value + index : card.suit + card.value}
-                        card={card}
-                        onClick={_ => playCard(index)}
-                    />)}
+                {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
+                    <div className="player-name">{hand[0]}</div>
+                    <div className={"player"}>
+                        {Array(hand[1]).fill(upsideDown)}
+                    </div>
+                </div>)}
+                <div className={"middle" + (playerIndex > -1 ? " indicator" + playerIndex : "")}>
+                    {game?.can_draw ? <DrawDeck onClick={drawCard}/> : emptySpot}
+                    {playdeck}
                 </div>
+                {game?.draw_count > 0 ? <div className="draw-counter">
+                    {game.draw_count}
+                </div> : null}
+                <div className={"hand" + (0 === playerIndex ? " current" : "")}>
+                    <div className="player-name">{user}</div>
+                    <div className={"player"}>
+                        {game?.hand.map((card, index) => <Card
+                            key={card.value == 'joker' ? card.suit + card.value + index : card.suit + card.value}
+                            card={card}
+                            onClick={_ => playCard(index)}
+                        />)}
+                    </div>
+                </div>
+                <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
+                <ErrorModal visible={showError && !gameWon} error={error}/>
+                <RuleShower/>
             </div>
-            <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
-            <ErrorModal visible={showError && !gameWon} error={error}/>
-            <RuleShower/>
         </div>
     )
 }
