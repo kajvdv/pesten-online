@@ -1,0 +1,245 @@
+:root {
+    --path-cards: url(../assets/cards.png);
+}
+
+.two_of_hearts {
+    background: var(--path-cards) calc(-110px * 0) 0rem;
+}
+
+.three_of_hearts {
+    background: var(--path-cards) calc(-110px * 1) 0rem;
+}
+
+.four_of_hearts {
+    background: var(--path-cards) calc(-110px * 2) 0rem;
+}
+
+.five_of_hearts {
+    background: var(--path-cards) calc(-110px * 3) 0rem;
+}
+
+.six_of_hearts {
+    background: var(--path-cards) calc(-110px * 4) 0rem;
+}
+
+.seven_of_hearts {
+    background: var(--path-cards) calc(-110px * 5) 0rem;
+}
+
+.eight_of_hearts {
+    background: var(--path-cards) calc(-110px * 6) 0rem;
+}
+
+.nine_of_hearts {
+    background: var(--path-cards) calc(-110px * 7) 0rem;
+}
+
+.ten_of_hearts {
+    background: var(--path-cards) calc(-110px * 8) 0rem;
+}
+
+.jack_of_hearts {
+    background: var(--path-cards) calc(-110px * 9) 0rem;
+}
+
+.queen_of_hearts {
+    background: var(--path-cards) calc(-110px * 10) 0rem;
+}
+
+.king_of_hearts {
+    background: var(--path-cards) calc(-110px * 11) 0rem;
+}
+
+.ace_of_hearts {
+    background: var(--path-cards) calc(-110px * 12) 0rem;
+}
+
+.two_of_diamonds {
+    background: var(--path-cards) calc(-110px * 0) -10rem;
+}
+
+.three_of_diamonds {
+    background: var(--path-cards) calc(-110px * 1) -10rem;
+}
+
+.four_of_diamonds {
+    background: var(--path-cards) calc(-110px * 2) -10rem;
+}
+
+.five_of_diamonds {
+    background: var(--path-cards) calc(-110px * 3) -10rem;
+}
+
+.six_of_diamonds {
+    background: var(--path-cards) calc(-110px * 4) -10rem;
+}
+
+.seven_of_diamonds {
+    background: var(--path-cards) calc(-110px * 5) -10rem;
+}
+
+.eight_of_diamonds {
+    background: var(--path-cards) calc(-110px * 6) -10rem;
+}
+
+.nine_of_diamonds {
+    background: var(--path-cards) calc(-110px * 7) -10rem;
+}
+
+.ten_of_diamonds {
+    background: var(--path-cards) calc(-110px * 8) -10rem;
+}
+
+.jack_of_diamonds {
+    background: var(--path-cards) calc(-110px * 9) -10rem;
+}
+
+.queen_of_diamonds {
+    background: var(--path-cards) calc(-110px * 10) -10rem;
+}
+
+.king_of_diamonds {
+    background: var(--path-cards) calc(-110px * 11) -10rem;
+}
+
+.ace_of_diamonds {
+    background: var(--path-cards) calc(-110px * 12) -10rem;
+}
+
+.two_of_clubs {
+    background: var(--path-cards) calc(-110px * 0) -30rem;
+}
+
+.three_of_clubs {
+    background: var(--path-cards) calc(-110px * 1) -30rem;
+}
+
+.four_of_clubs {
+    background: var(--path-cards) calc(-110px * 2) -30rem;
+}
+
+.five_of_clubs {
+    background: var(--path-cards) calc(-110px * 3) -30rem;
+}
+
+.six_of_clubs {
+    background: var(--path-cards) calc(-110px * 4) -30rem;
+}
+
+.seven_of_clubs {
+    background: var(--path-cards) calc(-110px * 5) -30rem;
+}
+
+.eight_of_clubs {
+    background: var(--path-cards) calc(-110px * 6) -30rem;
+}
+
+.nine_of_clubs {
+    background: var(--path-cards) calc(-110px * 7) -30rem;
+}
+
+.ten_of_clubs {
+    background: var(--path-cards) calc(-110px * 8) -30rem;
+}
+
+.jack_of_clubs {
+    background: var(--path-cards) calc(-110px * 9) -30rem;
+}
+
+.queen_of_clubs {
+    background: var(--path-cards) calc(-110px * 10) -30rem;
+}
+
+.king_of_clubs {
+    background: var(--path-cards) calc(-110px * 11) -30rem;
+}
+
+.ace_of_clubs {
+    background: var(--path-cards) calc(-110px * 12) -30rem;
+}
+
+.two_of_spades {
+    background: var(--path-cards) calc(-110px * 0) -20rem;
+}
+
+.three_of_spades {
+    background: var(--path-cards) calc(-110px * 1) -20rem;
+}
+
+.four_of_spades {
+    background: var(--path-cards) calc(-110px * 2) -20rem;
+}
+
+.five_of_spades {
+    background: var(--path-cards) calc(-110px * 3) -20rem;
+}
+
+.six_of_spades {
+    background: var(--path-cards) calc(-110px * 4) -20rem;
+}
+
+.seven_of_spades {
+    background: var(--path-cards) calc(-110px * 5) -20rem;
+}
+
+.eight_of_spades {
+    background: var(--path-cards) calc(-110px * 6) -20rem;
+}
+
+.nine_of_spades {
+    background: var(--path-cards) calc(-110px * 7) -20rem;
+}
+
+.ten_of_spades {
+    background: var(--path-cards) calc(-110px * 8) -20rem;
+}
+
+.jack_of_spades {
+    background: var(--path-cards) calc(-110px * 9) -20rem;
+}
+
+.queen_of_spades {
+    background: var(--path-cards) calc(-110px * 10) -20rem;
+}
+
+.king_of_spades {
+    background: var(--path-cards) calc(-110px * 11) -20rem;
+}
+
+.ace_of_spades {
+ background: var(--path-cards) calc(-110px * 12) -20rem;
+    
+}
+
+.card-back {
+    background: var(--path-cards) calc(-110px * 0) -40rem;
+}
+
+
+.mirror_of_hearts {
+    background: var(--path-cards) calc(-110px * 13) 0rem;
+    opacity: 0.7;
+}
+
+.mirror_of_diamonds {
+    background: var(--path-cards) calc(-110px * 13) -10rem;
+    opacity: 0.7;
+}
+
+.mirror_of_spades {
+    background: var(--path-cards) calc(-110px * 13) -20rem;
+    opacity: 0.7;
+}
+
+.mirror_of_clubs {
+    background: var(--path-cards) calc(-110px * 13) -30rem;
+    opacity: 0.7;
+}
+
+.joker_of_black {
+    background: var(--path-cards) calc(-110px * 1) -40rem;
+}
+
+.joker_of_red {
+    background: var(--path-cards) calc(-110px * 2) -40rem;
+}

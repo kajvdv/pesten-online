@@ -1,7 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from "react"
-// import "./styles.css"
-import "./cards.css"
-import server, {getUser, connect} from "../server"
+import server, {getUser, connect} from "./server"
 
 
 // class GameConnection {
@@ -36,12 +34,12 @@ const values = {
 
 function Card({card, onClick}) {
     const cardClass = values[card.value.toLowerCase()] + "_of_" + card.suit.toLowerCase()
-    return <img className={"card" + " " + cardClass} onClick={() => onClick(card)} src='/game/cards/null.png'/>
+    return <div className={"card" + " " + cardClass} onClick={() => onClick(card)}/>
 }
 
 
 function DrawDeck({onClick}) {
-    return <img onClick={onClick} className="card card-back drawdeck" src="game/cards/null.png"/>
+    return <div onClick={onClick} className="card card-back drawdeck"/>
 }
 
 
@@ -139,8 +137,8 @@ function RuleShower() {
     return (
         <div className={"drawer" + (extend ? " extend" : "")}>
             <div className="handle">
-                <img src="arrows-reverse.png" style={{"display": !extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
-                <img src="arrows.png" style={{"display": extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+                <img src="/assets/arrows-reverse.png" style={{"display": !extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+                <img src="/assets/arrows.png" style={{"display": extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
             </div>
             <div className="drawer-container">
                 {Object.entries(rules).map(([cardValue, rule]) => <Rule cardValue={cardValue} rule={rule}/>)}
@@ -179,8 +177,8 @@ function GamePage() {
     delete otherHands[user]
     otherHands = Object.entries(otherHands)
 
-    const emptySpot = <img className="card" src="game/cards/null.png" onClick={drawCard}/>
-    const upsideDown = <img className="card card-back" src="game/cards/null.png"/>
+    const emptySpot = <div className="card" onClick={drawCard}/>
+    const upsideDown = <div className="card card-back"/>
 
     let playerIndex = -1
     let ownIndex = -1

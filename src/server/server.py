@@ -17,15 +17,16 @@ from server.auth import router as router_auth
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from server.lobby.dependencies import get_lobbies, Player, AIConnection, NullConnection, Lobby, Pesten, card, connect_ais
+    import random
 
     lobby_name = "jokers"
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
-    game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {}), 'admin')
+    game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {77: 'draw_card-5', 78: 'draw_card-5'}), 'admin')
     get_lobbies()[lobby_name] = game
     asyncio.create_task(game.connect(Player(f'admin', NullConnection())))
     asyncio.create_task(connect_ais(game, 1))
-    game = Lobby(Pesten(2, 8, cards, {
+    game = Lobby(Pesten(4, 8, cards, {
         9: 'change_suit',
         0: 'draw_card-2',
         5: 'another_turn',
@@ -36,7 +37,7 @@ async def lifespan(app: FastAPI):
     lobby_name = "met regels"
     get_lobbies()[lobby_name] = game
     asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'admin', NullConnection())))
-    asyncio.create_task(connect_ais(game, 1))
+    asyncio.create_task(connect_ais(game, 2))
 
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)

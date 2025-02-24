@@ -6,9 +6,10 @@ import {
 } from "react-router-dom";
 import LoginPage from './LoginPage'
 import RegisterPage from './RegisterPage';
-import LobbiesPage from './lobbies/LobbiesPage';
-import GamePage from './game/GamePage';
+import LobbiesPage from './LobbiesPage';
+import GamePage from './GamePage';
 import './styles/main.css'
+import './styles/cards.css'
 
 
 const router = createBrowserRouter([
