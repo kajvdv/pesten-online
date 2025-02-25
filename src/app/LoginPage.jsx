@@ -11,7 +11,7 @@ function LoginPage() {
 
     async function submit(event) {
         event.preventDefault()
-        login(loginForm.current)
+        await login(loginForm.current)
         navigate('/lobbies')
         return
         const response = await server.post("/token", loginForm.current)
