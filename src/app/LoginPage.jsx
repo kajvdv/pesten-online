@@ -1,24 +1,25 @@
 import { useRef, useState, useContext} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 // import './Login.css'
-import server from './server'
+import server, { login } from './server'
 
 function LoginPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const loginForm = useRef()
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
     async function submit(event) {
         event.preventDefault()
+        login(loginForm.current)
+        navigate('/lobbies')
+        return
         const response = await server.post("/token", loginForm.current)
         const {token_type, access_token} = response.data
         const headerField = token_type.toUpperCase() + " " + access_token
         server.defaults.headers.common['Authorization'] = headerField
         sessionStorage.setItem('accessToken', access_token)
         
-        // navigate('/lobbies')
-        window.location.href = '/lobbies'
     }
 
     return (

@@ -1,18 +1,29 @@
 import axios from "axios";
 
 
-const accessToken = ""
+const server = axios.create({baseURL: '/api'})
 
-const server = axios.create({
-    baseURL: '/api',
-    headers: Boolean(accessToken) ? {'Authorization': "BEARER " + accessToken} : {},
-})
+
+server.interceptors.request.use(
+    request => {
+        const token = sessionStorage.getItem("accessToken")
+        if (token) {
+            request.headers.Authorization = "Bearer " + token
+        }
+        return request
+    },
+    error => {
+        return Promise.reject(error)
+    }
+)
 
 
 class GameConnection {
     constructor(lobby_id) {
+        const token = sessionStorage.getItem("accessToken")
+        console.assert(token != "", "Failed to get token")
         this.websocket = new WebSocket(
-            `ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}&token=${accessToken}`,
+            `ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}&token=${token}`,
             
         )
     }
@@ -46,11 +57,9 @@ class GameConnection {
 }
 
 
-async function login(form) {
+export async function login(form) {
     const response = await server.post("/token", form)
     const {token_type, access_token} = response.data
-    const headerField = token_type.toUpperCase() + " " + access_token
-    server.defaults.headers.common['Authorization'] = headerField
     sessionStorage.setItem('accessToken', access_token)
 }
 

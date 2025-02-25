@@ -5,6 +5,7 @@ import personOutline from "./icons/human_outline.svg";
 import personFill from "./icons/human_fill.svg";
 import jokerOutline from "./icons/joker_outline.svg";
 import jokerFill from "./icons/joker_fill.svg";
+import { useNavigate } from "react-router-dom";
 
 
 const LobbiesContext = createContext();
@@ -249,6 +250,7 @@ function LobbiesProvider({ children }) {
 function Lobby({id, size, capacity, creator, user, players}) {
     const lobbies = useContext(LobbiesContext)
     const [deleting, setDeleting] = useState(false)
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (!deleting) return
@@ -257,7 +259,7 @@ function Lobby({id, size, capacity, creator, user, players}) {
     }, [deleting])
 
     function join() {
-        window.location.href = "/game?lobby_id=" + id
+        navigate("/game?lobby_id=" + id)
     }
 
     return <div className="lobby" style={players.includes(user) ? {backgroundColor: 'yellow'} : {}}>
