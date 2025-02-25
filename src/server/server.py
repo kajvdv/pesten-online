@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from server.lobby.routes import router as router_lobby
+from server.lobby.dependencies import Lobbies
 from server.auth import router as router_auth
 from server.admin import router as router_admin
 
@@ -20,13 +21,12 @@ async def lifespan(app: FastAPI):
     from server.lobby.dependencies import get_lobbies, Player, AIConnection, NullConnection, Lobby, Pesten, card, connect_ais
     import random
 
-    lobby_name = "jokers"
+    game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {77: 'draw_card-5', 78: 'draw_card-5'}), 'admin')
+    lobbies_crud = Lobbies('admin', get_lobbies())
+    await lobbies_crud.create_lobby('jokers', 1, game)
+
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
-    game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {77: 'draw_card-5', 78: 'draw_card-5'}), 'admin')
-    get_lobbies()[lobby_name] = game
-    asyncio.create_task(game.connect(Player(f'admin', NullConnection())))
-    asyncio.create_task(connect_ais(game, 1))
     game = Lobby(Pesten(4, 8, cards, {
         9: 'change_suit',
         0: 'draw_card-2',
@@ -34,15 +34,10 @@ async def lifespan(app: FastAPI):
         6: 'skip_turn',
         12: 'reverse_order',
     }), 'admin')
-
-    lobby_name = "met regels"
-    get_lobbies()[lobby_name] = game
-    asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'admin', NullConnection())))
-    asyncio.create_task(connect_ais(game, 3))
+    await lobbies_crud.create_lobby("met regels", 3, game)
 
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
-    lobby_name = "Alleen maar pakken"
     game = Lobby(Pesten(6, 8, cards, {
         0: 'draw_card-3',
         1: 'draw_card-3',
@@ -58,15 +53,14 @@ async def lifespan(app: FastAPI):
         11: 'draw_card-3',
         12: 'draw_card-3',
     }), 'admin')
-    asyncio.create_task(game.connect(Player(f'admin', NullConnection())))
-    get_lobbies()[lobby_name] = game
-    asyncio.create_task(connect_ais(game, 5))
+    await lobbies_crud.create_lobby("Alleen maar pakken", 5, game)
     yield
 
 
 app = FastAPI(
     lifespan=lifespan if "--init-lobbies" in sys.argv else None
 )
+app.debug = True
 # Secure endpoints with Depends(get_current_user)
 app.include_router(router_auth)
 app.include_router(

@@ -4,7 +4,7 @@ import logging
 import json
 import random
 
-from fastapi import Depends, BackgroundTasks, status
+from fastapi import Depends, BackgroundTasks, status, Form
 from fastapi.exceptions import HTTPException
 from fastapi.websockets import WebSocket, WebSocketDisconnect
 
@@ -35,50 +35,50 @@ logger = logging.getLogger('uvicorn.error')
 #     return new_game
 
 
-def construct_rules(lobby: LobbyCreate):
+def construct_rules(lobby_create: LobbyCreate = Form()):
     rules = {}
-    if lobby.two:
-        rules[0] = lobby.two
+    if lobby_create.two:
+        rules[0] = lobby_create.two
 
-    if lobby.three:
-        rules[1] = lobby.three
+    if lobby_create.three:
+        rules[1] = lobby_create.three
 
-    if lobby.four:
-        rules[2] = lobby.four
+    if lobby_create.four:
+        rules[2] = lobby_create.four
 
-    if lobby.five:
-        rules[3] = lobby.five
+    if lobby_create.five:
+        rules[3] = lobby_create.five
 
-    if lobby.six:
-        rules[4] = lobby.six
+    if lobby_create.six:
+        rules[4] = lobby_create.six
 
-    if lobby.seven:
-        rules[5] = lobby.seven
+    if lobby_create.seven:
+        rules[5] = lobby_create.seven
 
-    if lobby.eight:
-        rules[6] = lobby.eight
+    if lobby_create.eight:
+        rules[6] = lobby_create.eight
 
-    if lobby.nine:
-        rules[7] = lobby.nine
+    if lobby_create.nine:
+        rules[7] = lobby_create.nine
 
-    if lobby.ten:
-        rules[8] = lobby.ten
+    if lobby_create.ten:
+        rules[8] = lobby_create.ten
 
-    if lobby.jack:
-        rules[9] = lobby.jack
+    if lobby_create.jack:
+        rules[9] = lobby_create.jack
 
-    if lobby.queen:
-        rules[10] = lobby.queen
+    if lobby_create.queen:
+        rules[10] = lobby_create.queen
 
-    if lobby.king:
-        rules[11] = lobby.king
+    if lobby_create.king:
+        rules[11] = lobby_create.king
 
-    if lobby.ace:
-        rules[12] = lobby.ace
+    if lobby_create.ace:
+        rules[12] = lobby_create.ace
     
-    if lobby.joker:
-        rules[77] = lobby.joker
-        rules[78] = lobby.joker
+    if lobby_create.joker:
+        rules[77] = lobby_create.joker
+        rules[78] = lobby_create.joker
 
     return rules
 
@@ -147,7 +147,7 @@ def delete_lobby(lobby):
     logger.info("Could not find lobby to delete")
 
 ai_tasks = set()
-async def connect_ais(lobby: Lobby, ai_count):
+def connect_ais(lobby: Lobby, ai_count):
     # Important that this function is async, eventhough it is not using await
     # To make it work well when added to BackgroundTasks of Fastapi
     ai_connections = [AIConnection(lobby.game, i+1) for i in range(ai_count)]
@@ -173,16 +173,27 @@ async def connect_ais(lobby: Lobby, ai_count):
         task.add_done_callback(ai_tasks.discard)
 
 
+def create_game(
+        lobby_create: LobbyCreate = Form(),
+        rules = Depends(construct_rules),
+        user: str = Depends(get_current_user)
+):
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    jokers = [77, 78]
+    for i in range(lobby_create.jokerCount):
+        cards.append(jokers[i%2])
+    random.shuffle(cards)
+    game = Pesten(lobby_create.size, 8, cards, rules)
+    new_game = Lobby(game, user)
+    return new_game
+
+
 class Lobbies:
     def __init__(
             self,
-            background_tasks: BackgroundTasks,
             user: str = Depends(get_current_user),
-            game_factory: GameFactory = Depends(),
             lobbies: dict[str, Lobby] = Depends(get_lobbies)
     ):
-        self.game_factory = game_factory
-        self.background_tasks = background_tasks
         self.lobbies = lobbies
         self.user = user
 
@@ -199,19 +210,17 @@ class Lobbies:
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
 
-    def create_lobby(self, lobby_create: LobbyCreate):
+    async def create_lobby(self, lobby_name, ai_count, new_game: Pesten):
         user = self.user
-        if lobby_create.name in self.lobbies:
+        if lobby_name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
-        rules = construct_rules(lobby_create)
-        new_game = self.game_factory.create_game(lobby_create.size, rules, lobby_create.jokerCount, user)
-        self.background_tasks.add_task(new_game.connect, Player(user, NullConnection()))
-        self.lobbies[lobby_create.name] = new_game
-        self.background_tasks.add_task(connect_ais, new_game, lobby_create.aiCount)
-
+        await new_game.connect(Player(user, NullConnection()))
+        self.lobbies[lobby_name] = new_game
+        connect_ais(new_game, ai_count)
+        logger.info(f"New game created: {lobby_name}")
         return {
-            'id': lobby_create.name,
-            'size': 1 + lobby_create.aiCount,
+            'id': lobby_name,
+            'size': 1 + ai_count,
             'capacity': new_game.capacity,
             'creator': user,
             'players': [user],
@@ -226,7 +235,7 @@ class Lobbies:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
         if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
-        for conn in [player.connection for player in lobby.players]:
+        for conn in [player.connection for player in lobby_to_be_deleted.players]:
             asyncio.create_task(conn.close())
         return {
             'id': lobby_name,
@@ -249,6 +258,5 @@ class Connector:
             logger.error(f"Current lobbies: {self.lobbies}")
             return
         player = Player(connection.username, connection)
-        if lobby.started:
-            raise Exception("Lobby is full")
+        logger.info(f"Connecting {connection.username} to {lobby_name}")
         await lobby.connect(player)

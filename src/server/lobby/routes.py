@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Form
 from server.auth import get_current_user
 
 from .schemas import LobbyCreate, LobbyResponse, Card
-from .dependencies import Lobbies, Connector, HumanConnection, get_lobbies as fetch_lobbies
+from .dependencies import Lobbies, Connector, HumanConnection, get_lobbies as fetch_lobbies, create_game
 
 
 logger = logging.getLogger(__name__)
@@ -22,10 +22,11 @@ async def get_lobbies(lobbies_crud: Lobbies = Depends()):
 
 @router.post('', response_model=LobbyResponse)
 async def create_lobby_route(
-        lobby: LobbyCreate = Form(),
+        lobby_create: LobbyCreate = Form(),
         lobbies_crud: Lobbies = Depends(),
+        game = Depends(create_game)
 ):
-    new_lobby = lobbies_crud.create_lobby(lobby)
+    new_lobby = await lobbies_crud.create_lobby(lobby_create.name, lobby_create.aiCount, game)
     return new_lobby
 
 
