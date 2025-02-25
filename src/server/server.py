@@ -13,6 +13,7 @@ from fastapi.responses import RedirectResponse
 
 from server.lobby.routes import router as router_lobby
 from server.auth import router as router_auth
+from server.admin import router as router_admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -72,6 +73,7 @@ app.include_router(
     router_lobby,
     prefix='/lobbies',
 )
+app.include_router(router_admin, prefix='/admin')
 
 
 @app.get('/tasks')
