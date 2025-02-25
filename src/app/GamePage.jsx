@@ -55,16 +55,13 @@ function useUser() {
 function useConnection(lobby_id, onMessage, onError) {
     const serverConnection = useRef()
     useEffect(() => {
-        console.log("Mounting useConnection")
         connect(lobby_id)
             .then(connection => {
                 connection.onReceive(onMessage, onError)
                 serverConnection.current = connection
             })
         return _ => {
-            console.log("Cleaning up websocket")
             if (!serverConnection.current) return
-            console.log("Calling close")
             serverConnection.current.close()
         }
     }, [])
@@ -74,7 +71,6 @@ function useConnection(lobby_id, onMessage, onError) {
     }
 
     function drawCard() {
-        console.log('drawing')
         serverConnection.current.send(-1)
     }
 
@@ -85,7 +81,7 @@ function useConnection(lobby_id, onMessage, onError) {
 function ChooseSuit({visible, onChoose}) {
     
     return (<>
-        <div className={"modal-overlay" + (visible ? " visible" : "")}></div>
+        <div className={"modal-overlay" + (visible ? " choose-suit-modal-visible" : "")}></div>
         {visible ? <div className="choose-suit-modal">
             {['hearts', 'diamonds', 'spades', 'clubs'].map((suit, index) => 
                 <Card onClick={() => onChoose(index)} card={{value: 'mirror', suit: suit}}/>
@@ -243,7 +239,7 @@ function GamePage() {
                         />)}
                     </div>
                 </div>
-                <ChooseSuit visible={game?.choose_suit && ownIndex == playerIndex} onChoose={index => playCard(index)}/>
+                <ChooseSuit visible={game?.choose_suit && playerIndex == 0} onChoose={index => playCard(index)}/>
                 <ErrorModal visible={showError && !gameWon} error={error}/>
                 <RuleShower/>
             </div>
