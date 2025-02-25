@@ -109,9 +109,17 @@ function getGameName() {
 
 
 function Rule({cardValue, rule}) {
+    if (rule.includes('draw_card')) {
+        const [_, count] = rule.split("-")
+        rule = `draw ${count} cards`
+    }
+    let suit = 'diamonds'
+    if (cardValue == 'joker') {
+        suit = 'black'
+    }
     return (
         <div className="rule">
-            <Card card={{value: cardValue, suit: 'diamonds'}}/>
+            <Card card={{value: cardValue, suit: suit}}/>
             <div className="rule-description">{rule.replace('_', " ")}</div>
         </div>
     )
