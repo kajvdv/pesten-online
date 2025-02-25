@@ -194,7 +194,7 @@ class Lobbies:
             'capacity': lobby.capacity,
             'creator': lobby.creator,
             'players': list(map(lambda p: p.name, lobby.players)),
-        } for id, lobby in self.lobbies.items()], key=lambda lobby: lobby['creator'] != user)
+        } for id, lobby in self.lobbies.items() if not lobby.game.has_won], key=lambda lobby: lobby['creator'] != user)
 
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
@@ -226,18 +226,15 @@ class Lobbies:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
         if lobby_to_be_deleted.players[0].name != user:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
-        lobby = lobbies.pop(lobby_name)
         for conn in [player.connection for player in lobby.players]:
             asyncio.create_task(conn.close())
-        to_be_returned = {
+        return {
             'id': lobby_name,
             'size': len(lobby.players),
             'capacity': lobby.capacity,
             'creator': user,
             'players': [p.name for p in lobby.players],
         }
-        del lobby
-        return to_be_returned
 
 
 class Connector:
