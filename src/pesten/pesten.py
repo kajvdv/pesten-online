@@ -31,6 +31,10 @@ class CannotDraw(Exception):
     pass
 
 
+class EndWithSpecialCard(Exception):
+    ...
+
+
 class Pesten:
     def __init__(self, player_count: int, hand_count, cards: list, rules: dict = {}) -> None:
         self.player_count = player_count
@@ -109,7 +113,7 @@ class Pesten:
         is_special = (played_card % 13) in self.rules
         if is_special and len(self.current_hand()) == 1:
             self.log("Can't end with rule card")
-            return False
+            raise EndWithSpecialCard()
         return can_play
 
 

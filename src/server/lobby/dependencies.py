@@ -230,10 +230,10 @@ class Lobbies:
             asyncio.create_task(conn.close())
         return {
             'id': lobby_name,
-            'size': len(lobby.players),
-            'capacity': lobby.capacity,
+            'size': len(lobby_to_be_deleted.players),
+            'capacity': lobby_to_be_deleted.capacity,
             'creator': user,
-            'players': [p.name for p in lobby.players],
+            'players': [p.name for p in lobby_to_be_deleted.players],
         }
 
 
@@ -248,4 +248,7 @@ class Connector:
             logger.error(f"Could not find {lobby_name} in lobbies")
             logger.error(f"Current lobbies: {self.lobbies}")
             return
-        await lobby.connect(Player(connection.username, connection))
+        player = Player(connection.username, connection)
+        if lobby.started:
+            raise Exception("Lobby is full")
+        await lobby.connect(player)

@@ -3,7 +3,7 @@ import logging
 from typing import Protocol
 import json
 
-from pesten.pesten import Pesten, CannotDraw
+from pesten.pesten import Pesten, CannotDraw, EndWithSpecialCard
 from pesten.agent import Agent, AgentError
 
 from .schemas import Board, Card
@@ -109,7 +109,6 @@ class Lobby:
 
 
     async def connect(self, new_player: Player):
-        connection = new_player.connection
         name = new_player.name
         # Creates a gameloop for a connection
         if player := self.get_player_by_name(name):
@@ -122,14 +121,13 @@ class Lobby:
             # player = new_player This instead of the things below?
             index = self.players.index(player)
             self.players[index] = new_player # Replacing the player object
-        elif self.started:
-            raise Exception("Lobby is full")
         else:
             logger.info(f"Adding player {new_player.name} to the lobby")
             self.players.append(new_player)
         if len(self.players) == self.capacity:
             self.started = True
         await new_player.connection.accept() # Accept as late as possible
+        connection = new_player.connection
         self.update_boards(message=f"{name} joined the game")
         self.run = True
         # break-statements only make sure that the current connection stops
@@ -141,9 +139,14 @@ class Lobby:
                 self.run = not self.game.has_won # Stop all connections if game was won
                 logger.info(f"{new_player.name} successfully played a choose")
             except AgentError as e:
+                logger.error(f"Error in AI: {e}")
                 self.run = False # Stop all connection when AI has error
             except CannotDraw as e:
                 logger.error("Cannot draw")
+                await new_player.connection.send_json({"error": "Cannot draw, you have to play a card"})
+            except EndWithSpecialCard as e:
+                logger.error("Player tried to end with special card")
+                await new_player.connection.send_json({"error": "Cannot end with special card"})
             except NullClosing as e:
                 logger.debug("Null connection closing")
                 break
