@@ -55,7 +55,7 @@ def get_token(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
     if not pwd_context.verify(form.password, hashed_password):
         raise invalid_response
     token = jwt.encode(
-        {"sub": form.username, 'exp': datetime.now(timezone.utc) + timedelta(minutes=15)},
+        {"sub": form.username, 'exp': datetime.now(timezone.utc) + timedelta(minutes=120)}, #TODO: Lower to 15
         key=SECRET_KEY,
         algorithm=ALGORITHM
     )
