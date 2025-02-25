@@ -72,7 +72,10 @@ class Pesten:
     def log(self, message):
         if not self.enable_logging:
             return
-        self.logs.append([self.current_player, message])
+        data = [self.current_player, message]
+        if len(self.logs) > 0 and data == self.logs[-1]:
+            return
+        self.logs.append(data)
 
 
     def draw(self):
@@ -102,6 +105,7 @@ class Pesten:
             self.log(f"Choose {choose}")
         # Not allowed to end with special card
         #TODO: Make this configurable
+        #TODO: Joker can by-pass this
         is_special = (played_card % 13) in self.rules
         if is_special and len(self.current_hand()) == 1:
             self.log("Can't end with rule card")
@@ -185,13 +189,13 @@ class Pesten:
             rule = self.resolve_rule(choose)
             if rule == 'another_turn':
                 if self.check(choose):
-                    self.log("Another turn")
+                    self.log(f"Another turn {card_string(self.curr_hand[choose])}")
                     self.play(choose)
                 return self.current_player
             
             if rule == 'skip_turn':
                 if self.check(choose):
-                    self.log('skip turn')
+                    self.log(f'skip turn with {card_string(self.curr_hand[choose])}')
                     self.play(choose)
                     self.next()
                     self.next()
@@ -199,7 +203,7 @@ class Pesten:
             
             if rule == 'reverse_order':
                 if self.check(choose):
-                    self.log('reverse order')
+                    self.log(f'reverse order with {card_string(self.curr_hand[choose])}')
                     self.play(choose)
                     self.reverse = not self.reverse
                     self.next()
@@ -207,24 +211,24 @@ class Pesten:
 
             if rule and 'draw_card' in rule:
                 if self.check(choose):
-                    self.play(choose)
-                    # self.drawing = True
                     _, count = rule.split("-")
                     self.draw_count += int(count)
-                    self.log(f'draw card. counter: {self.draw_count}')
+                    self.log(f'draw card with {card_string(self.curr_hand[choose])}. counter: {self.draw_count}')
+                    self.play(choose)
+                    # self.drawing = True
                     self.next()
                 return self.current_player
 
             if rule == 'change_suit':
                 if self.check(choose):
-                    self.log('Change suit')
+                    self.log(f'changed suit with {card_string(self.curr_hand[choose])}')
                     self.play(choose)
                     self.asking_suit = True
                 return self.current_player
                 
             # default play
             if self.check(choose):
-                self.log("Default play")
+                self.log(f"played {card_string(self.curr_hand[choose])}")
                 self.play(choose)       
                 self.next()
             return self.current_player

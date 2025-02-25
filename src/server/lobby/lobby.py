@@ -199,11 +199,16 @@ class Lobby:
         except ValueError:
             asyncio.create_task(player.connection.send_json({"error": "Invalid choose"}))
             return
+        log_count_before = len(self.game.logs)
         self.game.play_turn(choose)
+        if len(self.game.logs) != log_count_before:
+            message = self.game.logs[-1][1]
+        else:
+            message = ""
         if self.game.has_won:
             logger.info(f"{name} has won the game!")
             self.update_boards(f"{name} has won the game!")
             connections = map(lambda player: player.connection, self.players)
             await asyncio.gather(*[conn.close() for conn in connections])
         else:
-            self.update_boards(message="")
+            self.update_boards(message=message)

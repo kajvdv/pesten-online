@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     lobby_name = "met regels"
     get_lobbies()[lobby_name] = game
     asyncio.create_task(get_lobbies()[lobby_name].connect(Player(f'admin', NullConnection())))
-    asyncio.create_task(connect_ais(game, 2))
+    asyncio.create_task(connect_ais(game, 3))
 
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
