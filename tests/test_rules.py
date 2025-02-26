@@ -1,7 +1,7 @@
 import logging
 import pytest
 
-from pesten.pesten import Pesten
+from pesten.pesten import Pesten, EndWithSpecialCard
 from pesten.game import print_game, deck
 
 from pesten.rules import (
@@ -72,6 +72,6 @@ def test_dont_end_with_special_card():
     game = Pesten(2, 2, [0,0,0,0,0,0], {0: ""})
     assert game.play_turn(0) == 1
     assert game.play_turn(0) == 0
-    assert game.play_turn(0) == 0
-    assert game.logs[-1] == [0, "Can't end with rule card"]
+    with pytest.raises(EndWithSpecialCard):
+        assert game.play_turn(0) == 0
     

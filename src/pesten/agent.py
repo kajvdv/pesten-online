@@ -1,6 +1,6 @@
 import logging
 
-from pesten.pesten import Pesten, CannotDraw
+from pesten.pesten import Pesten, CannotDraw, EndWithSpecialCard
 
 
 logger = logging.getLogger(__name__)
@@ -19,8 +19,11 @@ class Agent:
         card_count = len(game.curr_hand)
         possible_choosese = []
         for possible_choose in range(card_count):
-            if game.check(possible_choose):
-                possible_choosese.append(possible_choose)
+            try:
+                if game.check(possible_choose):
+                    possible_choosese.append(possible_choose)
+            except EndWithSpecialCard:
+                continue
         return possible_choosese
     
 

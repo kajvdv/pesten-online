@@ -56,6 +56,15 @@ def test_agent_full_game():
     logger.info(f"Total amount of turns {turn_counter}")
 
 
+def test_agent_wont_end_with_special_card():
+    from pesten.pesten import Pesten, card
+    from pesten.agent import Agent
+
+    game = Pesten(2, 1, [0,0,0,0,0,0,0,0,0,0], {0: 'some_rule'})
+    agent = Agent(0)
+    game.play_turn(agent.generate_choose(game))
+
+
 @pytest.mark.asyncio
 async def test_two_ais_playing():
     from pesten.pesten import Pesten, card

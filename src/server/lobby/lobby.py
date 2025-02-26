@@ -16,7 +16,7 @@ class ConnectionDisconnect(Exception):
     ...
 
 
-class NullClosing(Exception):
+class ClosingConnection(Exception):
     """This exception will prevent a NullConnection to get stuck in its gameloop inside Lobby.connect"""
     ...
 
@@ -36,7 +36,7 @@ class NullConnection:
     async def send_json(self, data): ...
 
     async def receive_text(self) -> str:
-        raise NullClosing()
+        raise ClosingConnection("Null connection closing")
         
 
 class AIConnection():
@@ -47,6 +47,7 @@ class AIConnection():
         self.delay = delay
         self.messages = []
         self.exit = False
+        self._generator = self.choose_generator()
 
     async def accept(self):
         ...
@@ -68,12 +69,16 @@ class AIConnection():
             #         raise Exception("AI is getting stuck")
             #     self.messages = []
             self.event.set()
+
+    def choose_generator(self):
+        choose = yield
+
     
     async def receive_text(self) -> str:
-        await self.event.wait()
+        await self.event.wait() # Would be nice to get rid of this for not using create_tasks
         self.event.clear()
         if self.exit:
-            raise Exception("Closing AI")
+            raise ClosingConnection("Closing AI after exit")
         choose = self.agent.generate_choose(self.game)
         await asyncio.sleep(self.delay)
         return choose
@@ -144,8 +149,8 @@ class Lobby:
             except EndWithSpecialCard as e:
                 logger.error("Player tried to end with special card")
                 await new_player.connection.send_json({"error": "Cannot end with special card"})
-            except NullClosing as e:
-                logger.debug("Null connection closing")
+            except ClosingConnection as e:
+                logger.debug(e)
                 break
             except ConnectionDisconnect as e:
                 logger.error(f"Player disconnected: {e}")
