@@ -33,3 +33,5 @@ dist-ssr
 .env.test
 keys.txt
 things.txt
+
+data/*

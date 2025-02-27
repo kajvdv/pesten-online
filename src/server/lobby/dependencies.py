@@ -135,45 +135,8 @@ def get_lobby_name(lobby):
             return k
     return None
 
-def delete_lobby(lobby):
-    for conn in [player.connection for player in lobby.players]: # Every gameloop of the lobby should stop when an AI stops
-        asyncio.create_task(conn.close())
 
-    for name, _lobby in get_lobbies().items():
-        if lobby == _lobby:
-            logger.info("Deleting lobbby")
-            get_lobbies().pop(name)
-            return
-    logger.info("Could not find lobby to delete")
-
-ai_tasks = set()
-def connect_ais(lobby: Lobby, ai_count):
-    # Important that this function is async, eventhough it is not using await
-    # To make it work well when added to BackgroundTasks of Fastapi
-    ai_connections = [AIConnection(lobby.game, i+1) for i in range(ai_count)]
-    
-    def done_callback(task: asyncio.Task):
-        # Make sure everything closes if one AI stops
-        execption = task.exception()
-        if execption:
-            logger.error(f"AI returned exception: {execption}")
-        if get_lobby_name(lobby) not in get_lobbies():
-            # Lobby is already deleted by another stopped AI
-            return
-
-        # Closing all connection and deleting lobby
-        delete_lobby(lobby)
-
-    name = get_lobby_name(lobby)
-    for i in range(ai_count):
-        # new_game.connect(Player(f'AI{i+1}', AIConnection(new_game.game, i+1)))
-        task = asyncio.create_task(lobby.connect(Player(f'AI{i+1}', ai_connections[i])), name=f"{name}-AI-{i+1}")
-        ai_tasks.add(task)
-        task.add_done_callback(done_callback)
-        task.add_done_callback(ai_tasks.discard)
-
-
-def create_game(
+def create_game( # Should be create lobby
         lobby_create: LobbyCreate = Form(),
         rules = Depends(construct_rules),
         user: str = Depends(get_current_user)
@@ -184,7 +147,7 @@ def create_game(
         cards.append(jokers[i%2])
     random.shuffle(cards)
     game = Pesten(lobby_create.size, 8, cards, rules)
-    new_game = Lobby(game, user)
+    new_game = Lobby(game, user) # Maybe put this in Lobbies.create_lobby
     return new_game
 
 
@@ -210,23 +173,25 @@ class Lobbies:
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
 
-    async def create_lobby(self, lobby_name, ai_count, new_game: Pesten):
+    async def create_lobby(self, lobby_name, ai_count, lobby: Lobby):
         user = self.user
         if lobby_name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
-        await new_game.connect(Player(user, NullConnection()))
-        self.lobbies[lobby_name] = new_game
-        connect_ais(new_game, ai_count)
+        await lobby.connect(Player(user, NullConnection()))
+        self.lobbies[lobby_name] = lobby
+        for i in range(ai_count):
+            connection = AIConnection(lobby.game, i+1)
+            asyncio.create_task(lobby.connect(Player(f'AI{i+1}', connection)), name=f"{lobby_name}-AI-{i+1}")
         logger.info(f"New game created: {lobby_name}")
         return {
             'id': lobby_name,
             'size': 1 + ai_count,
-            'capacity': new_game.capacity,
+            'capacity': lobby.capacity,
             'creator': user,
             'players': [user],
         }
 
-    def delete_lobby(self, lobby_name):
+    async def delete_lobby(self, lobby_name):
         user = self.user
         try:
             lobby_to_be_deleted = lobbies[lobby_name]
@@ -234,9 +199,13 @@ class Lobbies:
             logger.error(f'Lobby with name of {e} does not exist')
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
         if lobby_to_be_deleted.players[0].name != user:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you") # Contains FastAPI stuff
-        for conn in [player.connection for player in lobby_to_be_deleted.players]:
-            asyncio.create_task(conn.close())
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "This lobby does not belong to you")
+
+        for player in lobby_to_be_deleted.players:
+            await player.connection.close()
+
+        del lobby_to_be_deleted
+        
         return {
             'id': lobby_name,
             'size': len(lobby_to_be_deleted.players),

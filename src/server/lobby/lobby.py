@@ -61,7 +61,7 @@ class AIConnection():
         # logger.debug(f"Received for {self.agent.player_index} : \n{json.dumps(data, indent=2)}")
         if 'error' in data:
             return
-        if self.game.current_player == self.agent.player_index:
+        if self.game.current_player == self.agent.player_index or self.game.has_won:
             # if len(self.messages) < 3:
             #     self.messages.append(data)
             # else:
@@ -115,12 +115,6 @@ class Lobby:
         name = new_player.name
         # Creates a gameloop for a connection
         if player := self.get_player_by_name(name):
-            # Close the existing loop
-            try:
-                await player.connection.close()
-            except Exception as e:
-                logger.error(f"Error while closing a connection of an already joined player: {e}")
-            # player = new_player This instead of the things below?
             index = self.players.index(player)
             self.players[index] = new_player # Replacing the player object
         elif self.started:
@@ -139,21 +133,14 @@ class Lobby:
                 choose = await connection.receive_text()
                 await self.play_choose(new_player, choose)
                 self.run = not self.game.has_won # Stop all connections if game was won
-            
-            except AgentError as e:
-                logger.error(f"Error in AI: {e}")
-                self.run = False # Stop all connection when AI has error
             except CannotDraw as e:
-                logger.error("Cannot draw")
                 await new_player.connection.send_json({"error": "Cannot draw, you have to play a card"})
             except EndWithSpecialCard as e:
                 logger.error("Player tried to end with special card")
                 await new_player.connection.send_json({"error": "Cannot end with special card"})
             except ClosingConnection as e:
-                logger.debug(e)
                 break
             except ConnectionDisconnect as e:
-                logger.error(f"Player disconnected: {e}")
                 break
 
     
@@ -211,7 +198,5 @@ class Lobby:
             message = ""
         if self.game.has_won:
             await self.update_boards(f"{name} has won the game!")
-            for conn in [player.connection for player in self.players]:
-                await conn.close()
         else:
             await self.update_boards(message=message)

@@ -156,7 +156,7 @@ def test_playing_simple_game(
         jwt_token_testuser2: str,
         init_lobby
 ):
-    lobby_id, lobby = init_lobby
+    lobby_id, lobby = init_lobby 
     connections = [
         client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser1}'),
         client.websocket_connect(f'/lobbies/connect?lobby_id={lobby_id}&token={jwt_token_testuser2}')

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # The routes need to be async to make sure that everything is on the same thread
+# Maybe this is not true anymore
 
 @router.get('', response_model=list[LobbyResponse])
 async def get_lobbies(lobbies_crud: Lobbies = Depends()):
@@ -35,7 +36,7 @@ async def delete_lobby(
         id: str,
         lobbies_crud: Lobbies = Depends(),
 ):
-    return lobbies_crud.delete_lobby(id)
+    return await lobbies_crud.delete_lobby(id)
 
 
 @router.get('/{lobby_id}/rules')

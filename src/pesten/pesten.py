@@ -48,13 +48,13 @@ class Pesten:
         self.change_suit_state: Literal["not asked", "asking", "asked"] = "not_asked"
         self.drawing = False
         self.draw_count = 0
-        for _ in range(hand_count):
-            for hand in self.hands:
-                hand.append(self.draw_stack.pop())
         self.has_won = False
         self.asking_suit = False
         self.enable_logging = False
         self.logs = []
+        for _ in range(hand_count):
+            for hand in self.hands:
+                hand.append(self.draw_stack.pop())
 
 
     def shuffle(self):
