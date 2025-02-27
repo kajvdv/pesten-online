@@ -175,7 +175,7 @@ class Lobbies:
     async def create_lobby(self, lobby_name, ai_count, game: Pesten):
         user = self.user
         if lobby_name in self.lobbies:
-            raise HTTPException(status_code=400, detail="Lobby name already exists")
+            raise HTTPException(status_code=400, detail="Lobby name already exists")        
         lobby = Lobby(game, user)
         await lobby.connect(Player(user, NullConnection()))
         self.lobbies[lobby_name] = lobby
@@ -183,7 +183,7 @@ class Lobbies:
             connection = AIConnection(lobby.game, i+1)
             asyncio.create_task(lobby.connect(Player(f'AI{i+1}', connection)), name=f"{lobby_name}-AI-{i+1}")
         logger.info(f"New game created: {lobby_name}")
-        return {
+        return { # Maybe move this to ./route.py
             'id': lobby_name,
             'size': 1 + ai_count,
             'capacity': lobby.capacity,

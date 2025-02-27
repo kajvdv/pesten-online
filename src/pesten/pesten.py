@@ -37,6 +37,7 @@ class EndWithSpecialCard(Exception):
 
 class Pesten:
     def __init__(self, player_count: int, hand_count, cards: list, rules: dict = {}) -> None:
+        self.init_cards = list(cards)
         self.player_count = player_count
         self.current_player = 0
         self.draw_stack = cards

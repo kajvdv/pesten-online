@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     lobbies_dir.mkdir(parents=True, exist_ok=True)
     for lobby_path in lobbies_dir.iterdir():
         with open(lobby_path, 'rb') as file:
-            game, creator, ai_count = pickle.load(file)
+            game, creator, chooses, ai_count = pickle.load(file)
             lobbies_crud = Lobbies(creator, get_lobbies())
             await lobbies_crud.create_lobby(lobby_path.stem, ai_count, game)
 
@@ -36,13 +36,14 @@ async def lifespan(app: FastAPI):
 
     # cards = [card(suit, value) for suit in range(4) for value in range(13)]
     # random.shuffle(cards)
-    # game = Lobby(Pesten(4, 8, cards, {
+    # game = Pesten(4, 8, cards, {
     #     9: 'change_suit',
     #     0: 'draw_card-2',
     #     5: 'another_turn',
     #     6: 'skip_turn',
     #     12: 'reverse_order',
-    # }), 'admin')
+    # })
+    # lobbies_crud = Lobbies('admin', get_lobbies())
     # await lobbies_crud.create_lobby("met regels", 3, game)
 
     # cards = [card(suit, value) for suit in range(4) for value in range(13)]
@@ -70,9 +71,10 @@ async def lifespan(app: FastAPI):
         path = lobbies_dir / f'{name}.pickle'
         game = lobby.game
         creator = lobby.creator
+        chooses = lobby.chooses
         ai_count = len([player.connection for player in lobby.players if type(player.connection) == AIConnection])
         with open(path, 'wb') as file:
-            pickle.dump([game, creator, ai_count], file)
+            pickle.dump([game, creator, chooses, ai_count], file)
 
 
 

@@ -1,3 +1,4 @@
+import pickle
 import logging
 from random import shuffle, seed
 
@@ -83,3 +84,20 @@ def test_reshuffle_on_empty_draw_stack_odd():
 def test_shuffle():
     game = Pesten(2, 2, [1,2,3,4,5,6,7,8,9], {})
     game.shuffle()
+
+
+def test_played_game():
+    with open("tests/met regels.pickle", 'rb') as file:
+        game, _, chooses, _ = pickle.load(file)
+
+    reconstructed_game = Pesten(4, 8, game.init_cards, {
+        9: 'change_suit',
+        0: 'draw_card-2',
+        5: 'another_turn',
+        6: 'skip_turn',
+        12: 'reverse_order',
+    })
+    for choose in chooses:
+        assert not reconstructed_game.has_won
+        reconstructed_game.play_turn(choose)
+    assert reconstructed_game.has_won
