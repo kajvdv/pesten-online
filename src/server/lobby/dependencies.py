@@ -147,8 +147,7 @@ def create_game( # Should be create lobby
         cards.append(jokers[i%2])
     random.shuffle(cards)
     game = Pesten(lobby_create.size, 8, cards, rules)
-    new_game = Lobby(game, user) # Maybe put this in Lobbies.create_lobby
-    return new_game
+    return game
 
 
 class Lobbies:
@@ -173,10 +172,11 @@ class Lobbies:
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
 
-    async def create_lobby(self, lobby_name, ai_count, lobby: Lobby):
+    async def create_lobby(self, lobby_name, ai_count, game: Pesten):
         user = self.user
         if lobby_name in self.lobbies:
             raise HTTPException(status_code=400, detail="Lobby name already exists")
+        lobby = Lobby(game, user)
         await lobby.connect(Player(user, NullConnection()))
         self.lobbies[lobby_name] = lobby
         for i in range(ai_count):

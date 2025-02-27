@@ -28,8 +28,7 @@ async def lifespan(app: FastAPI):
         with open(lobby_path, 'rb') as file:
             game, creator, ai_count = pickle.load(file)
             lobbies_crud = Lobbies(creator, get_lobbies())
-            lobby = Lobby(game, creator)
-            await lobbies_crud.create_lobby(lobby_path.stem, ai_count, lobby)
+            await lobbies_crud.create_lobby(lobby_path.stem, ai_count, game)
 
     # game = Lobby(Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {77: 'draw_card-5', 78: 'draw_card-5'}), 'admin')
     
