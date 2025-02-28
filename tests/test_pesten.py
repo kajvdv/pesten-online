@@ -87,7 +87,7 @@ def test_shuffle():
 
 
 def test_played_game():
-    with open("tests/met regels.pickle", 'rb') as file:
+    with open("tests/testgame.pickle", 'rb') as file:
         game, _, chooses, _ = pickle.load(file)
 
     reconstructed_game = Pesten(4, 8, game.init_cards, {
