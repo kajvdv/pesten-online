@@ -5,7 +5,7 @@ import svgr from "vite-plugin-svgr";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root: './src/app',
+  root: './client',
   envDir: process.cwd(),
   publicDir: resolve(__dirname, 'public'),
   build: {
