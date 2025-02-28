@@ -1,10 +1,10 @@
-import { useContext, useState, useEffect, createContext, useRef } from "react";
+import { useContext, useState, useEffect, createContext, useRef, createElement } from "react";
 // import "./LobbiesPage.css";
 import server, { getUser } from "./server";
-import personOutline from "./icons/human_outline.svg";
-import personFill from "./icons/human_fill.svg";
-import jokerOutline from "./icons/joker_outline.svg";
-import jokerFill from "./icons/joker_fill.svg";
+import PersonOutline from "./icons/human_outline.svg?react";
+import PersonFill from "./icons/human_fill.svg?react";
+import JokerOutline from "./icons/joker_outline.svg?react";
+import JokerFill from "./icons/joker_fill.svg?react";
 import { useNavigate } from "react-router-dom";
 
 
@@ -119,30 +119,32 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
                 type="range"
                 min={min}
                 max={max}
-            />    
-            {Array.from({length: hoover}).map((_, index) => <img
-                className="icon-person-fill"
-                src={iconFill}
-                onMouseOver={event => setHoover(index+1 > min ? index+1 : min)}
-                onClick={ _ => {
-                    const value = index+1 > min ? index+1 : min
-                    setCount(prev => {
-                        if (value == prev) {
-                            setHoover(min)
-                            return min
-                        }
-                        return value
-                    })
-                    if (onSelect) onSelect(value)
-                }}
-                alt="person"
-            />)}
-            {Array.from({length: max - hoover}).map((_, index) => <img
-                className="icon-person-outline"
-                src={iconOutline}
-                onMouseOver={event => setHoover(index+hoover+1)}
-                alt="person"
-            />)}
+            />
+            {Array.from({length: hoover}).map((_, index) => createElement(iconFill,
+                {
+                    className: "icon-person-fill",
+                    onMouseOver: event => setHoover(index+1 > min ? index+1 : min),
+                    onClick: _ => {
+                        const value = index+1 > min ? index+1 : min
+                        setCount(prev => {
+                            if (value == prev) {
+                                setHoover(min)
+                                return min
+                            }
+                            return value
+                        })
+                        if (onSelect) onSelect(value)
+                    },
+                alt: 'fill'
+                }
+            ))}
+            {Array.from({length: max - hoover}).map((_, index) => createElement(iconOutline,
+                {
+                    className: "icon-person-outline",
+                    onMouseOver: event => setHoover(index+hoover+1),
+                    alt: 'outline',
+                }
+            ))}
         </div>
     )
 }
@@ -176,12 +178,12 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
             <label htmlFor="name">Name of game</label>
             <input name="name" type="text" defaultValue={userName + "'s game"}></input>
             <label htmlFor="size">Amount of players</label>
-            <Slider iconOutline={personOutline} iconFill={personFill} name="size" min={2} max={6} onSelect={setPlayerCount}/>
+            <Slider iconOutline={PersonOutline} iconFill={PersonFill} name="size" min={2} max={6} onSelect={setPlayerCount}/>
             <label htmlFor="aiCount">Amount of AI's</label>
             {/* <input name="aiCount" type="number" min="0" max="5" defaultValue={0}></input> */}
-            <Slider iconOutline={personOutline} iconFill={personFill} name="aiCount" min={0} max={playerCount-1}/>
+            <Slider iconOutline={PersonOutline} iconFill={PersonFill} name="aiCount" min={0} max={playerCount-1}/>
             <label htmlFor="jokerCount">Amount of Jokers</label>
-            <Slider iconOutline={jokerOutline} iconFill={jokerFill} name="jokerCount" min={0} max={5}/>
+            <Slider iconOutline={JokerOutline} iconFill={JokerFill} name="jokerCount" min={0} max={5}/>
             <h3>Special Rules</h3>
             <RuleMappings/>
             {error ? <p className="error-message">{error.response.data.detail}</p> : null}
@@ -265,9 +267,9 @@ function Lobby({id, size, capacity, creator, user, players}) {
     return <div className="lobby" style={players.includes(user) ? {backgroundColor: 'yellow'} : {}}>
         <h1 className="lobby-join">{id}</h1>
         <div className="player-icons">
-            {Array.from({length: size}).map(() => <img className="icon-person-fill" src={personFill} alt="person"></img>)}
-            {Array.from({length: capacity - size}).map(() => <img className="icon-person-outline" src={personOutline} alt="person"></img>)}
-            {Array.from({length: 6 - capacity - size}).map(() => <img className="icon-person-outline empty" src={personOutline} alt="person"></img>)}
+            {Array.from({length: size}).map(() => <PersonFill className="icon-person-fill" alt="person"/>)}
+            {Array.from({length: capacity - size}).map(() => <PersonOutline className="icon-person-outline" alt="person"/>)}
+            {Array.from({length: 6 - capacity - size}).map(() => <PersonOutline className="icon-person-outline empty" alt="person"/>)}
         </div>
         <div className="lobby-buttons"></div>
         {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}
