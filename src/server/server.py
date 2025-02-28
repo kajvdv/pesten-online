@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    lifespan=lifespan if "--init-lobbies" in sys.argv else None
+    lifespan=lifespan
 )
 app.debug = True
 # Secure endpoints with Depends(get_current_user)
