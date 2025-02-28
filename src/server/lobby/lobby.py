@@ -47,7 +47,6 @@ class AIConnection():
         self.delay = delay
         self.messages = []
         self.exit = False
-        self._generator = self.choose_generator()
 
     async def accept(self):
         ...
@@ -69,9 +68,6 @@ class AIConnection():
             #         raise Exception("AI is getting stuck")
             #     self.messages = []
             self.event.set()
-
-    def choose_generator(self):
-        choose = yield
 
     
     async def receive_text(self) -> str:
@@ -103,12 +99,10 @@ class Lobby:
         self.creator = creator
         self.game = game
         self.started = False
-        # self.connections: dict[str, Connection] = {}
-        # self.names = [creator]
         self.capacity = game.player_count
-        # self.agents = agents
         self.players: list[Player] = [] # List corresponds with players in pesten game
         self.chooses = []
+        self.run = True
 
 
     async def connect(self, new_player: Player):
@@ -126,7 +120,6 @@ class Lobby:
         await new_player.connection.accept() # Accept as late as possible
         connection = new_player.connection
         await self.update_boards(message=f"{name} joined the game")
-        self.run = True
         # break-statements only make sure that the current connection stops
         while self.run:
             try:
