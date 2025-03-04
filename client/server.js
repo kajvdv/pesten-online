@@ -12,10 +12,26 @@ server.interceptors.request.use(
         }
         return request
     },
-    error => {
-        return Promise.reject(error)
-    }
+    error => Promise.reject(error)
 )
+
+server.interceptors.response.use(response => response, async error => {
+    const config = error.config
+    if (error.response.status == 401 && !config.sent) {
+        config.sent = true
+        const response = await server.post("/refresh")
+        const {token_type, access_token} = response.data
+        if (access_token) {
+            sessionStorage.setItem('accessToken', access_token)
+            config.headers = {
+                ...config.headers,
+                Authorization: "Bearer " + access_token
+            }
+            return server.request(config)
+        }
+    }
+    return Promise.reject(error)
+})
 
 
 class GameConnection {

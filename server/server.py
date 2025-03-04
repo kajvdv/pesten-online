@@ -11,11 +11,11 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, PlainTextResponse
 
 from server.lobby.routes import router as router_lobby
 from server.lobby.dependencies import Lobbies
-from server.auth import router as router_auth
+from server.auth import router as router_auth, ExpiredSignatureError
 from server.admin import router as router_admin
 
 @asynccontextmanager
@@ -90,6 +90,10 @@ app.include_router(
     prefix='/lobbies',
 )
 app.include_router(router_admin, prefix='/admin')
+
+@app.exception_handler(ExpiredSignatureError)
+def handle_expired_auth(request, exc):
+    return PlainTextResponse("Unauthorized", status_code=401)
 
 
 @app.get('/tasks')

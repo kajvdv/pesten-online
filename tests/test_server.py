@@ -21,7 +21,7 @@ from server.lobby.dependencies import GameFactory
 
 
 logger = logging.getLogger(__name__)
-SECRET_KEY = os.environ['SECRET_KEY']
+ACCESS_TOKEN_SECRET = os.environ['ACCESS_TOKEN_SECRET']
 
 
 engine = create_engine(
@@ -52,7 +52,7 @@ class GameFactoryOverride(GameFactory):
 def jwt_token_testuser1():
     token = jwt.encode(
         {"sub": "testuser1", 'exp': datetime.now(timezone.utc) + timedelta(minutes=15)},
-        key=SECRET_KEY,
+        key=ACCESS_TOKEN_SECRET,
         algorithm="HS256"
     )
     return token
@@ -62,7 +62,7 @@ def jwt_token_testuser1():
 def jwt_token_testuser2():
     token = jwt.encode(
         {"sub": "testuser2", 'exp': datetime.now(timezone.utc) + timedelta(minutes=15)},
-        key=SECRET_KEY,
+        key=ACCESS_TOKEN_SECRET,
         algorithm="HS256"
     )
     return token
