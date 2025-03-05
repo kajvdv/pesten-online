@@ -139,7 +139,6 @@ def get_lobby_name(lobby):
 def create_game( # Should be create lobby
         lobby_create: LobbyCreate = Form(),
         rules = Depends(construct_rules),
-        user: str = Depends(get_current_user)
 ):
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     jokers = [77, 78]
@@ -149,7 +148,7 @@ def create_game( # Should be create lobby
     game = Pesten(lobby_create.size, 8, cards, rules)
     return game
 
-
+tasks = set()
 class Lobbies:
     def __init__(
             self,
@@ -181,15 +180,11 @@ class Lobbies:
         self.lobbies[lobby_name] = lobby
         for i in range(ai_count):
             connection = AIConnection(lobby.game, i+1)
-            asyncio.create_task(lobby.connect(Player(f'AI{i+1}', connection)), name=f"{lobby_name}-AI-{i+1}")
+            task = asyncio.create_task(lobby.connect(Player(f'AI{i+1}', connection)), name=f"{lobby_name}-AI-{i+1}")
+            tasks.add(task) # Make sure task is not garbage collected
+            task.add_done_callback(tasks.discard)
         logger.info(f"New game created: {lobby_name}")
-        return { # Maybe move this to ./route.py
-            'id': lobby_name,
-            'size': 1 + ai_count,
-            'capacity': lobby.capacity,
-            'creator': user,
-            'players': [user],
-        }
+        return lobby
 
     async def delete_lobby(self, lobby_name):
         user = self.user

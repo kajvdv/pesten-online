@@ -1,5 +1,6 @@
 import os
 os.environ['ACCESS_TOKEN_SECRET'] = '27d63347d36d97b05669a6ca6c4e9372e78d1e897dcf5debe823db3bde12460d'
+os.environ["REFRESH_TOKEN_SECRET"] = '123'
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool

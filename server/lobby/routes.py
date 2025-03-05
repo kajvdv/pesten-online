@@ -25,10 +25,17 @@ async def get_lobbies(lobbies_crud: Lobbies = Depends()):
 async def create_lobby_route(
         lobby_create: LobbyCreate = Form(),
         lobbies_crud: Lobbies = Depends(),
-        game = Depends(create_game)
+        game = Depends(create_game),
+        user: str = Depends(get_current_user)
 ):
     new_lobby = await lobbies_crud.create_lobby(lobby_create.name, lobby_create.aiCount, game)
-    return new_lobby
+    return {
+        'id': lobby_create.name,
+        'size': 1 + lobby_create.aiCount,
+        'capacity': lobby_create.size,
+        'creator': user,
+        'players': [user],
+    }
 
 
 @router.delete('/{id}', response_model=LobbyResponse)
