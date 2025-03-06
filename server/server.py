@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, PlainTextResponse
 
-from server.lobby.routes import router as router_lobby
+from server.lobby.routes import router as router_lobby, lobbies_create_parameters
 from server.auth import router as router_auth, ExpiredSignatureError
 from server.admin import router as router_admin
 
@@ -24,9 +24,9 @@ async def lifespan(app: FastAPI):
     from server.lobby.dependencies import get_lobbies
     
     lobbies = get_lobbies()
-    await load_lobbies(lobbies)
+    await load_lobbies(lobbies, lobbies_create_parameters)
     yield
-    save_lobbies(lobbies)
+    save_lobbies(lobbies, lobbies_create_parameters)
 
 
 

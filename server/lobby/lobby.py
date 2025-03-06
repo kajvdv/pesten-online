@@ -139,25 +139,30 @@ class Lobby:
     
     async def update_boards(self, message=""):
         for player_id, player in enumerate(self.players):
-            send_coro = player.connection.send_json(Board(
-                topcard=Card.from_int(self.game.play_stack[-1]),
-                previous_topcard=Card.from_int(self.game.play_stack[-2]) if len(self.game.play_stack) > 1 else None,
-                can_draw=bool(self.game.draw_stack),
-                choose_suit=self.game.asking_suit,
-                draw_count=self.game.draw_count,
-                current_player=self.players[self.game.current_player].name,
-                otherPlayers={
-                    self.players[i].name
-                    if i < len(self.players)else "": 
-                    len(self.game.hands[i])
-                    if i < len(self.players) else 0
-                    for i in range(self.capacity)
-                },
-                hand=[Card.from_int(card) for card in self.game.hands[player_id]],
-                message=message
-            ).model_dump())
-            logger.debug(f"Updating {self.players[self.game.current_player].name}'s board")
-            await send_coro
+            try:
+                send_coro = player.connection.send_json(Board(
+                    topcard=Card.from_int(self.game.play_stack[-1]),
+                    previous_topcard=Card.from_int(self.game.play_stack[-2]) if len(self.game.play_stack) > 1 else None,
+                    can_draw=bool(self.game.draw_stack),
+                    choose_suit=self.game.asking_suit,
+                    draw_count=self.game.draw_count,
+                    current_player=self.players[self.game.current_player].name,
+                    otherPlayers={
+                        self.players[i].name
+                        if i < len(self.players)else "": 
+                        len(self.game.hands[i])
+                        if i < len(self.players) else 0
+                        for i in range(self.capacity)
+                    },
+                    hand=[Card.from_int(card) for card in self.game.hands[player_id]],
+                    message=message
+                ).model_dump())
+                logger.debug(f"Updating {self.players[self.game.current_player].name}'s board")
+                await send_coro
+            except IndexError:
+                # the amount of players should be at least the same as the current player index
+                # Fix by having a NullConnection for every inital player
+                continue
 
     
     def get_player_by_name(self, name: str) -> Player:
