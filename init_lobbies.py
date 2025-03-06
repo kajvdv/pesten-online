@@ -19,7 +19,6 @@ async def main(lobbies, lobbies_create_parameters):
     
     # Creating games and adding them to the lobbies list
     game = Pesten(2,2, [77,77,77,77,77,77,77,77,77,77,30,0,], {77: 'draw_card-5', 78: 'draw_card-5'})
-    # lobby = await lobbies_crud.create_lobby('jokers', 1, game)
     lobby_name = "jokers"
     lobby_create = LobbyCreate(
         name=lobby_name,
@@ -27,6 +26,25 @@ async def main(lobbies, lobbies_create_parameters):
         aiCount=1,
         jokerCount=10,
         joker="draw_card-5"
+    )
+    await create_lobby_route(
+        lobby_create,
+        lobbies_crud,
+        game,
+        'admin',
+        lobbies_create_parameters,
+    )
+    lobby = lobbies[lobby_name]
+    for p in lobby.players:
+        await p.connection.close()
+
+    game = Pesten(2,1, [77,77,77,77,77,77,77,77,77,77,])
+    lobby_name = "Winnen"
+    lobby_create = LobbyCreate(
+        name=lobby_name,
+        size=2,
+        aiCount=1,
+        jokerCount=10,
     )
     await create_lobby_route(
         lobby_create,

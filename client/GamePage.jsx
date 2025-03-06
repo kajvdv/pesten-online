@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useRef, useState } from "react"
 import server, {getUser, connect} from "./server"
+import { Link, useNavigate } from "react-router-dom";
 
 
 // class GameConnection {
@@ -152,6 +153,18 @@ function RuleShower() {
 }
 
 
+function GameWon({visible, message}) {
+    return (
+        <>
+            {visible ? <div className="game-won-modal">
+                <p>{message}</p>
+                <Link to="/lobbies">Go back to lobbies</Link>
+            </div> : null}
+        </>
+    )
+}
+
+
 function GamePage() {
     const params = new URLSearchParams(window.location.search)
     const lobby_id = params.get("lobby_id")
@@ -220,10 +233,6 @@ function GamePage() {
     return (
         <div className="ground">
             <div className="board">
-                <div id="nameplate">
-                    <div className="board-message">{game?.message}</div>
-                    {gameWon ? <a href='/lobbies'>Go back to lobbies</a> : null}
-                </div>
                 {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
                     <div className="player-name">{hand[0]}</div>
                     <div className={"player"}>
@@ -247,6 +256,7 @@ function GamePage() {
                         />)}
                     </div>
                 </div>
+                <GameWon visible={gameWon} message={game?.message}/>
                 <ChooseSuit visible={game?.choose_suit && playerIndex == 0} onChoose={index => playCard(index)}/>
                 <ErrorModal visible={showError && !gameWon} error={error}/>
                 <RuleShower/>
