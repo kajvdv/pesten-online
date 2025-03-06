@@ -19,6 +19,7 @@ server.interceptors.response.use(response => response, async error => {
     const config = error.config
     if (error.response.status == 401 && !config.sent) {
         config.sent = true
+        if (config.url == "/refresh") return Promise.reject(error)
         const response = await server.post("/refresh")
         const {token_type, access_token} = response.data
         if (access_token) {

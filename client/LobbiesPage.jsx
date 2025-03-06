@@ -217,6 +217,7 @@ function CreateLobbyModal({ visible, onCancel, userName }) {
 
 function LobbiesProvider({ children }) {
     const [lobbies, setLobbies] = useState([]);
+    const navigate = useNavigate()
 
     async function getLobbies() {
         const response = await server.get("/lobbies");
@@ -234,7 +235,11 @@ function LobbiesProvider({ children }) {
     }
 
     useEffect(() => {
-        getLobbies();
+        getLobbies().catch(error => {
+            if (error.response.status && error.response.status == 401) {
+                navigate('/')
+            }
+        })
     }, []);
 
     return (
