@@ -17,7 +17,7 @@ from server.server import app
 from pesten.pesten import Pesten, card
 from server.database import get_db
 from server.lobby.lobby import Lobby
-from server.lobby.dependencies import GameFactory
+from server.lobby.dependencies import create_game, GameFactory
 
 
 logger = logging.getLogger(__name__)
@@ -76,8 +76,9 @@ def client(jwt_token_testuser1):
     test_client = TestClient(app)
     test_client.headers['Authorization'] = f"Bearer {jwt_token_testuser1}"
     Base.metadata.create_all(engine)
-    with test_client:
-        yield test_client
+    yield test_client
+    # with test_client:
+    #     yield test_client
     Base.metadata.drop_all(engine)
 
 
@@ -193,7 +194,14 @@ def test_play_game_against_ai(
         client: TestClient,
         jwt_token_testuser1: str
 ):
-    client.app.dependency_overrides[GameFactory] = GameFactoryOverride
+    # client.app.dependency_overrides[GameFactory] = GameFactoryOverride
+    game = Pesten(2, 1, [
+        card(0, 0),
+        card(0, 0),
+        card(0, 0),
+        card(0, 0),
+    ])
+    client.app.dependency_overrides[create_game] = lambda: game
     lobby_id = "testlobby"
     response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1})
     assert response.status_code < 300

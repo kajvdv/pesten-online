@@ -135,6 +135,7 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
                         })
                         if (onSelect) onSelect(value)
                     },
+                    onMouseOut: _ => setHoover(count),
                 alt: 'fill'
                 }
             ))}
@@ -142,6 +143,7 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
                 {
                     className: "icon-person-outline",
                     onMouseOver: event => setHoover(index+hoover+1),
+                    onMouseOut: _ => setHoover(count),
                     alt: 'outline',
                 }
             ))}

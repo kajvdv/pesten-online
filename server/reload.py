@@ -36,5 +36,4 @@ async def load_lobbies(lobbies, lobbies_create_parameters):
             lobbies_create_parameters,
         )
         lobby = lobbies[lobby_create.name]
-        print(f"{chooses=}")
         lobby.chooses = chooses
