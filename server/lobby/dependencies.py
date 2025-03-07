@@ -117,6 +117,8 @@ class HumanConnection:
             await self.websocket.send_json(data)
         except WebSocketDisconnect as e:
             raise ConnectionDisconnect(e)
+        except RuntimeError:
+            pass
 
     async def receive_text(self) -> str:
         try:
