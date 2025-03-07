@@ -110,7 +110,10 @@ class HumanConnection:
         await self.websocket.accept()
 
     async def close(self):
-        await self.websocket.close()
+        try:
+            await self.websocket.close()
+        except RuntimeError:
+            pass
 
     async def send_json(self, data):
         try:

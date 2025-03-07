@@ -40,4 +40,7 @@ async def load_lobbies(lobbies, lobbies_create_parameters):
         lobby = lobbies[lobby_create.name]
         lobby.chooses = chooses
         for name in player_names:
+            # This might seem that these NullConnections will override the AIConnections established in create_lobby_route.
+            # However, the connect function of the AIConnection created in create_lobby_route will execute AFTER this coroutine is finished.
+            # These AIConnections will then override these NullConnections and thus putting things back to normal
             await lobby.connect(Player(name, NullConnection()))
