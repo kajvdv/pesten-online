@@ -173,7 +173,6 @@ function GamePage() {
     const [showError, setShowError] = useState(false)
     const [error, setError] = useState("")
     const [playCard, drawCard] = useConnection(lobby_id, setGame, setError)
-    const [otherHandCounts, setOtherHandCounts] = useState({})
 
     useEffect(_ => {
         setShowError(error != "")
@@ -190,12 +189,7 @@ function GamePage() {
         setError("")
     }, [gameWon])
 
-    let otherHands = {...game?.otherPlayers} || {'': 0}
-    delete otherHands[user]
-    otherHands = Object.entries(otherHands)
-
     const emptySpot = <div className="card" onClick={drawCard}/>
-    const upsideDown = <div className="card card-back"/>
 
     let playerIndex = -1
     let ownIndex = -1
@@ -205,6 +199,10 @@ function GamePage() {
         ownIndex = playerNames.indexOf(user)
         playerIndex = (playerIndex - ownIndex + playerNames.length) % playerNames.length
     }
+
+    let otherHands = {...game?.otherPlayers} || {'': 0}
+    delete otherHands[user]
+    otherHands = Object.entries(otherHands)
 
     // Define css-classes for every playercount possibility
     let classNames = []
@@ -233,10 +231,10 @@ function GamePage() {
     return (
         <div className="ground">
             <div className="board">
-                {otherHands.map((hand, index) => <div className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
+                {otherHands.map((hand, index) => <div key={index} className={classNames[index] + (index === playerIndex-1 ? " current" : "")}>
                     <div className="player-name">{hand[0]}</div>
                     <div className={"player"}>
-                        {Array(hand[1]).fill(upsideDown)}
+                        {Array.from({length: hand[1]}).map((_, cardIndex) => <div key={`${index}-${cardIndex}`} className="card card-back"/>)}
                     </div>
                 </div>)}
                 <div className={"middle" + (playerIndex > -1 ? " indicator" + playerIndex : "")}>
@@ -250,7 +248,7 @@ function GamePage() {
                     <div className="player-name">{user}</div>
                     <div className={"player"}>
                         {game?.hand.map((card, index) => <Card
-                            key={card.value == 'joker' ? card.suit + card.value + index : card.suit + card.value}
+                            key={index}
                             card={card}
                             onClick={_ => playCard(index)}
                         />)}

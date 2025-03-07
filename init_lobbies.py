@@ -92,6 +92,27 @@ async def main(lobbies, lobbies_create_parameters):
 
     cards = [card(suit, value) for suit in range(4) for value in range(13)]
     random.shuffle(cards)
+    game = Pesten(4, 8, cards)
+    # lobby = await lobbies_crud.create_lobby("met regels", 3, game)
+    lobby_name = "zonder regels"
+    lobby_create = LobbyCreate(
+        name=lobby_name,
+        size=4,
+        aiCount=3,
+    )
+    await create_lobby_route(
+        lobby_create,
+        lobbies_crud,
+        game,
+        'admin',
+        lobbies_create_parameters,
+    )
+    lobby = lobbies[lobby_name]
+    for p in lobby.players:
+        await p.connection.close()
+
+    cards = [card(suit, value) for suit in range(4) for value in range(13)]
+    random.shuffle(cards)
     game = Pesten(6, 8, cards, {
         0: 'draw_card-3',
         1: 'draw_card-3',

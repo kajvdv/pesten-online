@@ -9,16 +9,8 @@ export default defineConfig({
   envDir: process.cwd(),
   publicDir: resolve(__dirname, 'public'),
   build: {
-    watch: {},
     emptyOutDir: true,
-    outDir: resolve(__dirname, 'dist'),
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'src/app/index.html'),
-        lobbies: resolve(__dirname, 'src/app/lobbies/index.html'),
-        game: resolve(__dirname, 'src/app/game/index.html'),
-      },
-    }
+    outDir: resolve(__dirname, 'dist')
   },
   server: {
     proxy: {
