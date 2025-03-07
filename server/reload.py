@@ -11,6 +11,8 @@ lobbies_dir = Path.cwd() / os.environ.get('LOBBIES_DIR', 'data/lobbies')
 
 def save_lobbies(lobbies, lobbies_create_parameters):
     lobbies_dir.mkdir(parents=True, exist_ok=True)
+    for file in lobbies_dir.iterdir():
+        file.unlink()
     for name, lobby in lobbies.items():
         path = lobbies_dir / f'{name}.pickle'
         game = lobby.game
@@ -37,3 +39,5 @@ async def load_lobbies(lobbies, lobbies_create_parameters):
         )
         lobby = lobbies[lobby_create.name]
         lobby.chooses = chooses
+        for name in player_names:
+            await lobby.connect(Player(name, NullConnection()))
