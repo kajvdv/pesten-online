@@ -161,14 +161,7 @@ class Lobbies:
         self.user = user
 
     def get_lobbies(self):
-        user = self.user
-        return sorted([{
-            'id': id,
-            'size': len(lobby.players),
-            'capacity': lobby.capacity,
-            'creator': lobby.creator,
-            'players': list(map(lambda p: p.name, lobby.players)),
-        } for id, lobby in self.lobbies.items() if not lobby.game.has_won], key=lambda lobby: lobby['creator'] != user)
+        return self.lobbies
 
     def get_lobby(self, lobby_name):
         return self.lobbies[lobby_name]
@@ -192,7 +185,7 @@ class Lobbies:
     async def delete_lobby(self, lobby_name):
         user = self.user
         try:
-            lobby_to_be_deleted = lobbies[lobby_name]
+            lobby_to_be_deleted = lobbies.pop(lobby_name)
         except KeyError as e:
             logger.error(f'Lobby with name of {e} does not exist')
             raise HTTPException(status.HTTP_404_NOT_FOUND, "This lobby does not exists")
@@ -202,15 +195,7 @@ class Lobbies:
         for player in lobby_to_be_deleted.players:
             await player.connection.close()
 
-        return_message = {
-            'id': lobby_name,
-            'size': len(lobby_to_be_deleted.players),
-            'capacity': lobby_to_be_deleted.capacity,
-            'creator': user,
-            'players': [p.name for p in lobby_to_be_deleted.players],
-        }
-        del lobby_to_be_deleted
-        return return_message
+        return lobby_to_be_deleted
         
 
 

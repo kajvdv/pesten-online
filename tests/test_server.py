@@ -168,6 +168,9 @@ def test_create_and_delete_lobby(
 
     response = client.delete(f"/lobbies/{lobby_name}")
     assert response.status_code < 300
+    response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
+    assert len(response.json()) == 0
 
 
 def test_playing_simple_game(

@@ -13,12 +13,17 @@ from .dependencies import Lobbies, Connector, HumanConnection, get_lobbies as fe
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# The routes need to be async to make sure that everything is on the same thread
-# Maybe this is not true anymore
 
 @router.get('', response_model=list[LobbyResponse])
 async def get_lobbies(lobbies_crud: Lobbies = Depends()):
-    return lobbies_crud.get_lobbies()
+    lobbies = lobbies_crud.get_lobbies()
+    return sorted([{
+        'id': id,
+        'size': len(lobby.players),
+        'capacity': lobby.capacity,
+        'creator': lobby.creator,
+        'players': list(map(lambda p: p.name, lobby.players)),
+    } for id, lobby in lobbies.items() if not lobby.game.has_won], key=lambda lobby: lobby['creator'] != lobbies_crud.user)
 
 
 lobbies_create_parameters: dict[str, LobbyCreate] = {}
@@ -49,7 +54,14 @@ async def delete_lobby(
         id: str,
         lobbies_crud: Lobbies = Depends(),
 ):
-    return await lobbies_crud.delete_lobby(id)
+    lobby = await lobbies_crud.delete_lobby(id)
+    return {
+        'id': id,
+        'size': len(lobby.players),
+        'capacity': lobby.capacity,
+        'creator': lobbies_crud.user,
+        'players': [p.name for p in lobby.players],
+    }
 
 
 @router.get('/{lobby_id}/rules')
