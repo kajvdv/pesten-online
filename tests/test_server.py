@@ -151,6 +151,25 @@ def test_create_and_join_game(
         ...
 
 
+def test_create_and_delete_lobby(
+        client: TestClient,
+        jwt_token_testuser1: str,
+        jwt_token_testuser2: str
+):
+    lobby_name = "test_lobby"
+    response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
+    response = client.post("/lobbies", data={"name": lobby_name, "size": 2})
+    assert response.status_code < 300, response.text
+    response = client.get("/lobbies")
+    assert response.status_code < 300, response.text
+    assert len(response.json()) == 1
+    lobby_id = response.json()[0]['id']
+
+    response = client.delete(f"/lobbies/{lobby_name}")
+    assert response.status_code < 300
+
+
 def test_playing_simple_game(
         client: TestClient,
         jwt_token_testuser1: str,

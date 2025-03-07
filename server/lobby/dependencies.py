@@ -202,15 +202,16 @@ class Lobbies:
         for player in lobby_to_be_deleted.players:
             await player.connection.close()
 
-        del lobby_to_be_deleted
-        
-        return {
+        return_message = {
             'id': lobby_name,
             'size': len(lobby_to_be_deleted.players),
             'capacity': lobby_to_be_deleted.capacity,
             'creator': user,
             'players': [p.name for p in lobby_to_be_deleted.players],
         }
+        del lobby_to_be_deleted
+        return return_message
+        
 
 
 class Connector:
