@@ -122,6 +122,7 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
             />
             {Array.from({length: hoover}).map((_, index) => createElement(iconFill,
                 {
+                    key: index,
                     className: "icon-person-fill",
                     onMouseOver: event => setHoover(index+1 > min ? index+1 : min),
                     onClick: _ => {
@@ -141,6 +142,7 @@ function Slider({name, min, max, onSelect, iconFill, iconOutline}) {
             ))}
             {Array.from({length: max - hoover}).map((_, index) => createElement(iconOutline,
                 {
+                    key: index,
                     className: "icon-person-outline",
                     onMouseOver: event => setHoover(index+hoover+1),
                     onMouseOut: _ => setHoover(count),
@@ -274,9 +276,9 @@ function Lobby({id, size, capacity, creator, user, players}) {
     return <div className="lobby" style={players.includes(user) ? {backgroundColor: 'yellow'} : {}}>
         <h1 className="lobby-join">{id}</h1>
         <div className="player-icons">
-            {Array.from({length: size}).map(() => <PersonFill className="icon-person-fill" alt="person"/>)}
-            {Array.from({length: capacity - size}).map(() => <PersonOutline className="icon-person-outline" alt="person"/>)}
-            {Array.from({length: 6 - capacity - size}).map(() => <PersonOutline className="icon-person-outline empty" alt="person"/>)}
+            {Array.from({length: size}).map((_, i) => <PersonFill key={i} className="icon-person-fill" alt="person"/>)}
+            {Array.from({length: capacity - size}).map((_, i) => <PersonOutline key={i} className="icon-person-outline" alt="person"/>)}
+            {Array.from({length: 6 - capacity - size}).map((_, i) => <PersonOutline key={i} className="icon-person-outline empty" alt="person"/>)}
         </div>
         <div className="lobby-buttons"></div>
         {user == creator ? <button className='lobby-delete-button' onClick={() => setDeleting(true)}>{!deleting ? "Delete" : "Deleting..."}</button> : null}

@@ -55,12 +55,12 @@ class GameConnection {
                 messageHandler(data)
             }
         })
+        
         this.websocket.addEventListener("close", event => {
             errorHandler("Lost connection with the server")
-            console.log('close', event)
         })
+
         this.websocket.addEventListener('open', event => {
-            console.log("Opening websocket")
         })
     }
 

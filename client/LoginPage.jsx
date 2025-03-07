@@ -32,11 +32,11 @@ function LoginPage() {
                 <input className='form-button' type="submit" value="Login" />
                 {/* <Link to='register' className="register-link">Register</Link> */}
             </form>
-            <img className='falling-card card-animation1' src='game\cards\3_of_hearts.png'></img>
+            {/* <img className='falling-card card-animation1' src='game\cards\3_of_hearts.png'></img>
             <img className='falling-card card-animation2' src='game\cards\4_of_hearts.png'></img>
             <img className='falling-card card-animation3' src='game\cards\5_of_clubs.png'></img>
             <img className='falling-card card-animation4' src='game\cards\6_of_spades.png'></img>
-            <img className='falling-card card-animation5' src='game\cards\7_of_hearts.png'></img>
+            <img className='falling-card card-animation5' src='game\cards\7_of_hearts.png'></img> */}
         </div>
     )
 }
