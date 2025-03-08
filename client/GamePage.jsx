@@ -1,30 +1,9 @@
 import { useMemo, useEffect, useRef, useState } from "react"
 import server, {getUser, connect} from "./server"
 import { Link, useNavigate } from "react-router-dom";
+import arrowReverse from "./assets/arrows-reverse.png"
+import arrow from "./assets/arrows.png"
 
-
-// class GameConnection {
-//     constructor(lobby_id) {
-//         this.websocket = new WebSocket(`ws://${window.location.host}/api/lobbies/connect?lobby_id=${lobby_id}`)
-//     }
-
-//     onReceive(messageHandler, errorHandler) {
-//         this.websocket.addEventListener('message', event => {
-//             const data = JSON.parse(event.data)
-//             console.log(data)
-//             if ('error' in data) {
-//                 errorHandler(data.error)
-//                 console.log(data.error)
-//             } else {
-//                 messageHandler(data)
-//             }
-//         })
-//     }
-
-//     send(index) {
-//         this.websocket.send(index)
-//     }
-// }
 
 const suits = ["hearts", "diamonds", "clubs", "spades"];
 const values = {
@@ -142,8 +121,8 @@ function RuleShower() {
     return (
         <div className={"drawer" + (extend ? " extend" : "")}>
             <div className="handle">
-                <img src="/assets/arrows-reverse.png" style={{"display": !extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
-                <img src="/assets/arrows.png" style={{"display": extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+                <img src={arrowReverse} style={{"display": !extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
+                <img src={arrow} style={{"display": extend ? "none" : ""}} className="handle" onClick={_ => setExtend(e => !e)}></img>
             </div>
             <div className="drawer-container">
                 {Object.entries(rules).map(([cardValue, rule]) => <Rule cardValue={cardValue} rule={rule}/>)}
