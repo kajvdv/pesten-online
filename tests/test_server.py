@@ -17,7 +17,7 @@ from server.server import app
 from pesten.pesten import Pesten, card
 from server.database import get_db
 from server.lobby.lobby import Lobby
-from server.lobby.dependencies import create_game, GameFactory
+from server.lobby.dependencies import create_game
 
 
 logger = logging.getLogger(__name__)
@@ -35,17 +35,6 @@ engine = create_engine(
 def get_db_override():
     with Session(engine) as db:
         yield db
-
-
-class GameFactoryOverride(GameFactory):
-    def create_game(self, size, rules, joker_count, user):
-        game = Pesten(2, 1, [
-            card(0, 0),
-            card(0, 0),
-            card(0, 0),
-            card(0, 0),
-        ])
-        return Lobby(game, user)
 
 
 @pytest.fixture
@@ -216,7 +205,6 @@ def test_play_game_against_ai(
         client: TestClient,
         jwt_token_testuser1: str
 ):
-    # client.app.dependency_overrides[GameFactory] = GameFactoryOverride
     game = Pesten(2, 1, [
         card(0, 0),
         card(0, 0),
@@ -236,15 +224,10 @@ def test_play_game_against_ai(
         assert board['message']
 
 
-class ErrorAIOverride(GameFactoryOverride):
-    def create_game(self, size, rules, joker_count, user):
-        return Lobby(Pesten(2, 1, [0, 0, 0, 14]), user)
-
 def test_ai_throws_error(
         client: TestClient,
         jwt_token_testuser1
 ):
-    client.app.dependency_overrides[GameFactory] = ErrorAIOverride
     lobby_id = "testlobby"
     response = client.post("/lobbies", data={"name": lobby_id, "size": 2, 'aiCount': 1})
     assert response.status_code < 300

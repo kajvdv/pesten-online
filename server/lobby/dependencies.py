@@ -83,24 +83,6 @@ def construct_rules(lobby_create: LobbyCreate = Form()):
     return rules
 
 
-class GameFactory:
-    def create_game(self, size, rules, jokerCount, user: str):
-        cards = [card(suit, value) for suit in range(4) for value in range(13)]
-        jokers = [77, 78]
-        for i in range(jokerCount):
-            cards.append(jokers[i%2])
-        random.shuffle(cards)
-        game = Pesten(size, 8, cards, rules)
-        # game = Pesten(2, 1, [
-        #     card(0, 0),
-        #     card(0, 0),
-        #     card(0, 0),
-        #     card(0, 0),
-        # ])
-        new_game = Lobby(game, user)
-        return new_game
-
-
 class HumanConnection:
     def __init__(self, websocket: WebSocket, token: str):
         self.username = get_current_user(token)
