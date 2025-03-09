@@ -22,8 +22,10 @@ from server.admin import router as router_admin
 async def lifespan(app: FastAPI):
     from server.reload import save_lobbies, load_lobbies
     from server.lobby.dependencies import get_lobbies
-    
+    from init_lobbies import main
     lobbies = get_lobbies()
+    
+    # await main(lobbies, lobbies_create_parameters)
     await load_lobbies(lobbies, lobbies_create_parameters)
     yield
     save_lobbies(lobbies, lobbies_create_parameters)
